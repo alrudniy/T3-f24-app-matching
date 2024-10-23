@@ -1,0 +1,5 @@
+Flask
+Flask-SQLAlchemy==2.5.1
+Werkzeug
+mariadb
+flask_login
