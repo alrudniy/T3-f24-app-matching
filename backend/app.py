@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import session as flask_session
 
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
@@ -19,12 +20,9 @@ password = 'Hav0nBDwD4uyvcZt'  # Replace with actual password
 engine = sqlalchemy.create_engine( f"mariadb+mariadbconnector://{username}:{password}@34.125.69.91/f24_housing_db" )
 
 Base = declarative_base()
-
 class User(Base):
    __tablename__ = 'user'
-   id = sqlalchemy.Column(sqlalchemy.Integer, 
-                          sqlalchemy.Sequence('user_id_seq', start=1001, increment=1),
-                          primary_key=True)
+   id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
    
 
    username = sqlalchemy.Column(sqlalchemy.String(length=150))
@@ -76,7 +74,7 @@ def login():
         password = request.form['password']
         user = session.query(User).filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
-            session['user_id'] = user.id
+            flask_session['user_id'] = user.id
             return redirect(url_for('pick_a_path'))
         else:
             flash('Invalid username or password', 'error')
@@ -86,7 +84,7 @@ def login():
 def create_account():
     if request.method == 'POST':
         username = request.form['username']
-        password = generate_password_hash(request.form['password'], method='sha256')
+        password = generate_password_hash(request.form['password'], method='pbkdf2:sha256')
         firstname = request.form['firstname']
         lastname = request.form['lastname']
         
