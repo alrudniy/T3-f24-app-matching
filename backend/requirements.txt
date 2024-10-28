@@ -1,5 +1,4 @@
-Flask
+Flask==2.1.2
 Flask-SQLAlchemy==2.5.1
-Werkzeug
+Werkzeug==2.1.2
 mariadb
-flask_login
