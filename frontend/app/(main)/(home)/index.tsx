@@ -4,19 +4,39 @@ import { Link } from "expo-router";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
+// export default function HomeView() {
+//   return (
+//     <SafeAreaProvider>
+//       <ThemedView style={styles.container}>
+//         <SafeAreaView style={styles.innerContainer}>
+//           <ThemedText type="title">Home view</ThemedText>
+
+//           <Link style={styles.link} href="/(main)/(home)/options">
+//             Options
+//           </Link>
+
+//           <Link style={styles.link} href="/(main)/(home)/details">
+//             Details
+//           </Link>
+//         </SafeAreaView>
+//       </ThemedView>
+//     </SafeAreaProvider>
+//   );
+// }
+
 export default function HomeView() {
   return (
     <SafeAreaProvider>
       <ThemedView style={styles.container}>
         <SafeAreaView style={styles.innerContainer}>
-          <ThemedText type="title">Home view</ThemedText>
+          <ThemedText type="title">Login page</ThemedText>
 
-          <Link style={styles.link} href="/(main)/(home)/options">
-            Options
+          <Link style={styles.link} href="/(main)/(home)/matching">
+            Go to matching app
           </Link>
 
-          <Link style={styles.link} href="/(main)/(home)/details">
-            Details
+          <Link style={styles.link} href="/(main)/(home)/accountSelection">
+            Go to account selection
           </Link>
         </SafeAreaView>
       </ThemedView>
