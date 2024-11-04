@@ -1,17 +1,17 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Link } from "expo-router";
-import { StyleSheet } from "react-native";
+import {Text, StyleSheet} from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-export default function OptionsView() {
+export default function AccountCreationView() {
   return (
     <SafeAreaProvider>
       <ThemedView style={styles.container}>
         <SafeAreaView style={styles.innerContainer}>
           <ThemedText type="title">Account creation</ThemedText>
 
-          <text>Do you have a voucher to input?</text>
+          <Text>Do you have a voucher to input?</Text>
 
           <Link style={styles.link} href="/(main)/(home)/voucher">
             Input voucher here
@@ -35,5 +35,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-around",
     alignItems: "center",
+  },
+  link: {
+    lineHeight: 30,
+    fontSize: 16,
   },
 });

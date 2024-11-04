@@ -4,7 +4,7 @@ import { Link } from "expo-router";
 import { StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-export default function DetailsView() {
+export default function MatchingView() {
   return (
     <SafeAreaProvider>
       <ThemedView style={styles.container}>
@@ -33,5 +33,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-around",
     alignItems: "center",
+  },
+  link: {
+    lineHeight: 30,
+    fontSize: 16,
   },
 });
