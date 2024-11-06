@@ -72,6 +72,33 @@ def login():
     if user and check_password_hash(user.password, password):
         login_user(user)
         return jsonify({"success": True, "message": "Login successful"})
+
+    # Function to delete a user
+@app.route('/user/delete/<int:user_id>', methods=['DELETE'])
+@login_required
+def delete_user(user_id):
+    user = session.query(User).get(user_id)
+    if user:
+        session.delete(user)
+        session.commit()
+        return jsonify({"success": True, "message": "User deleted successfully"})
+    return jsonify({"success": False, "message": "User not found"})
+
+# Function to update user details
+@app.route('/user/update/<int:user_id>', methods=['PUT'])
+@login_required
+def update_user(user_id):
+    data = request.json
+    user = session.query(User).get(user_id)
+    if user:
+        user.username = data.get('username', user.username)
+        user.firstname = data.get('firstname', user.firstname)
+        user.lastname = data.get('lastname', user.lastname)
+        if 'password' in data:
+            user.password = generate_password_hash(data['password'], method='scrypt')
+        session.commit()
+        return jsonify({"success": True, "message": "User updated successfully"})
+    return jsonify({"success": False, "message": "User not found"})
     
     return jsonify({"success": False, "message": "Invalid username or password"})
 
