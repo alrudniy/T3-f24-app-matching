@@ -5,7 +5,7 @@ import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 
 from werkzeug.security import generate_password_hash, check_password_hash
-
+import pymysql
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'csci400_random_string_as_secret_key'
@@ -17,7 +17,7 @@ username = 't3'  # Replace with actual username
 password = 'Hav0nBDwD4uyvcZt'  # Replace with actual password
 
 # Define the MariaDB engine using MariaDB Connector/Python
-engine = sqlalchemy.create_engine( f"mariadb+mariadbconnector://{username}:{password}@34.125.69.91/f24_housing_db" )
+engine = sqlalchemy.create_engine( f"mysql+pymysql://{username}:{password}@34.125.69.91/f24_housing_db" , connect_args={'ssl': {'disabled': True}})
 
 Base = declarative_base()
 class User(Base):
