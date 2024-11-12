@@ -50,7 +50,7 @@ export default function RootLayout() {
     return null;
   }
 
-  return (
+  return ( ////do we really need these here? If index is our starting point, I see the other ones as pointless - jeff
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <RNEThemeProvider theme={theme}>
         <Stack>

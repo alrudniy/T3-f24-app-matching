@@ -24,3 +24,8 @@ export default function MatchingView() {
     </SafeAreaProvider>
   );
 }
+
+//for page-specific body values/tags we can set them all as page variables (some of them collections of values either in arrays/maps) 
+//so that they can be referenced by whatever element/tag needs them in each page's default function, or for values that will be
+//referenced in many pages we can have said values in a "centralized" file whose value variables can be imported
+//by whatever page's tags that need them (very complicated to explain, but it's a thought)

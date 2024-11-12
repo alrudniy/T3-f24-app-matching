@@ -2,6 +2,7 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "allowJs": true,
     "paths": {
       "@/*": [
         "./*"
@@ -11,7 +12,11 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
+    "**/*.js",   
+    "**/*.jsx", 
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ]
 }
+
+//I'm changig this file to allow .jsx files to be accepted (lines 5, 15, and 16 added)

@@ -8,7 +8,7 @@ export default function HomeLayout() {
         name="index"
         options={{ headerTitle: "Home", headerShown: false }}
       />
-      <Stack.Screen
+      <Stack.Screen 
         name="options"
         options={{ headerTitle: "Options", presentation: "modal" }}
       />

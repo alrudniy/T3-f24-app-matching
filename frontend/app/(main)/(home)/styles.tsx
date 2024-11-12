@@ -33,3 +33,8 @@ export const styles1 = StyleSheet.create({
       fontSize: 16,
     },
 });
+
+export const JeffStyles = StyleSheet.create({ //jeffrey's styles
+  
+
+});
