@@ -9,8 +9,8 @@ export default function HomeLayout() {
         options={{ headerTitle: "Home", headerShown: false }}
       />
       <Stack.Screen
-        name="options"
-        options={{ headerTitle: "Options", presentation: "modal" }}
+        name="matching"
+        options={{ headerTitle: "Matching", presentation: "modal", headerShown: true }}
       />
       <Stack.Screen name="details" options={{ headerTitle: "Details" }} />
     </Stack>
