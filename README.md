@@ -9,3 +9,7 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 - [@Kaan](https://github.com/TheKaanK)
 - [@Matthew](https://github.com/mcolucci40)
 - [@Phil](https://github.com/PhilPingPNG)
+
+## Test backend
+- Start backend with 'flask run'
+- Open another terminal window and run this command Invoke-RestMethod -Uri "http://127.0.0.1:5000/login" -Method POST -ContentType "application/json" -Body '{"username": "testuser", "password": "testpassword"}'

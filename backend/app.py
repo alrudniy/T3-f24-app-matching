@@ -1,12 +1,12 @@
 from sqlalchemy.orm import sessionmaker
-
-
+from sqlalchemy.orm import relationship, sessionmaker
+import flask_login
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from sqlalchemy import Column, String, Boolean, Integer, Float, ForeignKey
 
 
 import pymysql
@@ -35,6 +35,8 @@ class User(UserMixin, Base):
     lastname = Column(String(length=100))
     active = Column(Boolean, default=True)
     role = Column(String(length=50), default="tenant")  # New field to define role ('landlord' or 'tenant')
+    
+
     
     # Relationship to manage user properties only if they are a landlord
     properties = relationship("Property", back_populates="user", cascade="all, delete-orphan")
