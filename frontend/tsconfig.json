@@ -12,11 +12,11 @@
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "**/*.js",   
-    "**/*.jsx", 
+    "**/*.js",
+    "**/*.jsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
   ]
 }
-
 //I'm changig this file to allow .jsx files to be accepted (lines 5, 15, and 16 added)

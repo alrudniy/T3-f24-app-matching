@@ -1,5 +1,7 @@
-//this file will contain a single const stylesheet that will contain all our app's styling values (at least
-//I hope)
+/*this file will contain a single const stylesheet that will contain all our app's styling values (at least
+I hope); nope, that would've been if we were using react native styling, but we'll be using css styling
+via nativewind/tailwindcss
+*/
 
 import { StyleSheet } from "react-native";
 

@@ -9,6 +9,7 @@ import React from 'react';
 import {Text, View} from 'react-native';
 import { mainstyles } from "./TagStyles";
 import LoginLayout from "@/app/(login)/_layout";
+import "../../../assets/global.css";
 
 export default function HomeView() {
   return (
@@ -46,9 +47,9 @@ function LoginField(){
   const [username, onChangeLoginText] = React.useState('username');
   const [password, onChangePass] = React.useState('password');
 
-  return (
-    <View>
-      <Text>LOGIN</Text>
+  return (//the holy grail of css styling works!
+    <View className="color-red-600: flex-grow:"> 
+      <Text className="font-popmed: text-2xl">LOGIN</Text>
       <TextInput 
       value={username}
       style={mainstyles.text_input_default}

@@ -15,12 +15,15 @@ export default function MainLayout() {
   const pathname = usePathname();
   const isHome = pathname === "/";
 
-  if (Platform.OS === "android") {
+  /*tab groups in "main menu" page; (home) layout's stack is displayed in first tab (index page there),
+  and second tab goes to the settings page (not a directory!)
+  */
+  if (Platform.OS === "android") { 
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Drawer>
           <Drawer.Screen
-            name="(home)"
+            name="(home)" 
             options={{
               drawerLabel: "Home",
               title: "Home",
