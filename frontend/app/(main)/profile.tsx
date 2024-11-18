@@ -12,15 +12,7 @@ export default function ProfileView() {
         <SafeAreaView style={styles1.innerContainer}>
           <ThemedText type="title">Profile</ThemedText>
 
-          <Text>Profile information here</Text>
-
-          <Link style={styles1.link} href="/(main)/(home)/matching">
-            Go to matching
-          </Link>
-
-          <Link style={styles1.link} href="/(main)/(home)/matchingHistory">
-            Go to match history
-          </Link>
+          <Text style={styles1.link}>Profile information here</Text>
 
         </SafeAreaView>
       </ThemedView>

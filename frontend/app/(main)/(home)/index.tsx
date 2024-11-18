@@ -10,11 +10,6 @@ export default function HomeView() {
       <ThemedView style={styles.container}>
         <SafeAreaView style={styles.innerContainer}>
           <ThemedText type="title">Login page</ThemedText>
-          
-          <Link style={styles.link} href="/(main)/(home)/matching">
-            Go to matching app
-          </Link>
-
           <Link style={styles.link} href="/(main)/(home)/accountSelection">
             Go to account selection
           </Link>

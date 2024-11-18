@@ -9,8 +9,8 @@ import { Colors } from "@/constants/Colors";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 export default function MainLayout() {
-  //const colorScheme = useColorScheme();
-  const colorScheme = "light";
+  const colorScheme = useColorScheme();
+  // const colorScheme = "light";
   
   const pathname = usePathname();
   const isHome = pathname === "/";
@@ -131,6 +131,32 @@ export default function MainLayout() {
         name="profile"
         options={{
           title: "Profile",
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "home" : "home-outline"}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="matching"
+        options={{
+          title: "Matching",
+          headerShown: false,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? "home" : "home-outline"}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="matchingHistory"
+        options={{
+          title: "MatchingHistory",
           headerShown: false,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon

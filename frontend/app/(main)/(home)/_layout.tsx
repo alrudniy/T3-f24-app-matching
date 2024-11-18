@@ -9,18 +9,17 @@ export default function HomeLayout() {
         options={{ headerTitle: "Home", presentation: "modal", headerShown: true }}
       />
       <Stack.Screen
-        name="matching"
-        options={{ headerTitle: "Matching", presentation: "modal", headerShown: true }}
+        name="accountSelection"
+        options={{ headerTitle: "AccountSelection", presentation: "modal", headerShown: true }}
       />
       <Stack.Screen
-        name="profile"
-        options={{ headerTitle: "Profile", presentation: "modal", headerShown: true }}
+        name="accountCreation"
+        options={{ headerTitle: "AccountCreation", presentation: "modal", headerShown: true }}
       />
       <Stack.Screen
-        name="matchingHistory"
-        options={{ headerTitle: "MatchingHistory", presentation: "modal", headerShown: true }}
+        name="voucher"
+        options={{ headerTitle: "Voucher", presentation: "modal", headerShown: true }}
       />
-      <Stack.Screen name="details" options={{ headerTitle: "Details" }} />
     </Stack>
   );
 }

@@ -12,13 +12,13 @@ export default function AccountCreationView() {
         <SafeAreaView style={styles1.innerContainer}>
           <ThemedText type="title">Account creation</ThemedText>
 
-          <Text>Do you have a voucher to input?</Text>
+          <Text style={styles1.link}>Do you have a voucher to input?</Text>
 
           <Link style={styles1.link} href="/(main)/(home)/voucher">
             Input voucher here
           </Link>
 
-          <Link style={styles1.link} href="/(main)/(home)/profile">
+          <Link style={styles1.link} href="/(main)/profile">
             Go to profile
           </Link>
 
