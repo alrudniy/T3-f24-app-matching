@@ -9,7 +9,7 @@ export default function HomeView() {
     <SafeAreaProvider>
       <ThemedView style={styles.container}>
         <SafeAreaView style={styles.innerContainer}>
-          <ThemedText style={styles.container} type="title">Login page</ThemedText>
+          <ThemedText type="title">Login page</ThemedText>
           
           <Link style={styles.link} href="/(main)/(home)/matching">
             Go to matching app
