@@ -5,22 +5,14 @@ import { styles1 } from "./styles";
 import {Text} from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-export default function ProfileView() {
+export default function MatchingView() {
   return (
     <SafeAreaProvider>
       <ThemedView style={styles1.container}>
         <SafeAreaView style={styles1.innerContainer}>
-          <ThemedText type="title">Profile</ThemedText>
+          <ThemedText type="title">Matching app</ThemedText>
 
-          <Text>Profile information here</Text>
-
-          <Link style={styles1.link} href="/(main)/(home)/matching">
-            Go to matching
-          </Link>
-
-          <Link style={styles1.link} href="/(main)/(home)/matchingHistory">
-            Go to match history
-          </Link>
+          <Text style={styles1.link}>Matching app here</Text>
 
         </SafeAreaView>
       </ThemedView>

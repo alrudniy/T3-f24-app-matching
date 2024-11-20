@@ -6,13 +6,20 @@ export default function HomeLayout() {
     <Stack>
       <Stack.Screen
         name="index"
-        options={{ headerTitle: "Home", headerShown: false }}
+        options={{ headerTitle: "Home", presentation: "modal", headerShown: true }}
       />
       <Stack.Screen
-        name="options"
-        options={{ headerTitle: "Options", presentation: "modal" }}
+        name="accountSelection"
+        options={{ headerTitle: "AccountSelection", presentation: "modal", headerShown: true }}
       />
-      <Stack.Screen name="details" options={{ headerTitle: "Details" }} />
+      <Stack.Screen
+        name="accountCreation"
+        options={{ headerTitle: "AccountCreation", presentation: "modal", headerShown: true }}
+      />
+      <Stack.Screen
+        name="voucher"
+        options={{ headerTitle: "Voucher", presentation: "modal", headerShown: true }}
+      />
     </Stack>
   );
 }
