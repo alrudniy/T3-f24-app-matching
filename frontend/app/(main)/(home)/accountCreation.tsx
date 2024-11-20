@@ -1,27 +1,48 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
+import { ScrollView } from "react-native";
 import { Link } from "expo-router";
-import { Text } from 'react-native';
 import { styles1 } from "../styles";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import React, { useState } from "react";
+import { Text, Button, TextInput, TouchableOpacity, View } from "react-native";
+import { styles } from "../styles";
 
 export default function AccountCreationView() {
   return (
     <SafeAreaProvider>
-      <ThemedView style={styles1.container}>
-        <SafeAreaView style={styles1.innerContainer}>
-          <ThemedText type="title">Account creation</ThemedText>
+      <ThemedView style={styles.container}>
+        <SafeAreaView style={styles.innerContainer}>
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            <ThemedText type="title">Create Account</ThemedText>
 
-          <Text style={styles1.link}>Do you have a voucher to input?</Text>
+            <ThemedView style={styles.formContainer}>
+              <TextInput placeholder="First Name" style={styles.input} />
+              <TextInput placeholder="Last Name" style={styles.input} />
+              <TextInput placeholder="Email" style={styles.input} />
+              <TextInput placeholder="Confirm Email" style={styles.input} />
+              <TextInput
+                placeholder="Password"
+                secureTextEntry
+                style={styles.input}
+              />
+              <TextInput
+                placeholder="Confirm Password"
+                secureTextEntry
+                style={styles.input}
+              />
+              <TextInput placeholder="Etc." style={styles.input} />
+              <Button title="Create Account" onPress={() => {}} color="#4CAF50" />
+            </ThemedView>
 
-          <Link style={styles1.link} href="/(main)/(home)/voucher">
-            Input voucher here
-          </Link>
-
-          <Link style={styles1.link} href="/(main)/profile">
-            Go to profile
-          </Link>
-
+          </ScrollView>
         </SafeAreaView>
       </ThemedView>
     </SafeAreaProvider>
