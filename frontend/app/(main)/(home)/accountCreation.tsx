@@ -2,7 +2,6 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { ScrollView } from "react-native";
 import { Link } from "expo-router";
-import { styles1 } from "../styles";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import React, { useState } from "react";
 import { Text, Button, TextInput, TouchableOpacity, View } from "react-native";

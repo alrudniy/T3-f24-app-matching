@@ -1,7 +1,6 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  // Original Styles
   container: {
     flex: 1,
     justifyContent: "center",
@@ -78,7 +77,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 3,
-    marginBottom: 30, // Added spacing for visual separation
+    marginBottom: 30,
   },
   footerText: {
     fontSize: 14,
@@ -87,7 +86,6 @@ export const styles = StyleSheet.create({
     marginTop: 20,
   },
 
-  // Additions and Tweaks for New Design
   logoContainer: {
     marginBottom: 20,
   },
@@ -164,11 +162,5 @@ export const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  disclaimer: {
-    fontSize: 12,
-    color: "#888",
-    textAlign: "center",
-    marginTop: 20,
   },
 });

@@ -3,10 +3,17 @@ import { ThemedView } from "@/components/ThemedView";
 import { ScrollView } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import React, { useState } from "react";
-import { Text, Button, TextInput, TouchableOpacity, View } from "react-native";
+import { Text, Button, TextInput, View, TouchableOpacity } from "react-native";
+import { Picker } from "@react-native-picker/picker";
 import { styles } from "../styles";
 
 export default function VoucherView() {
+  const [housingType, setHousingType] = useState("");
+  const [familyMembers, setFamilyMembers] = useState(0);
+
+  const addFamilyMember = () => setFamilyMembers((prev) => prev + 1);
+  const removeFamilyMember = () => setFamilyMembers((prev) => (prev > 0 ? prev - 1 : 0));
+
   return (
     <SafeAreaProvider>
       <ThemedView style={styles.container}>
@@ -19,62 +26,67 @@ export default function VoucherView() {
             }}
             showsVerticalScrollIndicator={false}
           >
-            {/* Header */}
-            {/* <View style={styles.logoContainer}>
-              <View style={styles.logoPlaceholder}>
-                <Text style={styles.logoText}>LOGO</Text>
-              </View>
-            </View> */}
+            <ThemedText type="title">Enter Voucher Information</ThemedText>
 
-            {/* Title */}
-            <Text style={styles.title}>Enter Voucher Information:</Text>
-
-            {/* Form */}
-            <View style={styles.formContainer}>
-              <TextInput placeholder="Enter Full Legal Name" style={styles.input} />
-              <TextInput placeholder="Enter Date of Birth" style={styles.input} />
-              <TextInput placeholder="Enter Social Security" style={styles.input} />
-              <TextInput placeholder="Enter Phone Number" style={styles.input} />
+            <ThemedView style={styles.formContainer}>
+              <TextInput
+                placeholder="Enter Full Legal Name"
+                style={styles.input}
+              />
+              <TextInput
+                placeholder="Enter Date of Birth"
+                style={styles.input}
+              />
+              <TextInput
+                placeholder="Enter Social Security Number"
+                style={styles.input}
+              />
+              <TextInput
+                placeholder="Enter Phone Number"
+                style={styles.input}
+              />
 
               {/* Dropdown for Housing Type */}
               <View style={styles.dropdown}>
                 <Text style={styles.dropdownText}>Housing Type:</Text>
-                <Text style={styles.dropdownValue}>Dropdown ▼</Text>
+                <Picker
+                  selectedValue={housingType}
+                  onValueChange={(itemValue) => setHousingType(itemValue)}
+                  style={{ flex: 1, marginLeft: 10 }}
+                >
+                  <Picker.Item label="Select Housing Type" value="" />
+                  <Picker.Item label="Apartment" value="apartment" />
+                  <Picker.Item label="House" value="house" />
+                  <Picker.Item label="Shelter" value="shelter" />
+                  <Picker.Item label="Other" value="other" />
+                </Picker>
               </View>
 
-              {/* Family Members */}
+              {/* Family Members Section */}
               <View style={styles.familyMembersContainer}>
                 <Text style={styles.familyMembersLabel}>Family Members:</Text>
                 <View style={styles.familyButtons}>
-                  <TouchableOpacity style={styles.familyButton}>
+                  <TouchableOpacity
+                    style={styles.familyButton}
+                    onPress={removeFamilyMember}
+                  >
                     <Text style={styles.familyButtonText}>-</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.familyButton}>
+                  <Text>{familyMembers}</Text>
+                  <TouchableOpacity
+                    style={styles.familyButton}
+                    onPress={addFamilyMember}
+                  >
                     <Text style={styles.familyButtonText}>+</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
-
-              {/* Income Info Section */}
-              <View style={styles.incomeInfo}>
-                <Text style={styles.incomeInfoText}>
-                  * Employment income (pay stubs, tax returns).{'\n'}
-                  * Social Security benefits.{'\n'}
-                  * Unemployment benefits.{'\n'}
-                  * Child support or alimony.{'\n'}
-                  * Other income sources (e.g., pensions, disability).{'\n'}
-                  etc.
-                </Text>
               </View>
 
               {/* Verify Identity Button */}
               <TouchableOpacity style={styles.verifyButton}>
                 <Text style={styles.verifyButtonText}>Verify Identity</Text>
               </TouchableOpacity>
-
-              {/* Disclaimer */}
-              <Text style={styles.disclaimer}>*potential background check here</Text>
-            </View>
+            </ThemedView>
           </ScrollView>
         </SafeAreaView>
       </ThemedView>
