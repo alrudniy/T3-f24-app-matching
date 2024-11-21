@@ -3,7 +3,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { ScrollView } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import React, { useState } from "react";
-import { Text, Button, TextInput, View, TouchableOpacity } from "react-native";
+import { Text, TextInput, View, TouchableOpacity } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { styles } from "../styles";
 
@@ -17,16 +17,17 @@ export default function VoucherView() {
   return (
     <SafeAreaProvider>
       <ThemedView style={styles.container}>
-        <SafeAreaView style={styles.innerContainer}>
+        <SafeAreaView style={[styles.innerContainer, { flex: 1 }]}>
           <ScrollView
             contentContainerStyle={{
-              flexGrow: 1,
-              justifyContent: "center",
+              paddingVertical: 20,
               alignItems: "center",
             }}
             showsVerticalScrollIndicator={false}
           >
-            <ThemedText type="title">Enter Voucher Information</ThemedText>
+            <ThemedText type="title" style={{ marginBottom: 20 }}>
+              Enter Voucher Information
+            </ThemedText>
 
             <ThemedView style={styles.formContainer}>
               <TextInput
