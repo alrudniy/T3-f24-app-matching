@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TextInput, TouchableOpacity, Alert } from "react-native";
+import { TextInput, TouchableOpacity, Alert, Modal, View, Text } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Link, useRouter } from "expo-router"; // Import useRouter for navigation
@@ -9,11 +9,14 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 export default function HomeView() {
   const [email, setEmail] = useState(""); // You can keep email here as input but map it to username for login
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // State for the error message
+  const [isErrorVisible, setIsErrorVisible] = useState(false); // State to control modal visibility
   const router = useRouter(); // Hook for navigation
 
   const handleLogin = async () => {
     if (email.trim() === "" || password.trim() === "") {
-      Alert.alert("Error", "Please enter both username and password");
+      setErrorMessage("Please enter both username and password");
+      setIsErrorVisible(true); // Show the error modal
       return;
     }
 
@@ -35,12 +38,14 @@ export default function HomeView() {
         // Navigate to a different page on successful login (example: Matching)
         router.push("/matching"); // You can replace this with the page you want to navigate to
       } else {
-        // Display the error message returned from the server
-        Alert.alert("Error", data.message || "Invalid login credentials");
+        // Show the error message in the modal
+        setErrorMessage(data.message || "Invalid login credentials");
+        setIsErrorVisible(true); // Show the error modal
       }
     } catch (error) {
       // Display a generic error message if an issue occurs
-      Alert.alert("Error", "An error occurred. Please try again later.");
+      setErrorMessage("An error occurred. Please try again later.");
+      setIsErrorVisible(true); // Show the error modal
       console.error("Login error:", error);
     }
   };
@@ -82,6 +87,23 @@ export default function HomeView() {
             Go to account selection
           </Link>
         </SafeAreaView>
+
+        {/* Error Modal */}
+        <Modal
+          visible={isErrorVisible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setIsErrorVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>{errorMessage}</Text>
+              <TouchableOpacity onPress={() => setIsErrorVisible(false)}>
+                <ThemedText style={styles.buttonText}>Close</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </ThemedView>
     </SafeAreaProvider>
   );
