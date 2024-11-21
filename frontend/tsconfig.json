@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "allowJs": true,
+    "jsx": "react", //having problems using jsx files along with typescript; this should make it work
     "paths": {
       "@/*": [
         "./*"

@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import "react-native-reanimated";
+import React from 'react';
 
 //(home)'s layout; index is the first page, followed by "options" (don't know how that works)
 export default function HomeLayout() {

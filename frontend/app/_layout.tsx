@@ -18,6 +18,8 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
+import React from "react"; //this import was giving me issues because it was missing - I guess react
+//library is also necessary for localhost to work w/ react native?
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -54,6 +56,15 @@ export default function RootLayout() {
     "Poppings-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
     "Poppings-ExtraBold": require("../assets/fonts/Poppins-ExtraBold.ttf"),
     "Poppings-Black": require("../assets/fonts/Poppins-Black.ttf"),
+    "Nunito-ExtraLight": require("../assets/fonts/Nunito-ExtraLight.ttf"),
+    "Nunito-Light": require("../assets/fonts/Nunito-Light.ttf"),
+    "Nunito-Regular": require("../assets/fonts/Nunito-Regular.ttf"),
+    "Nunito-Medium": require("../assets/fonts/Nunito-Medium.ttf"),
+    "Nunito-SemiBold": require("../assets/fonts/Nunito-SemiBold.ttf"),
+    "Nunito-Bold": require("../assets/fonts/Nunito-Bold.ttf"),
+    "Nunito-ExtraBold": require("../assets/fonts/Nunito-ExtraBold.ttf"),
+    "Nunito-Black": require("../assets/fonts/Nunito-Black.ttf"),
+
   });
 
   useEffect(() => {

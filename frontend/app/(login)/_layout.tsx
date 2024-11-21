@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import "react-native-reanimated";
+import React from 'react';
 
 export default function LoginLayout() {
   return (
