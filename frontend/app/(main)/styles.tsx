@@ -1,6 +1,7 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
+  // Original Styles
   container: {
     flex: 1,
     justifyContent: "center",
@@ -77,6 +78,7 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 3,
     elevation: 3,
+    marginBottom: 30, // Added spacing for visual separation
   },
   footerText: {
     fontSize: 14,
@@ -84,19 +86,89 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
   },
-});
 
-export const styles1 = StyleSheet.create({
-  container: {
-    flex: 1,
+  // Additions and Tweaks for New Design
+  logoContainer: {
+    marginBottom: 20,
   },
-  innerContainer: {
-    flex: 1,
-    justifyContent: "space-around",
+  logoPlaceholder: {
+    width: 100,
+    height: 100,
+    backgroundColor: "#E0E0E0",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+  },
+  logoText: {
+    fontSize: 16,
+    color: "#555",
+  },
+  dropdown: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  dropdownText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  dropdownValue: {
+    fontSize: 16,
+    color: "#555",
+  },
+  familyMembersContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  familyMembersLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  familyButtons: {
+    flexDirection: "row",
     alignItems: "center",
   },
-  link: {
-    lineHeight: 30,
+  familyButton: {
+    width: 40,
+    height: 40,
+    backgroundColor: "#E0E0E0",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    marginLeft: 10,
+  },
+  familyButtonText: {
+    fontSize: 20,
+    color: "#555",
+  },
+  incomeInfo: {
+    marginBottom: 20,
+    padding: 10,
+    backgroundColor: "#F9F9F9",
+    borderRadius: 8,
+  },
+  incomeInfoText: {
+    fontSize: 14,
+    color: "#555",
+  },
+  verifyButton: {
+    backgroundColor: "#6C63FF",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  verifyButtonText: {
+    color: "#fff",
     fontSize: 16,
+    fontWeight: "bold",
+  },
+  disclaimer: {
+    fontSize: 12,
+    color: "#888",
+    textAlign: "center",
+    marginTop: 20,
   },
 });
