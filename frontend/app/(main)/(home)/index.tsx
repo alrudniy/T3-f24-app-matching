@@ -2,37 +2,44 @@ import React, { useState } from "react";
 import { TextInput, TouchableOpacity, Alert } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router"; // Import useRouter for navigation
 import { styles } from "../styles";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeView() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(""); // You can keep email here as input but map it to username for login
   const [password, setPassword] = useState("");
+  const router = useRouter(); // Hook for navigation
 
   const handleLogin = async () => {
     if (email.trim() === "" || password.trim() === "") {
-      Alert.alert("Error", "Please enter both email and password");
+      Alert.alert("Error", "Please enter both username and password");
       return;
     }
 
     try {
+      // Make sure you are sending 'username' instead of 'email'
       const response = await fetch("http://localhost:5000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username: email, password }), // Send username instead of email
       });
 
       const data = await response.json();
 
-      if (response.status === 200) {
+      // Check if the response is successful and the message is a success
+      if (response.status === 200 && data.success) {
         Alert.alert("Success", data.message);
+        // Navigate to a different page on successful login (example: Matching)
+        router.push("/matching"); // You can replace this with the page you want to navigate to
       } else {
-        Alert.alert("Error", data.message);
+        // Display the error message returned from the server
+        Alert.alert("Error", data.message || "Invalid login credentials");
       }
     } catch (error) {
+      // Display a generic error message if an issue occurs
       Alert.alert("Error", "An error occurred. Please try again later.");
       console.error("Login error:", error);
     }
@@ -48,8 +55,8 @@ export default function HomeView() {
 
           <TextInput
             style={styles.input}
-            placeholder="Email"
-            value={email}
+            placeholder="Username"
+            value={email} // Keep username as email, change label if necessary
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -66,6 +73,7 @@ export default function HomeView() {
             <ThemedText style={styles.buttonText}>Login</ThemedText>
           </TouchableOpacity>
 
+          {/* Optional: Links to other pages */}
           <Link style={styles.link} href="/(main)/matching">
             Go to matching app
           </Link>
