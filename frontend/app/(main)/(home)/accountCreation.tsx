@@ -1,27 +1,46 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Link } from "expo-router";
-import { Text } from 'react-native';
-import { styles1 } from "../styles";
+import { ScrollView } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import React from "react";
+import { TextInput, Button } from "react-native";
+import { styles } from "../styles";
 
 export default function AccountCreationView() {
   return (
     <SafeAreaProvider>
-      <ThemedView style={styles1.container}>
-        <SafeAreaView style={styles1.innerContainer}>
-          <ThemedText type="title">Account creation</ThemedText>
+      <ThemedView style={styles.container}>
+        <SafeAreaView style={[styles.innerContainer, { flex: 1 }]}>
+          <ScrollView
+            contentContainerStyle={{
+              paddingVertical: 20,
+              alignItems: "center",
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            <ThemedText type="title" style={{ marginBottom: 20 }}>
+              Create Account
+            </ThemedText>
 
-          <Text style={styles1.link}>Do you have a voucher to input?</Text>
-
-          <Link style={styles1.link} href="/(main)/(home)/voucher">
-            Input voucher here
-          </Link>
-
-          <Link style={styles1.link} href="/(main)/profile">
-            Go to profile
-          </Link>
-
+            <ThemedView style={styles.formContainer}>
+              <TextInput placeholder="First Name" style={styles.input} />
+              <TextInput placeholder="Last Name" style={styles.input} />
+              <TextInput placeholder="Email" style={styles.input} />
+              <TextInput placeholder="Confirm Email" style={styles.input} />
+              <TextInput
+                placeholder="Password"
+                secureTextEntry
+                style={styles.input}
+              />
+              <TextInput
+                placeholder="Confirm Password"
+                secureTextEntry
+                style={styles.input}
+              />
+              <TextInput placeholder="Etc." style={styles.input} />
+              <Button title="Create Account" onPress={() => {}} color="#4CAF50" />
+            </ThemedView>
+          </ScrollView>
         </SafeAreaView>
       </ThemedView>
     </SafeAreaProvider>
