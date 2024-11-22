@@ -54,10 +54,17 @@ export default function HomeView() {
     <SafeAreaProvider>
       <ThemedView style={styles.container}>
         <SafeAreaView style={styles.innerContainer}>
-          <ThemedText style={styles.title} type="title">
-            Login Page
-          </ThemedText>
+          {/* Logo Placeholder */}
+          <View style={styles.logoContainer}>
+            <View style={styles.logoPlaceholder}>
+              <Text style={styles.logoText}>LOGO</Text>
+            </View>
+          </View>
 
+          {/* Login Title */}
+          <Text style={styles.title}>Login</Text>
+
+          {/* Username Input */}
           <TextInput
             style={styles.input}
             placeholder="Username"
@@ -66,6 +73,8 @@ export default function HomeView() {
             keyboardType="email-address"
             autoCapitalize="none"
           />
+
+          {/* Password Input */}
           <TextInput
             style={styles.input}
             placeholder="Password"
@@ -74,18 +83,22 @@ export default function HomeView() {
             secureTextEntry
           />
 
+          {/* Login Button */}
           <TouchableOpacity style={styles.button} onPress={handleLogin}>
             <ThemedText style={styles.buttonText}>Login</ThemedText>
           </TouchableOpacity>
 
-          {/* Optional: Links to other pages */}
-          <Link style={styles.link} href="/(main)/matching">
-            Go to matching app
-          </Link>
-
-          <Link style={styles.link} href="/(main)/(home)/accountSelection">
-            Go to account selection
-          </Link>
+          {/* Forgot Password and Create Account Links */}
+          <Text style={styles.footerText}>Forgot your password?</Text>
+          <Text style={[styles.footerText, styles.link]}>
+            Do not have an account?{" "}
+            <Text
+              onPress={() => router.push("/accountSelection")} // Navigate to the registration page
+              style={styles.link}
+            >
+              Create one
+            </Text>
+          </Text>
         </SafeAreaView>
 
         {/* Error Modal */}
@@ -99,7 +112,7 @@ export default function HomeView() {
             <View style={styles.modalContent}>
               <Text style={styles.modalText}>{errorMessage}</Text>
               <TouchableOpacity onPress={() => setIsErrorVisible(false)}>
-                <ThemedText style={styles.buttonText}>Close</ThemedText>
+                <ThemedText style={styles.modalText}>Close</ThemedText>
               </TouchableOpacity>
             </View>
           </View>
