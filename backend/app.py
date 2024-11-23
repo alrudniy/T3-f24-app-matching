@@ -174,5 +174,45 @@ def delete_user(user_id):
     finally:
         session.close()
 
+
+# Property creation route
+@app.route('/property/create', methods=['POST'])
+@login_required
+def create_property():
+    try:
+        # Ensure only landlords can create properties
+        if current_user.role != "landlord":
+            return jsonify({"success": False, "message": "Only landlords can create properties"})
+
+        data = request.json
+
+        # Validate input data
+        size_sqft = data.get('size_sqft')
+        price = data.get('price')
+        bedrooms = data.get('bedrooms')
+        bathrooms = data.get('bathrooms')
+
+        if not size_sqft or not price or not bedrooms or not bathrooms:
+            return jsonify({"success": False, "message": "All property fields are required"})
+
+        # Create the property
+        new_property = Property(
+            size_sqft=size_sqft,
+            price=price,
+            bedrooms=bedrooms,
+            bathrooms=bathrooms,
+            user_id=current_user.id  # Link property to the current logged-in user
+        )
+
+        session.add(new_property)
+        session.commit()
+        return jsonify({"success": True, "message": "Property created successfully"})
+    except SQLAlchemyError as e:
+        session.rollback()
+        return jsonify({"success": False, "message": "Database error", "error": str(e)})
+    finally:
+        session.close()
+
+
 if __name__ == '__main__':
     app.run(debug=True)

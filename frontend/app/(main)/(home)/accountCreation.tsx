@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { Alert, ScrollView, TextInput, Button, Modal, View, Text, ActivityIndicator } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  TextInput,
+  Button,
+  Modal,
+  View,
+  Text,
+  ActivityIndicator,
+} from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -10,7 +19,6 @@ export default function AccountCreationView() {
   const { role } = useLocalSearchParams<{ role?: string }>();
   const router = useRouter();
 
-  // State variables for form data and UI
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -18,40 +26,72 @@ export default function AccountCreationView() {
     confirmEmail: "",
     password: "",
     confirmPassword: "",
+    phone: "", 
   });
   const [loading, setLoading] = useState(false);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Function to handle form input changes
+  // Regular expressions for validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^[0-9]{10}$/;
+
   const handleChange = (name: string, value: string) => {
     setForm({ ...form, [name]: value });
   };
 
-  // Function to submit form data
   const handleSubmit = async () => {
-    const { firstName, lastName, email, confirmEmail, password, confirmPassword } = form;
+    const {
+      firstName,
+      lastName,
+      email,
+      confirmEmail,
+      password,
+      confirmPassword,
+      phone,
+    } = form;
 
     // Validate form fields
-    if (!firstName || !lastName || !email || !confirmEmail || !password || !confirmPassword) {
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !confirmEmail ||
+      !password ||
+      !confirmPassword ||
+      !phone
+    ) {
       setErrorMessage("All fields are required.");
       setErrorModalVisible(true);
       return;
     }
 
+    if (!emailRegex.test(email)) {
+      setErrorMessage("Please enter a valid email address.");
+      setErrorModalVisible(true);
+      return;
+    }
+
+    if (!phoneRegex.test(phone)) {
+      setErrorMessage(
+        "Please enter a valid phone number (10 digits, no spaces or special characters)."
+      );
+      setErrorModalVisible(true);
+      return;
+    }
+
     if (email !== confirmEmail) {
-      setErrorMessage("Email and Confirm Email must match.");
+      setErrorMessage("Emails must match.");
       setErrorModalVisible(true);
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMessage("Password and Confirm Password must match.");
+      setErrorMessage("Passwords must match.");
       setErrorModalVisible(true);
       return;
     }
 
-    // Validate role
     if (role !== "tenant" && role !== "landlord") {
       setErrorMessage("Invalid role. Please select a valid role.");
       setErrorModalVisible(true);
@@ -60,7 +100,6 @@ export default function AccountCreationView() {
 
     setLoading(true);
 
-    // Make a POST request to the Flask backend
     try {
       const response = await fetch("http://127.0.0.1:5000/register", {
         method: "POST",
@@ -70,17 +109,16 @@ export default function AccountCreationView() {
           password,
           firstName,
           lastName,
-          role, // Send the role to the backend
+          role,
+          phone, // Include the phone number in the payload
         }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        // Navigate to the next screen on success
         router.push("/matching");
       } else {
-        // Show error message on failure
         setErrorMessage(data.message || "Registration failed.");
         setErrorModalVisible(true);
       }
@@ -140,6 +178,13 @@ export default function AccountCreationView() {
                 keyboardType="email-address"
               />
               <TextInput
+                placeholder="Phone Number"
+                style={styles.input}
+                value={form.phone}
+                onChangeText={(text) => handleChange("phone", text)}
+                keyboardType="phone-pad"
+              />
+              <TextInput
                 placeholder="Password"
                 secureTextEntry
                 style={styles.input}
@@ -153,27 +198,56 @@ export default function AccountCreationView() {
                 value={form.confirmPassword}
                 onChangeText={(text) => handleChange("confirmPassword", text)}
               />
-              <Button title="Create Account" onPress={handleSubmit} color="#4CAF50" />
+              <Button
+                title="Create Account"
+                onPress={handleSubmit}
+                color="#4CAF50"
+              />
             </ThemedView>
           </ScrollView>
 
           {loading && (
-            <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />
+            <ActivityIndicator
+              size="large"
+              color="#4CAF50"
+              style={{ marginTop: 20 }}
+            />
           )}
         </SafeAreaView>
 
-        {/* Error Modal */}
         <Modal
           visible={errorModalVisible}
           transparent
           animationType="slide"
           onRequestClose={() => setErrorModalVisible(false)}
         >
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
-            <View style={{ width: "80%", backgroundColor: "white", borderRadius: 10, padding: 20 }}>
-              <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>Error</Text>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+            }}
+          >
+            <View
+              style={{
+                width: "80%",
+                backgroundColor: "white",
+                borderRadius: 10,
+                padding: 20,
+              }}
+            >
+              <Text
+                style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}
+              >
+                Error
+              </Text>
               <Text style={{ marginBottom: 20 }}>{errorMessage}</Text>
-              <Button title="Close" onPress={() => setErrorModalVisible(false)} color="#FF3B30" />
+              <Button
+                title="Close"
+                onPress={() => setErrorModalVisible(false)}
+                color="#FF3B30"
+              />
             </View>
           </View>
         </Modal>
