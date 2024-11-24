@@ -22,17 +22,17 @@ export default function AccountCreationView() {
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
+    businessName: "",
     email: "",
     confirmEmail: "",
     password: "",
     confirmPassword: "",
-    phone: "", 
+    phone: "",
   });
   const [loading, setLoading] = useState(false);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Regular expressions for validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^[0-9]{10}$/;
 
@@ -44,6 +44,7 @@ export default function AccountCreationView() {
     const {
       firstName,
       lastName,
+      businessName,
       email,
       confirmEmail,
       password,
@@ -59,7 +60,8 @@ export default function AccountCreationView() {
       !confirmEmail ||
       !password ||
       !confirmPassword ||
-      !phone
+      !phone ||
+      (role === "landlord" && !businessName) // Additional check for landlords
     ) {
       setErrorMessage("All fields are required.");
       setErrorModalVisible(true);
@@ -107,10 +109,11 @@ export default function AccountCreationView() {
         body: JSON.stringify({
           username: email,
           password,
+          businessName : role === "landlord" ? businessName : null, // Include propertyName if landlord,
           firstName,
           lastName,
           role,
-          phone, // Include the phone number in the payload
+          phone,
         }),
       });
 
@@ -151,6 +154,14 @@ export default function AccountCreationView() {
             </ThemedText>
 
             <ThemedView style={styles.formContainer}>
+            {role === "landlord" && (
+                <TextInput
+                  placeholder="Bussiness Name"
+                  style={styles.input}
+                  value={form.businessName}
+                  onChangeText={(text) => handleChange("businessName", text)}
+                />
+              )}
               <TextInput
                 placeholder="First Name"
                 style={styles.input}

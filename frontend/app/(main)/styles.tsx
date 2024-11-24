@@ -1,24 +1,7 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
-  },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
-    width: "80%",
-    alignItems: "center",
-  },
-  modalText: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: "center",
-  },
+  // General
   container: {
     flex: 1,
     justifyContent: "center",
@@ -30,11 +13,6 @@ export const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 400,
     alignItems: "center",
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    marginBottom: 40,
   },
   input: {
     width: "100%",
@@ -57,8 +35,34 @@ export const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-    marginTop: 5,
     textAlign: "center",
+  },
+
+  // Modals
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+
+  // Titles and Links
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+    marginBottom: 40,
   },
   link: {
     color: "#6200ee",
@@ -66,6 +70,8 @@ export const styles = StyleSheet.create({
     textDecorationLine: "underline",
     marginVertical: 10,
   },
+
+  // Buttons
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -81,6 +87,8 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     margin: 10,
   },
+
+  // Form Container
   formContainer: {
     width: "100%",
     maxWidth: 400,
@@ -97,6 +105,8 @@ export const styles = StyleSheet.create({
     elevation: 3,
     marginBottom: 30,
   },
+
+  // Footer
   footerText: {
     fontSize: 14,
     color: "#888",
@@ -104,6 +114,7 @@ export const styles = StyleSheet.create({
     marginTop: 20,
   },
 
+  // Logos
   logoContainer: {
     marginBottom: 20,
   },
@@ -119,6 +130,8 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     color: "#555",
   },
+
+  // Dropdowns
   dropdown: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -133,6 +146,8 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     color: "#555",
   },
+
+  // Family Members
   familyMembersContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -160,6 +175,8 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     color: "#555",
   },
+
+  // Income Information
   incomeInfo: {
     marginBottom: 20,
     padding: 10,
@@ -170,6 +187,8 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: "#555",
   },
+
+  // Verify Button
   verifyButton: {
     backgroundColor: "#6C63FF",
     padding: 15,
@@ -177,6 +196,78 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   verifyButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  // Profile Page Specific Styles
+  profileContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#f5f5f5",
+  },
+  profileImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: "#E0E0E0",
+    marginBottom: 20,
+  },
+  profileDetails: {
+    width: "100%",
+    maxWidth: 400,
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  profileLabel: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#555",
+    marginBottom: 5,
+  },
+  profileValue: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 15,
+  },
+  profileActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+  saveButton: {
+    backgroundColor: "#6200ee",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    flex: 1,
+    marginRight: 10,
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  cancelButton: {
+    backgroundColor: "#FF3B30",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    flex: 1,
+  },
+  cancelButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
