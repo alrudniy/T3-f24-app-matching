@@ -13,7 +13,7 @@ type UserProfile = {
   businessName: string;
 };
 
-const ProfilePage = () => {
+const profile = () => {
   const [user, setUser] = useState<UserProfile>({
     profilePicture: "",
     firstName: "",
@@ -163,4 +163,4 @@ const ProfilePage = () => {
   );
 };
 
-export default ProfilePage;
+export default profile;
