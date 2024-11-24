@@ -256,6 +256,35 @@ def delete_user(user_id):
     finally:
         session.close()
 
+#Get all properties listings
+@app.route('/api/properties', methods=['GET'])
+@login_required
+def get_properties():
+    if current_user.role != "tenant":
+        return jsonify({"success": False, "message": "This page is only available to tenants"})
+    
+    try:
+        properties = session.query(Property).all()
+        property_list = []
+        
+        for property in properties:
+            property_list.append({
+                "id": property.id,
+                "size_sqft": property.size_sqft,
+                "price": property.price,
+                "bedrooms": property.bedrooms,
+                "bathrooms": property.bathrooms,
+                "user_id": property.user_id
+            })
+
+        return jsonify({"success": True, "properties": property_list})
+    
+    except SQLAlchemyError as e:
+        return jsonify({"success": False, "message": "Database error", "error": str(e)})
+    finally:
+        session.close()
+
+
 # Main entry point
 if __name__ == '__main__':
     app.run(debug=True)

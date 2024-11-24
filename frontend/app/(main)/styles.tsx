@@ -272,4 +272,65 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+
+  // Matching Page Specific Styles
+
+  // Property card and image
+  propertyCard: {
+    width: "100%",
+    height: 400,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+    overflow: "hidden",
+    marginBottom: 20,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  propertyImage: {
+    width: "100%",
+    height: "60%",
+    objectFit: "cover",
+  },
+  propertyDetails: {
+    padding: 10,
+  },
+  propertyText: {
+    fontSize: 16,
+    color: "#333",
+  },
+
+  // Buttons for swiping
+  matchButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 20,
+    marginTop: 20,
+  },
+  swipeLeft: {
+    backgroundColor: "#FF3B30",
+    padding: 15,
+    borderRadius: 8,
+    width: 120,
+    height: 60,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  swipeRight: {
+    backgroundColor: "#4CAF50",
+    padding: 15,
+    borderRadius: 8,
+    width: 120,
+    height: 60,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
