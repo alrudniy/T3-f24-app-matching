@@ -284,7 +284,7 @@ def get_properties():
         return jsonify({"success": False, "message": "Database error", "error": str(e)})
     finally:
         session.close()
-        
+
 #Set property as a match route
 @app.route('/api/match', methods=['POST'])
 @login_required
