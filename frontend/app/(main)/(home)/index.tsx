@@ -5,12 +5,14 @@ import { ThemedView } from "@/components/ThemedView";
 import { Link, useRouter } from "expo-router"; // Import useRouter for navigation
 import { styles } from "../styles";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons"; // Importing Ionicons for the toggle icon
 
 export default function HomeView() {
   const [email, setEmail] = useState(""); // You can keep email here as input but map it to username for login
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(""); // State for the error message
   const [isErrorVisible, setIsErrorVisible] = useState(false); // State to control modal visibility
+  const [passwordVisible, setPasswordVisible] = useState(false); // State to toggle password visibility
   const router = useRouter(); // Hook for navigation
 
   const handleLogin = async () => {
@@ -75,13 +77,26 @@ export default function HomeView() {
           />
 
           {/* Password Input */}
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={styles.input} // Ensure the input is styled the same as the username
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!passwordVisible} // Use the state to control visibility
+            />
+            {/* Toggle visibility button */}
+            <TouchableOpacity
+              onPress={() => setPasswordVisible(!passwordVisible)} // Toggle password visibility
+              style={styles.toggleButton}
+            >
+              <Ionicons
+                name={passwordVisible ? "eye-off" : "eye"} // Toggle icon based on visibility state
+                size={24}
+                color="gray"
+              />
+            </TouchableOpacity>
+          </View>
 
           {/* Login Button */}
           <TouchableOpacity style={styles.button} onPress={handleLogin}>

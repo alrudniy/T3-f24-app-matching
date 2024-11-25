@@ -15,13 +15,14 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   input: {
-    width: "100%",
+    height: 50,
+    borderColor: "gray",
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 20,
-    backgroundColor: "#fff",
+    borderRadius: 10,
+    paddingLeft: 15,
+    marginBottom: 15,
+    width: "100%", // Ensure it takes up full width
+    paddingRight: 40, // Allow space for the toggle button
   },
   button: {
     backgroundColor: "#6200ee",
@@ -332,5 +333,16 @@ export const styles = StyleSheet.create({
     height: 60,
     justifyContent: "center",
     alignItems: "center",
+  },
+  passwordContainer: {
+    position: "relative", // To position the toggle button
+    marginBottom: 20,
+    width: "100%", // Ensure the container takes full width
+  },
+  toggleButton: {
+    position: "absolute",
+    right: 10, // Align the icon to the right
+    top: "50%", // Vertically center the icon
+    transform: [{ translateY: -12 }], // Fine-tune the vertical alignment to center the icon
   },
 });

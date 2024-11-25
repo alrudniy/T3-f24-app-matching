@@ -18,16 +18,73 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 - Install libraries: pip install -r requirements.txt
 - Start backend with 'flask run'
 
-### POST ../Register Testing
+### POST ../register Testing
 - Click add request on Postman
 - Select POST option, and paste http://127.0.0.1:5000/register in URL Box
 - Select Body select and RAW:
 - Paste the following:
 ```
 {
-  "username": "testuser1",
+  "username": "EnterANewUsername",
   "password": "testpassword",
-  "firstName": "Test",
-  "lastName": "User"
+  "firstName": "FirstName",
+  "lastName": "LastName"
+}
+```
+
+### POST ../login Testing
+- Need to add documentation
+```
+{
+  need to add code here
+}
+```
+### GET ../logout Testing
+- Need to add documentation
+```
+{
+  need to add code here
+}
+```
+### GET ../api/user/profile Testing
+- Need to add documentation
+```
+{
+  need to add code here
+}
+```
+### PUT ../api/user/update-profile Testing
+- Need to add documentation
+```
+{
+  need to add code here
+}
+```
+### POST ../property/create Testing
+- Need to add documentation
+```
+{
+  need to add code here
+}
+```
+### DELETE ../user/delete Testing
+- Need to add documentation
+```
+{
+  need to add code here
+}
+```
+### GET ../api/properties Testing
+- Need to add documentation
+```
+{
+  need to add code here
+}
+```
+### POST ../api/match Testing
+- Need to add documentation
+```
+{
+  need to add code here
 }
 ```

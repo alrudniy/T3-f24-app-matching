@@ -14,8 +14,8 @@ app.secret_key = 'my backend secret_key'
 CORS(app)
 
 # Database configuration
-username = 't3'  # Replace with actual username
-password = 'Hav0nBDwD4uyvcZt'  # Replace with actual password
+username = 't3'
+password = 'Hav0nBDwD4uyvcZt'
 db_host = '34.125.69.91'
 db_name = 'f24_housing_db'
 
