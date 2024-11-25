@@ -10,7 +10,7 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 - [@Matthew](https://github.com/mcolucci40)
 - [@Phil](https://github.com/PhilPingPNG)
 
-## Backen Testing w/ Postman:
+# Backend Testing w/ Postman:
 
 - In terminal, change dir to backend: cd backend
 - Create virtual environment: python -m venv venv
@@ -18,7 +18,7 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 - Install libraries: pip install -r requirements.txt
 - Start backend with 'flask run'
 
-### POST ../register Testing
+## POST ../register Testing
 - Click add request on Postman
 - Select POST option, and paste http://127.0.0.1:5000/register in URL Box
 - Select Body select and RAW:
@@ -32,59 +32,61 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 }
 ```
 
-### POST ../login Testing
+## POST ../login Testing
 - Need to add documentation
 ```
 {
   need to add code here
 }
 ```
-### GET ../logout Testing
+## GET ../logout Testing
 - Need to add documentation
 ```
 {
   need to add code here
 }
 ```
-### GET ../api/user/profile Testing
+## GET ../api/user/profile Testing
 - Need to add documentation
 ```
 {
   need to add code here
 }
 ```
-### PUT ../api/user/update-profile Testing
+## PUT ../api/user/update-profile Testing
 - Need to add documentation
 ```
 {
   need to add code here
 }
 ```
-### POST ../property/create Testing
+## POST ../property/create Testing
 - Need to add documentation
 ```
 {
   need to add code here
 }
 ```
-### DELETE ../user/delete Testing
+## DELETE ../user/delete Testing
 - Need to add documentation
 ```
 {
   need to add code here
 }
 ```
-### GET ../api/properties Testing
+## GET ../api/properties Testing
 - Need to add documentation
 ```
 {
   need to add code here
 }
 ```
-### POST ../api/match Testing
+## POST ../api/match Testing
 - Need to add documentation
 ```
 {
   need to add code here
 }
 ```
+# Frontend Testing
+- Need to add info here :)
