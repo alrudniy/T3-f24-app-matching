@@ -21,22 +21,42 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 ## POST ../register Testing
 - Click add request on Postman
 - Select POST option, and paste http://127.0.0.1:5000/register in URL Box
-- Select Body select and RAW:
+- Select Body select  RAW:
 - Paste the following:
 ```
 {
   "username": "EnterANewUsername",
   "password": "testpassword",
   "firstName": "FirstName",
-  "lastName": "LastName"
+  "lastName": "LastName",
+  "role": "tenant"
+}
+```
+-If successful you should get the reponse:
+```
+{
+    "message": "User registered successfully",
+    "success": true
 }
 ```
 
 ## POST ../login Testing
-- Need to add documentation
+- Click add request on Postman
+- Select POST option, and paste http://127.0.0.1:5000/register in URL Box
+- Select Header, in key type `content-Type` and in value type `application/json`
+- Select Body select and RAW:
+- Paste the following:
 ```
 {
-  need to add code here
+  "username": "ARegisteredUsername",
+  "password": "password"
+}
+```
+-If successful you should get the reponse:
+```
+{
+    "message": "Login successful",
+    "success": true
 }
 ```
 ## GET ../logout Testing
