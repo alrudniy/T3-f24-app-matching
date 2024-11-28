@@ -202,7 +202,7 @@ def update_user_profile():
     finally:
         session.close()
 
-# Property creation route
+# Property creation 
 @app.route('/property/create', methods=['POST'])
 @login_required
 def create_property():

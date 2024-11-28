@@ -19,6 +19,9 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 - Start backend with 'flask run'
 
 ## POST ../register Testing
+- Description: Registers a new user.
+
+
 - Click add request on Postman
 - Select POST option, and paste http://127.0.0.1:5000/register in URL Box
 - Select Body select  RAW:
@@ -32,7 +35,11 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
   "role": "tenant"
 }
 ```
--If successful you should get the reponse:
+- If the role is `landlord` then include `bussinessName`:
+
+
+- If successful you should get the reponse:
+- Status: '200 OK'
 ```
 {
     "message": "User registered successfully",
@@ -41,6 +48,8 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 ```
 
 ## POST ../login Testing
+- Description: Logs a user into the system.
+
 - Click add request on Postman
 - Select POST option, and paste http://127.0.0.1:5000/register in URL Box
 - Select Header, in key type `content-Type` and in value type `application/json`
@@ -52,22 +61,50 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
   "password": "password"
 }
 ```
--If successful you should get the reponse:
+- If successful you should get the reponse:
+- Status: '200 OK'
 ```
 {
     "message": "Login successful",
     "success": true
 }
 ```
+
+> [!IMPORTANT]
+> After Logging in, a cookie should generate under cookie reponse tab. This where your session cookie is stored that will be used for further testing.
+
 ## GET ../logout Testing
-- Need to add documentation
+- Description: Logs a user out.
+
+- Click add request on Postman
+- Select POST option, and paste http://127.0.0.1:5000/logout in URL Box
+- Select Header, in key type `content-Type` and in value type `application/json`
+- Select Body select and RAW:
+- Paste the following:
+```
+{
+  "username": "RegisterUsername",
+  "password": "testpassword"
+}
+```
+- If successful you should get the reponse:
+- Status: '200 OK'
+```
+{
+    "message": "Login successful",
+    "success": true
+}
+```
+## GET ../api/user/profile Testing
+- Description: Fetches the profile of the logged-in user.
+- Send a GET request with a valid Authorization header.
 ```
 {
   need to add code here
 }
 ```
-## GET ../api/user/profile Testing
-- Need to add documentation
+- If successful you should get the reponse:
+- Status: '200 OK'
 ```
 {
   need to add code here
