@@ -188,7 +188,13 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 }
 ``
 ## DELETE ../user/delete Testing
-- Need to add documentation
+- Description: Deletes a user from the system by their ID.
+- 
+- 
+- Select DELETE option, and paste http://127.0.0.1:5000/user/delete/<user_id> in URL Box
+- Send a DELETE request with a valid `admin` Authorization header.
+- If successful you should get the reponse:
+- Status: '200 OK'
 ```
 {
   need to add code here
