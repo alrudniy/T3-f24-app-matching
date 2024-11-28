@@ -98,16 +98,24 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 ## GET ../api/user/profile Testing
 - Description: Fetches the profile of the logged-in user.
 - Send a GET request with a valid Authorization header.
-```
-{
-  need to add code here
-}
-```
+For Authorization header:
+- Select Header, type `Cookie` and in value type `session=<tokenValue>`
+- View  Login Testing to learn how to retrieve session cookie
+
 - If successful you should get the reponse:
 - Status: '200 OK'
 ```
 {
-  need to add code here
+    "profile": {
+        "businessName": null,
+        "firstname": "FirstName",
+        "id": 22,
+        "lastname": "LastName",
+        "profile_picture": null,
+        "role": "tenant",
+        "username": "TestTenant123"
+    },
+    "success": true
 }
 ```
 ## PUT ../api/user/update-profile Testing
