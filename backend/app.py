@@ -292,17 +292,24 @@ def get_properties():
         properties = session.query(Property).all()
         property_list = []
         for property in properties:
-            property_data = {
-                "id": property.id,
-                "size_sqft": property.size_sqft,
-                "price": property.price,
-                "bedrooms": property.bedrooms,
-                "bathrooms": property.bathrooms,
-                "pets_allowed": property.pets_allowed,  # Include pets_allowed
-                "accessibility": ["Ramp access", "Elevator"],  # Placeholder accessibility data
-                "image_url": property.image_url if property.image_url else "https://via.placeholder.com/400x300"
-            }
-            property_list.append(property_data)
+            try:  # Inner try-except block for property processing
+                property_data = {
+                    "id": property.id,
+                    "size_sqft": property.size_sqft,
+                    "price": property.price,
+                    "bedrooms": property.bedrooms,
+                    "bathrooms": property.bathrooms,
+                    "pets_allowed": property.pets_allowed,
+                    "accessibility": property.accessibility if hasattr(property, 'accessibility') else [],  # Check for attribute
+                    "image_url": property.image_url if property.image_url else "https://via.placeholder.com/400x300"
+                }
+                property_list.append(property_data)
+            except Exception as inner_e:
+                print(f"Error processing property {property.id}: {inner_e}")  # Log the specific property error
+                # Optionally, you can skip this property and continue with the next one:
+                # continue
+                # Or, if you want to stop processing altogether on any error:
+                raise  # Re-raise the exception to be caught by the outer try-except
         return jsonify({"success": True, "properties": property_list}), 200
     except SQLAlchemyError as e:
         print("Database error:", str(e))
