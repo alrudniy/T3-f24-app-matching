@@ -2,18 +2,19 @@ import React, { useState } from "react";
 import { TextInput, TouchableOpacity, Alert, Modal, View, Text } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { Link, useRouter } from "expo-router"; // Import useRouter for navigation
 import { styles } from "../styles";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons"; // Importing Ionicons for the toggle icon
+import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
+import { useRouter } from "expo-router"; // Import useRouter for navigation
 
 export default function HomeView() {
-  const [email, setEmail] = useState(""); // You can keep email here as input but map it to username for login
+  const [email, setEmail] = useState(""); 
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(""); // State for the error message
-  const [isErrorVisible, setIsErrorVisible] = useState(false); // State to control modal visibility
-  const [passwordVisible, setPasswordVisible] = useState(false); // State to toggle password visibility
-  const router = useRouter(); // Hook for navigation
+  const [errorMessage, setErrorMessage] = useState(""); 
+  const [isErrorVisible, setIsErrorVisible] = useState(false); 
+  const [passwordVisible, setPasswordVisible] = useState(false); 
+  const router = useRouter(); 
 
   const handleLogin = async () => {
     if (email.trim() === "" || password.trim() === "") {
@@ -23,31 +24,31 @@ export default function HomeView() {
     }
 
     try {
-      // Make sure you are sending 'username' instead of 'email'
       const response = await fetch("http://localhost:5000/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username: email, password }), // Send username instead of email
+        body: JSON.stringify({ username: email, password }), 
+        credentials: "include", // Include cookies in the request
       });
 
       const data = await response.json();
 
-      // Check if the response is successful and the message is a success
       if (response.status === 200 && data.success) {
+        // Save the session flag in AsyncStorage (Optional for session validation)
+        await AsyncStorage.setItem("isLoggedIn", "true");
+
         Alert.alert("Success", data.message);
-        // Navigate to a different page on successful login (example: Matching)
-        router.push("/matching"); // You can replace this with the page you want to navigate to
+        // Navigate to the Matching page
+        router.push("/matching"); 
       } else {
-        // Show the error message in the modal
         setErrorMessage(data.message || "Invalid login credentials");
-        setIsErrorVisible(true); // Show the error modal
+        setIsErrorVisible(true); 
       }
     } catch (error) {
-      // Display a generic error message if an issue occurs
       setErrorMessage("An error occurred. Please try again later.");
-      setIsErrorVisible(true); // Show the error modal
+      setIsErrorVisible(true); 
       console.error("Login error:", error);
     }
   };
@@ -70,7 +71,7 @@ export default function HomeView() {
           <TextInput
             style={styles.input}
             placeholder="Username"
-            value={email} // Keep username as email, change label if necessary
+            value={email} // Use username as email
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -79,19 +80,19 @@ export default function HomeView() {
           {/* Password Input */}
           <View style={styles.passwordContainer}>
             <TextInput
-              style={styles.input} // Ensure the input is styled the same as the username
+              style={styles.input} // Ensure the input is styled similarly to username input
               placeholder="Password"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry={!passwordVisible} // Use the state to control visibility
+              secureTextEntry={!passwordVisible} // Toggle password visibility
             />
             {/* Toggle visibility button */}
             <TouchableOpacity
-              onPress={() => setPasswordVisible(!passwordVisible)} // Toggle password visibility
+              onPress={() => setPasswordVisible(!passwordVisible)} // Toggle visibility
               style={styles.toggleButton}
             >
               <Ionicons
-                name={passwordVisible ? "eye-off" : "eye"} // Toggle icon based on visibility state
+                name={passwordVisible ? "eye-off" : "eye"} // Toggle icon for visibility
                 size={24}
                 color="gray"
               />
@@ -108,7 +109,7 @@ export default function HomeView() {
           <Text style={[styles.footerText, styles.link]}>
             Do not have an account?{" "}
             <Text
-              onPress={() => router.push("/accountSelection")} // Navigate to the registration page
+              onPress={() => router.push("/accountSelection")} // Navigate to account selection page
               style={styles.link}
             >
               Create one

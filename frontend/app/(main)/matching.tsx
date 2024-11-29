@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { styles } from "./styles";
+import React, { useState, useEffect } from "react";
+import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
+import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { Text, View, Image, TouchableOpacity, FlatList, Alert } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage for token storage
+import { styles } from "./styles"; // Importing the provided styles
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Property {
   id: number;
@@ -12,153 +11,133 @@ interface Property {
   price: number;
   bedrooms: number;
   bathrooms: number;
-  user_id: number;
+  pets_allowed: boolean;
+  accessibility: string[];
+  image_url: string;
 }
 
-export default function MatchingView() {
+export default function Matching() {
   const [properties, setProperties] = useState<Property[]>([]);
-  const [lastDirection, setLastDirection] = useState<string>("");
+  const [lastSwiped, setLastSwiped] = useState<string | null>(null);
 
-  // Retrieve token and fetch properties
   useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const token = await AsyncStorage.getItem("authToken"); // Replace with your token key
-
-        if (!token) {
-          Alert.alert("Error", "User not authenticated. Please log in.");
-          return;
-        }
-
-        const response = await fetch("/api/properties", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // Add the Bearer token
-          },
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-          setProperties(data.properties);
-        } else {
-          console.error("Failed to fetch properties:", data.message);
-        }
-      } catch (error) {
-        console.error("Error fetching properties:", error);
-      }
-    };
-
     fetchProperties();
   }, []);
 
-  // Match property logic
-  const tagAsMatch = async (propertyId: number) => {
+  const fetchProperties = async () => {
     try {
-      const token = await AsyncStorage.getItem("authToken"); // Replace with your token key
+      const response = await fetch("http://localhost:5000/api/properties", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
 
-      if (!token) {
-        Alert.alert("Error", "User not authenticated. Please log in.");
-        return;
+      if (!response.ok) {
+        throw new Error("Failed to fetch properties");
       }
 
-      const response = await fetch(`/api/match`, {
+      const data = await response.json();
+      if (data.success) {
+        setProperties(data.properties);
+      } else {
+        Alert.alert("Error", "Failed to fetch properties");
+      }
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+      Alert.alert("Error", "Could not load properties. Please try again.");
+    }
+  };
+
+  const handleSwipeRight = async (propertyId: number) => {
+    try {
+      const response = await fetch("http://localhost:5000/api/match", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Add the Bearer token
         },
         body: JSON.stringify({ property_id: propertyId }),
+        credentials: "include",
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (response.ok && data.success) {
-        setProperties((prev) => prev.filter((property) => property.id !== propertyId));
-        Alert.alert("Matched!", "You have matched this property.");
+      if (response.ok && result.success) {
+        Alert.alert("Success", "You liked this property!");
       } else {
-        console.error("Failed to tag property as a match:", data.message);
+        console.error("Error matching property:", result.message);
       }
     } catch (error) {
-      console.error("Error tagging property as a match:", error);
+      console.error("Error matching property:", error);
+      Alert.alert("Error", "Could not process your swipe. Please try again.");
     }
   };
 
-  // Handle swipe actions
-  const swiped = (direction: string, propertyId: number) => {
-    setLastDirection(direction);
-    if (direction === "right") {
-      tagAsMatch(propertyId);
-    } else if (direction === "left") {
-      console.log("Discarded property with ID:", propertyId);
-    }
+  const handleSwipeLeft = (propertyId: number) => {
+    console.log(`Property ${propertyId} discarded`);
+    setLastSwiped("left");
   };
 
-  // Render function for properties
-  const renderProperty = ({ item }: { item: Property }) => (
-    <View style={styles.propertyCard}>
-      <Image
-        source={{ uri: "https://via.placeholder.com/400x300" }} // Replace with actual image URLs
-        style={styles.propertyImage}
-      />
-      <View style={styles.propertyDetails}>
-        <Text style={styles.propertyText}>Property ID: {item.id}</Text>
-        <Text style={styles.propertyText}>Size: {item.size_sqft} sqft</Text>
-        <Text style={styles.propertyText}>Price: ${item.price}</Text>
-        <Text style={styles.propertyText}>Beds: {item.bedrooms} bed</Text>
-        <Text style={styles.propertyText}>Baths: {item.bathrooms} bath</Text>
+  const renderCard = (property: Property) => {
+    return (
+      <View style={styles.propertyCard}>
+        <Image
+          source={{ uri: property.image_url || "https://via.placeholder.com/400" }}
+          style={styles.propertyImage}
+        />
+        <View style={styles.propertyDetails}>
+          <Text style={styles.propertyText}>
+            Beds: {property.bedrooms} bed
+          </Text>
+          <Text style={styles.propertyText}>
+            Baths: {property.bathrooms} bath
+          </Text>
+          <Text style={styles.propertyText}>
+            Pets: {property.pets_allowed ? "Pets allowed" : "No pets allowed"}
+          </Text>
+          <Text style={styles.propertyText}>Accessibility:</Text>
+          {property.accessibility.length > 0 ? (
+            property.accessibility.map((item, index) => (
+              <Text key={index} style={styles.propertyText}>
+                - {item}
+              </Text>
+            ))
+          ) : (
+            <Text style={styles.propertyText}>None</Text>
+          )}
+        </View>
       </View>
-      <TouchableOpacity
-        style={styles.swipeRight}
-        onPress={() => tagAsMatch(item.id)}
-      >
-        <Text style={styles.buttonText}>✔️ Match</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <SafeAreaProvider>
-      <ThemedView style={styles.container}>
-        <SafeAreaView style={styles.innerContainer}>
-          <ThemedText type="title">Matching App</ThemedText>
-
-          {properties.length > 0 ? (
-            <FlatList
-              data={properties}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={renderProperty}
-            />
-          ) : (
-            <Text>No properties available</Text>
-          )}
-
-          {/* Swipe Actions */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={styles.swipeLeft}
-              onPress={() => {
-                if (properties.length > 0) swiped("left", properties[0].id);
-              }}
-            >
-              <Text style={styles.buttonText}>❌ Discard</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.swipeRight}
-              onPress={() => {
-                if (properties.length > 0) swiped("right", properties[0].id);
-              }}
-            >
-              <Text style={styles.buttonText}>✔️ Match</Text>
-            </TouchableOpacity>
+      <SafeAreaView style={styles.container}>
+        {properties.length > 0 ? (
+          <Swiper
+            cards={properties}
+            renderCard={(card) => renderCard(card)}
+            onSwipedRight={(index) => handleSwipeRight(properties[index].id)}
+            onSwipedLeft={(index) => handleSwipeLeft(properties[index].id)}
+            cardIndex={0}
+            stackSize={3}
+            backgroundColor="transparent"
+          />
+        ) : (
+          <View style={styles.noData}>
+            <Text style={styles.propertyText}>No properties available.</Text>
           </View>
-
-          {lastDirection ? (
-            <Text style={styles.footerText}>Last Swipe: {lastDirection}</Text>
-          ) : null}
-        </SafeAreaView>
-      </ThemedView>
+        )}
+        <View style={styles.matchButtonContainer}>
+          <TouchableOpacity style={styles.swipeLeft}>
+            <Text style={styles.buttonText}>❌</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.swipeRight}>
+            <Text style={styles.buttonText}>✔️</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 }

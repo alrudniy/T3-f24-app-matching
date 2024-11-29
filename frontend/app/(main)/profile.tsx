@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Image, TouchableOpacity, Alert } from "react-native";
 import { styles } from "./styles";
 import * as ImagePicker from "expo-image-picker";
+import { Ionicons } from "@expo/vector-icons"; // Import Ionicons for the overlay icon
 
-// Define the shape of the user data
 type UserProfile = {
   profilePicture: string;
   firstName: string;
@@ -13,7 +13,7 @@ type UserProfile = {
   businessName: string;
 };
 
-const profile = () => {
+const Profile = () => {
   const [user, setUser] = useState<UserProfile>({
     profilePicture: "",
     firstName: "",
@@ -23,17 +23,40 @@ const profile = () => {
     businessName: "",
   });
   const [editing, setEditing] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null); // Fix applied
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch user data here (replace with your API call)
     const fetchUserData = async () => {
       try {
-        const response = await fetch('/api/user/profile');
-        const data: { profile: UserProfile } = await response.json();
-        setUser(data.profile);
+        const response = await fetch("http://localhost:5000/api/user/profile", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch user profile: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          const profile = data.profile;
+          setUser({
+            profilePicture: profile.profile_picture || "",
+            firstName: profile.firstname || "",
+            lastName: profile.lastname || "",
+            email: profile.username || "",
+            role: profile.role || "",
+            businessName: profile.businessName || "",
+          });
+        } else {
+          console.error("Error fetching profile:", data.message);
+          Alert.alert("Error", data.message || "Failed to fetch profile.");
+        }
       } catch (error) {
-        console.error('Failed to fetch user data', error);
+        console.error("Error fetching user data:", error);
         Alert.alert("Error", "Failed to fetch user data.");
       }
     };
@@ -43,37 +66,46 @@ const profile = () => {
 
   const handleSave = async () => {
     try {
-      // Save updated user data (API call)
-      const response = await fetch('/api/user/update-profile', {
-        method: 'PUT',
+      const formData = new FormData();
+      formData.append("firstname", user.firstName);
+      formData.append("lastname", user.lastName);
+      if (user.role === "landlord" && user.businessName) {
+        formData.append("businessName", user.businessName);
+      }
+
+      if (selectedImage) {
+        const response = await fetch(selectedImage);
+        const blob = await response.blob();
+        formData.append("profile_picture", blob, "profile_picture.jpg");
+      }
+
+      const response = await fetch("http://localhost:5000/api/user/update-profile", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Accept": "application/json",
         },
-        body: JSON.stringify({
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          businessName: user.businessName,
-          profilePicture: user.profilePicture, // optional, include if user updated image
-        }),
+        body: formData,
+        credentials: "include",
       });
 
       const result = await response.json();
-      if (result.success) {
-        Alert.alert("Profile updated successfully!");
+
+      if (response.ok && result.success) {
+        Alert.alert("Success", "Profile updated successfully!");
+        setEditing(false);
       } else {
-        Alert.alert("Error", "Failed to update profile.");
+        console.error("Error updating profile:", result.message);
+        Alert.alert("Error", result.message || "Failed to update profile.");
       }
     } catch (error) {
-      console.error('Failed to update profile', error);
-      Alert.alert("Error", "Failed to update profile.");
-    } finally {
-      setEditing(false);
+      console.error("Error updating profile:", error);
+      Alert.alert("Error", "An error occurred while updating your profile.");
     }
   };
 
   const handleCancel = () => {
     setEditing(false);
+    setSelectedImage(null);
   };
 
   const pickImage = async () => {
@@ -92,12 +124,19 @@ const profile = () => {
 
   return (
     <View style={styles.profileContainer}>
-      <TouchableOpacity onPress={pickImage}>
-        <Image
-          source={{ uri: selectedImage || user.profilePicture }}
-          style={styles.profileImage}
-        />
-      </TouchableOpacity>
+      <View style={styles.imageContainer}>
+        <TouchableOpacity onPress={editing ? pickImage : undefined} activeOpacity={editing ? 0.7 : 1}>
+          <Image
+            source={{ uri: selectedImage || user.profilePicture || "https://via.placeholder.com/150" }}
+            style={styles.profileImage}
+          />
+          {editing && (
+            <View style={styles.editOverlay}>
+              <Ionicons name="camera" size={30} color="white" />
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
       {editing ? (
         <View style={styles.profileDetails}>
           <Text style={styles.profileLabel}>First Name</Text>
@@ -116,7 +155,7 @@ const profile = () => {
           <TextInput
             style={styles.input}
             value={user.email}
-            onChangeText={(text) => setUser({ ...user, email: text })}
+            editable={false} // Non-editable field
           />
           {user.role === "landlord" && (
             <>
@@ -163,4 +202,4 @@ const profile = () => {
   );
 };
 
-export default profile;
+export default Profile;

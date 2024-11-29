@@ -345,4 +345,25 @@ export const styles = StyleSheet.create({
     top: "50%", // Vertically center the icon
     transform: [{ translateY: -12 }], // Fine-tune the vertical alignment to center the icon
   },
+  imageContainer: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  
+  editOverlay: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 15,
+    padding: 5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  noData: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
