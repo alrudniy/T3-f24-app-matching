@@ -290,18 +290,19 @@ def get_properties():
         return jsonify({"success": False, "message": "This page is only available to tenants"}), 403
     try:
         properties = session.query(Property).all()
-        property_list = [
-            {
+        property_list = []
+        for property in properties:
+            property_data = {
                 "id": property.id,
                 "size_sqft": property.size_sqft,
                 "price": property.price,
                 "bedrooms": property.bedrooms,
                 "bathrooms": property.bathrooms,
-                "user_id": property.user_id,
+                "pets_allowed": property.pets_allowed,  # Include pets_allowed
+                "accessibility": ["Ramp access", "Elevator"],  # Placeholder accessibility data
                 "image_url": property.image_url if property.image_url else "https://via.placeholder.com/400x300"
             }
-            for property in properties
-        ]
+            property_list.append(property_data)
         return jsonify({"success": True, "properties": property_list}), 200
     except SQLAlchemyError as e:
         print("Database error:", str(e))
