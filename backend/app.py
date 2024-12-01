@@ -63,7 +63,7 @@ class Property(Base):
     price = Column(Float)
     bedrooms = Column(Integer)
     bathrooms = Column(Integer)
-    street = Column(String, nullable=True)
+    street_address  = Column(String, nullable=True)
     city = Column(String, nullable=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship("User", back_populates="properties")
@@ -365,7 +365,7 @@ def get_properties():
                 "price": property.price,
                 "bedrooms": property.bedrooms,
                 "bathrooms": property.bathrooms,
-                "street": property.street,
+                "street": property.street_address ,
                 "city": property.city,
                 "user_id": property.user_id,
                 "image_url": image_url  # First image or placeholder
