@@ -3,7 +3,6 @@ import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { styles } from "./styles"; // Importing the provided styles
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Property {
   id: number;
@@ -11,8 +10,8 @@ interface Property {
   price: number;
   bedrooms: number;
   bathrooms: number;
-  pets_allowed: boolean;
-  accessibility: string[];
+  street: string;
+  city: string;
   image_url: string;
 }
 
@@ -42,7 +41,7 @@ export default function Matching() {
       if (data.success) {
         setProperties(data.properties);
       } else {
-        Alert.alert("Error", "Failed to fetch properties");
+        Alert.alert("Error", data.message || "Failed to fetch properties.");
       }
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -67,6 +66,7 @@ export default function Matching() {
         Alert.alert("Success", "You liked this property!");
       } else {
         console.error("Error matching property:", result.message);
+        Alert.alert("Error", result.message || "Failed to process your swipe.");
       }
     } catch (error) {
       console.error("Error matching property:", error);
@@ -83,29 +83,15 @@ export default function Matching() {
     return (
       <View style={styles.propertyCard}>
         <Image
-          source={{ uri: property.image_url || "https://via.placeholder.com/400" }}
+          source={{ uri: property.image_url || "https://via.placeholder.com/400x300" }}
           style={styles.propertyImage}
         />
         <View style={styles.propertyDetails}>
-          <Text style={styles.propertyText}>
-            Beds: {property.bedrooms} bed
-          </Text>
-          <Text style={styles.propertyText}>
-            Baths: {property.bathrooms} bath
-          </Text>
-          <Text style={styles.propertyText}>
-            Pets: {property.pets_allowed ? "Pets allowed" : "No pets allowed"}
-          </Text>
-          <Text style={styles.propertyText}>Accessibility:</Text>
-          {property.accessibility.length > 0 ? (
-            property.accessibility.map((item, index) => (
-              <Text key={index} style={styles.propertyText}>
-                - {item}
-              </Text>
-            ))
-          ) : (
-            <Text style={styles.propertyText}>None</Text>
-          )}
+          <Text style={styles.propertyText}>Address: {property.street}, {property.city}</Text>
+          <Text style={styles.propertyText}>Size: {property.size_sqft} sqft</Text>
+          <Text style={styles.propertyText}>Price: ${property.price.toLocaleString()}</Text>
+          <Text style={styles.propertyText}>Beds: {property.bedrooms}</Text>
+          <Text style={styles.propertyText}>Baths: {property.bathrooms}</Text>
         </View>
       </View>
     );
@@ -130,10 +116,10 @@ export default function Matching() {
           </View>
         )}
         <View style={styles.matchButtonContainer}>
-          <TouchableOpacity style={styles.swipeLeft}>
+          <TouchableOpacity style={styles.swipeLeft} onPress={() => console.log("Swiped Left!")}>
             <Text style={styles.buttonText}>❌</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.swipeRight}>
+          <TouchableOpacity style={styles.swipeRight} onPress={() => console.log("Swiped Right!")}>
             <Text style={styles.buttonText}>✔️</Text>
           </TouchableOpacity>
         </View>
