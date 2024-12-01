@@ -45,6 +45,8 @@ class User(UserMixin, Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(length=150), unique=True)
+    email = Column(String(length=150), unique=True, nullable=False)  # New email field
+    phone = Column(String(length=15), nullable=True)  # New phone field
     password = Column(String(length=170))
     firstname = Column(String(length=100))
     lastname = Column(String(length=100))
@@ -54,7 +56,6 @@ class User(UserMixin, Base):
     profile_picture = Column(String(length=255), nullable=True)  # Profile picture path
     properties = relationship("Property", back_populates="user", cascade="all, delete-orphan")
 
-
 class Property(Base):
     __tablename__ = 'property'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -62,9 +63,18 @@ class Property(Base):
     price = Column(Float)
     bedrooms = Column(Integer)
     bathrooms = Column(Integer)
+    street = Column(String, nullable=True)
+    city = Column(String, nullable=True)
     user_id = Column(Integer, ForeignKey('user.id'))
-    image_url = Column(String, nullable=True)
     user = relationship("User", back_populates="properties")
+    images = relationship("PropertyImage", back_populates="property", cascade="all, delete-orphan")
+
+class PropertyImage(Base):
+    __tablename__ = 'property_images'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    property_id = Column(Integer, ForeignKey('property.id', ondelete='CASCADE'))
+    image_url = Column(String, nullable=False)
+    property = relationship("Property", back_populates="images")
 
 
 class Match(Base):
@@ -100,25 +110,34 @@ def register():
     try:
         data = request.json
         username = data.get('username')
+        email = data.get('email')
+        phone = data.get('phone')
         password = data.get('password')
         firstname = data.get('firstName')
         lastname = data.get('lastName')
         role = data.get('role')
         business_name = data.get('businessName')
 
-        if not username or not password or not firstname or not lastname or not role:
+        # Validate required fields
+        if not username or not email or not password or not firstname or not lastname or not role:
             return jsonify({"success": False, "message": "All fields are required"})
 
         if role == "landlord" and not business_name:
             return jsonify({"success": False, "message": "Business name is required for landlords"})
 
-        existing_user = session.query(User).filter_by(username=username).first()
+        # Check if email or username already exists
+        existing_user = session.query(User).filter((User.username == username) | (User.email == email)).first()
         if existing_user:
-            return jsonify({"success": False, "message": "Username already exists"})
+            return jsonify({"success": False, "message": "Username or email already exists"})
 
+        # Hash the password
         hashed_password = generate_password_hash(password, method='scrypt')
+
+        # Create the new user
         new_user = User(
             username=username,
+            email=email,
+            phone=phone,
             password=hashed_password,
             firstname=firstname,
             lastname=lastname,
@@ -129,10 +148,14 @@ def register():
         session.add(new_user)
         session.commit()
 
-        return jsonify({"success": True, "message": "User registered successfully"})
+        return jsonify({"success": True, "message": "User registered successfully"}), 201
     except SQLAlchemyError as e:
         session.rollback()
-        return jsonify({"success": False, "message": "Database error", "error": str(e)})
+        print("Database error:", str(e))
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        print("Unexpected error:", str(e))
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
     finally:
         session.close()
 
@@ -178,11 +201,12 @@ def get_user_profile():
         user = {
             "id": current_user.id,
             "username": current_user.username,
+            "email": current_user.email,  # Include email
+            "phone": current_user.phone,  # Include phone
             "firstname": current_user.firstname,
             "lastname": current_user.lastname,
             "role": current_user.role,
             "businessName": current_user.businessName,
-            # Generate the full URL for the profile picture
             "profile_picture": f"http://localhost:5000/uploads/{current_user.profile_picture}" if current_user.profile_picture else "https://via.placeholder.com/150",
         }
         return jsonify({"success": True, "profile": user}), 200
@@ -198,6 +222,8 @@ def update_user_profile():
         data = request.form
         firstname = data.get('firstname')
         lastname = data.get('lastname')
+        email = data.get('email')
+        phone = data.get('phone')
         businessName = data.get('businessName') if current_user.role == "landlord" else None
         profile_picture = request.files.get('profile_picture')
 
@@ -209,6 +235,14 @@ def update_user_profile():
             user.firstname = firstname
         if lastname:
             user.lastname = lastname
+        if email:
+            # Check if email already exists
+            existing_user = session.query(User).filter(User.email == email, User.id != current_user.id).first()
+            if existing_user:
+                return jsonify({"success": False, "message": "Email is already in use"}), 400
+            user.email = email
+        if phone:
+            user.phone = phone
         if businessName:
             user.businessName = businessName
 
@@ -217,7 +251,7 @@ def update_user_profile():
             filename = secure_filename(profile_picture.filename)
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"{current_user.id}_{filename}")
             profile_picture.save(filepath)
-            user.profile_picture = f"{current_user.id}_{filename}"  # Store relative path only
+            user.profile_picture = f"{current_user.id}_{filename}"
 
         session.commit()
         return jsonify({"success": True, "message": "Profile updated successfully"}), 200
@@ -242,8 +276,11 @@ def create_property():
         price = data.get('price')
         bedrooms = data.get('bedrooms')
         bathrooms = data.get('bathrooms')
+        street_address = data.get('street_address')
+        city = data.get('city')
 
-        if not size_sqft or not price or not bedrooms or not bathrooms:
+        # Validate all fields
+        if not all([size_sqft, price, bedrooms, bathrooms, street_address, city]):
             return jsonify({"success": False, "message": "All property fields are required"})
 
         new_property = Property(
@@ -251,6 +288,8 @@ def create_property():
             price=price,
             bedrooms=bedrooms,
             bathrooms=bathrooms,
+            street_address=street_address,
+            city=city,
             user_id=current_user.id
         )
 
@@ -262,6 +301,7 @@ def create_property():
         return jsonify({"success": False, "message": "Database error", "error": str(e)})
     finally:
         session.close()
+
 
 # Delete user
 @app.route('/user/delete/<int:user_id>', methods=['DELETE'])
@@ -372,6 +412,49 @@ def match_property():
         return jsonify({"success": False, "message": "Database error", "error": str(e)})
     finally:
         session.close()
+
+# Upload Property Images
+@app.route('/property/<int:property_id>/upload-images', methods=['POST'])
+@login_required
+def upload_property_images(property_id):
+    if current_user.role != "landlord":
+        return jsonify({"success": False, "message": "Only landlords can upload property images"}), 403
+
+    try:
+        property = session.query(Property).filter_by(id=property_id, user_id=current_user.id).first()
+        if not property:
+            return jsonify({"success": False, "message": "Property not found"}), 404
+
+        if 'images' not in request.files:
+            return jsonify({"success": False, "message": "No images provided"}), 400
+
+        images = request.files.getlist('images')
+        if len(images) < 1 or len(images) > 5:
+            return jsonify({"success": False, "message": "You must upload between 1 and 5 images"}), 400
+
+        uploaded_images = []
+        for image in images:
+            if not allowed_file(image.filename):
+                return jsonify({"success": False, "message": f"Invalid file type: {image.filename}"}), 400
+
+            filename = secure_filename(f"{property_id}_{image.filename}")
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            image.save(filepath)
+
+            property_image = PropertyImage(property_id=property.id, image_url=filename)
+            session.add(property_image)
+            uploaded_images.append(f"http://localhost:5000/uploads/{filename}")
+
+        session.commit()
+        return jsonify({"success": True, "message": "Images uploaded successfully", "images": uploaded_images}), 200
+    except SQLAlchemyError as e:
+        session.rollback()
+        print("Database error:", str(e))
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        print("Unexpected error:", str(e))
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+
 
 # Main entry point
 if __name__ == '__main__':

@@ -1,16 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Image, TouchableOpacity, Alert } from "react-native";
+import { View, Text, TextInput, Image, TouchableOpacity, Modal, Button } from "react-native";
 import { styles } from "./styles";
 import * as ImagePicker from "expo-image-picker";
-import { Ionicons } from "@expo/vector-icons"; // Import Ionicons for the overlay icon
+import { Ionicons } from "@expo/vector-icons";
 
 type UserProfile = {
   profilePicture: string;
   firstName: string;
   lastName: string;
   email: string;
+  phone: string;
   role: string;
   businessName: string;
+};
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phoneRegex = /^[0-9]{10}$/;
+
+const formatPhoneNumber = (phone: string): string => {
+  const cleaned = phone.replace(/\D/g, "");
+  if (cleaned.length !== 10) return phone; // Return unformatted if not 10 digits
+  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+  return match ? `(${match[1]}) ${match[2]}-${match[3]}` : phone;
 };
 
 const Profile = () => {
@@ -19,11 +30,14 @@ const Profile = () => {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
     role: "",
     businessName: "",
   });
   const [editing, setEditing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -48,16 +62,15 @@ const Profile = () => {
             firstName: profile.firstname || "",
             lastName: profile.lastname || "",
             email: profile.username || "",
+            phone: profile.phone || "",
             role: profile.role || "",
             businessName: profile.businessName || "",
           });
         } else {
-          console.error("Error fetching profile:", data.message);
-          Alert.alert("Error", data.message || "Failed to fetch profile.");
+          showModal(data.message || "Failed to fetch profile.");
         }
       } catch (error) {
-        console.error("Error fetching user data:", error);
-        Alert.alert("Error", "Failed to fetch user data.");
+        showModal("Failed to fetch user data.");
       }
     };
 
@@ -65,10 +78,23 @@ const Profile = () => {
   }, []);
 
   const handleSave = async () => {
+    if (!emailRegex.test(user.email)) {
+      showModal("Invalid Email. Please enter a valid email address.");
+      return;
+    }
+
+    if (!phoneRegex.test(user.phone)) {
+      showModal("Invalid Phone. Please enter a valid phone number (10 digits).");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("firstname", user.firstName);
       formData.append("lastname", user.lastName);
+      formData.append("email", user.email);
+      formData.append("phone", user.phone);
+
       if (user.role === "landlord" && user.businessName) {
         formData.append("businessName", user.businessName);
       }
@@ -91,15 +117,13 @@ const Profile = () => {
       const result = await response.json();
 
       if (response.ok && result.success) {
-        Alert.alert("Success", "Profile updated successfully!");
+        showModal("Profile updated successfully!");
         setEditing(false);
       } else {
-        console.error("Error updating profile:", result.message);
-        Alert.alert("Error", result.message || "Failed to update profile.");
+        showModal(result.message || "Failed to update profile.");
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
-      Alert.alert("Error", "An error occurred while updating your profile.");
+      showModal("An error occurred while updating your profile.");
     }
   };
 
@@ -120,6 +144,11 @@ const Profile = () => {
       setSelectedImage(result.assets[0].uri);
       setUser((prev) => ({ ...prev, profilePicture: result.assets[0].uri }));
     }
+  };
+
+  const showModal = (message: string) => {
+    setModalMessage(message);
+    setModalVisible(true);
   };
 
   return (
@@ -155,7 +184,14 @@ const Profile = () => {
           <TextInput
             style={styles.input}
             value={user.email}
-            editable={false} // Non-editable field
+            onChangeText={(text) => setUser({ ...user, email: text })}
+          />
+          <Text style={styles.profileLabel}>Phone</Text>
+          <TextInput
+            style={styles.input}
+            value={user.phone}
+            onChangeText={(text) => setUser({ ...user, phone: text })}
+            keyboardType="phone-pad"
           />
           {user.role === "landlord" && (
             <>
@@ -184,6 +220,8 @@ const Profile = () => {
           <Text style={styles.profileValue}>{user.lastName}</Text>
           <Text style={styles.profileLabel}>Email</Text>
           <Text style={styles.profileValue}>{user.email}</Text>
+          <Text style={styles.profileLabel}>Phone</Text>
+          <Text style={styles.profileValue}>{formatPhoneNumber(user.phone)}</Text>
           {user.role === "landlord" && (
             <>
               <Text style={styles.profileLabel}>Business Name</Text>
@@ -198,6 +236,20 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
       )}
+      {/* Modal for displaying messages */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>{modalMessage}</Text>
+            <Button title="Close" onPress={() => setModalVisible(false)} color="#6200ee" />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

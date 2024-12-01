@@ -20,6 +20,7 @@ export default function AccountCreationView() {
   const router = useRouter();
 
   const [form, setForm] = useState({
+    username: "",
     firstName: "",
     lastName: "",
     businessName: "",
@@ -42,6 +43,7 @@ export default function AccountCreationView() {
 
   const handleSubmit = async () => {
     const {
+      username,
       firstName,
       lastName,
       businessName,
@@ -54,6 +56,7 @@ export default function AccountCreationView() {
 
     // Validate form fields
     if (
+      !username ||
       !firstName ||
       !lastName ||
       !email ||
@@ -107,13 +110,14 @@ export default function AccountCreationView() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: email,
+          username,
+          email,
+          phone,
           password,
-          businessName : role === "landlord" ? businessName : null, // Include propertyName if landlord,
+          businessName: role === "landlord" ? businessName : null, // Include businessName if landlord
           firstName,
           lastName,
           role,
-          phone,
         }),
       });
 
@@ -154,9 +158,15 @@ export default function AccountCreationView() {
             </ThemedText>
 
             <ThemedView style={styles.formContainer}>
-            {role === "landlord" && (
+              <TextInput
+                placeholder="Username"
+                style={styles.input}
+                value={form.username}
+                onChangeText={(text) => handleChange("username", text)}
+              />
+              {role === "landlord" && (
                 <TextInput
-                  placeholder="Bussiness Name"
+                  placeholder="Business Name"
                   style={styles.input}
                   value={form.businessName}
                   onChangeText={(text) => handleChange("businessName", text)}
