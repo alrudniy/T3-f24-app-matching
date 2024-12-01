@@ -5,3 +5,5 @@ mariadb
 flask_login
 pymysql
 sqlalchemy.orm
+CORS
+flask-cors
