@@ -282,6 +282,30 @@ def delete_user(user_id):
     finally:
         session.close()
 
+# Get all users
+@app.route('/api/users', methods=['GET'])
+@login_required
+def get_users():
+    try:
+        users = session.query(User).all()
+        user_list = []
+        for user in users:
+            user_data = {
+                "id": user.id,
+                "firstname": user.firstname,
+                "lastname": user.lastname,
+            }
+            user_list.append(user_data)
+        return jsonify({"success": True, "users": user_list}), 200
+    except SQLAlchemyError as e:
+        print("Database error:", str(e))
+        session.rollback()
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        print("Unexpected error:", str(e))
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+
+
 # Get all properties
 @app.route('/api/properties', methods=['GET'])
 @login_required
@@ -306,9 +330,6 @@ def get_properties():
                 property_list.append(property_data)
             except Exception as inner_e:
                 print(f"Error processing property {property.id}: {inner_e}")  # Log the specific property error
-                # Optionally, you can skip this property and continue with the next one:
-                # continue
-                # Or, if you want to stop processing altogether on any error:
                 raise  # Re-raise the exception to be caught by the outer try-except
         return jsonify({"success": True, "properties": property_list}), 200
     except SQLAlchemyError as e:
