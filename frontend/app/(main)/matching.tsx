@@ -10,7 +10,7 @@ interface Property {
   price: number;
   bedrooms: number;
   bathrooms: number;
-  street: string;
+  street_address: string;
   city: string;
   image_url: string;
 }
@@ -49,14 +49,17 @@ export default function Matching() {
     }
   };
 
-  const handleSwipeRight = async (propertyId: number) => {
+  const handleSwipeRight = async (index: number) => {
+    const property = properties[index];
+    if (!property) return;
+
     try {
       const response = await fetch("http://localhost:5000/api/match", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ property_id: propertyId }),
+        body: JSON.stringify({ property_id: property.id }),
         credentials: "include",
       });
 
@@ -74,8 +77,11 @@ export default function Matching() {
     }
   };
 
-  const handleSwipeLeft = (propertyId: number) => {
-    console.log(`Property ${propertyId} discarded`);
+  const handleSwipeLeft = (index: number) => {
+    const property = properties[index];
+    if (!property) return;
+
+    console.log(`Property ${property.id} discarded`);
     setLastSwiped("left");
   };
 
@@ -87,7 +93,7 @@ export default function Matching() {
           style={styles.propertyImage}
         />
         <View style={styles.propertyDetails}>
-          <Text style={styles.propertyText}>Address: {property.street}, {property.city}</Text>
+          <Text style={styles.propertyText}>Address: {property.street_address}, {property.city}</Text>
           <Text style={styles.propertyText}>Size: {property.size_sqft} sqft</Text>
           <Text style={styles.propertyText}>Price: ${property.price.toLocaleString()}</Text>
           <Text style={styles.propertyText}>Beds: {property.bedrooms}</Text>
@@ -103,9 +109,9 @@ export default function Matching() {
         {properties.length > 0 ? (
           <Swiper
             cards={properties}
-            renderCard={(card) => renderCard(card)}
-            onSwipedRight={(index) => handleSwipeRight(properties[index].id)}
-            onSwipedLeft={(index) => handleSwipeLeft(properties[index].id)}
+            renderCard={(card: Property) => renderCard(card)}
+            onSwipedRight={(index: number) => handleSwipeRight(index)}
+            onSwipedLeft={(index: number) => handleSwipeLeft(index)}
             cardIndex={0}
             stackSize={3}
             backgroundColor="transparent"
