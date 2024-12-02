@@ -14,6 +14,8 @@ interface Property {
   street: string;
   city: string;
   image_url: string;
+  user_firstname: string; // replace with name after db change
+  user_lastname: string; // replace with bussinessName after db change
 }
 
 export default function Matching() {
@@ -83,14 +85,21 @@ export default function Matching() {
 
     console.log(`Property ${property.id} discarded`);
   };
-
+//Replace firstname with name and lastname bussinessName when DB is updated
   const renderCard = (property: Property) => {
     return (
       <View style={styles.propertyCard}>
+        {/* Title Headers */}
+        <Text style={styles.cardTitle}>{property.user_firstname}</Text> 
+        <Text style={styles.cardSubtitle}>{property.user_lastname}</Text>
+
+        {/* Property Image */}
         <Image
           source={{ uri: property.image_url || "https://via.placeholder.com/400x300" }}
           style={styles.propertyImage}
         />
+
+        {/* Property Details */}
         <View style={styles.propertyDetails}>
           <View style={styles.propertyRow}>
             <Ionicons name="location-outline" size={20} color="#666" />

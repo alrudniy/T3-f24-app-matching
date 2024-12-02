@@ -57,7 +57,12 @@ property_accessibility_table = Table(
 class Accessibility(Base):
     __tablename__ = 'accessibility'
     accessibilityID = Column(Integer, primary_key=True, autoincrement=True)
-    accessibilityType = Column(String(255), nullable=False)
+    accessibilityType = Column(String(255), nullable=False, unique=True)  # Unique ensures no duplicates
+    properties = relationship(
+        'Property',
+        secondary=property_accessibility_table,
+        back_populates='accessibilities'
+    )
 
 class User(UserMixin, Base):
     __tablename__ = 'user'
@@ -72,22 +77,13 @@ class User(UserMixin, Base):
     role = Column(String(length=50), default="tenant")  # Role: 'tenant' or 'landlord'
     businessName = Column(String(length=200), nullable=True)  # Only for landlords
     profile_picture = Column(String(length=255), nullable=True)  # Profile picture path
-    accessibilities = relationship(
-        'Accessibility',
-        secondary=property_accessibility_table,
-        back_populates='properties'
-    )
-    Accessibility.properties = relationship( #double check this code
-    'Property',
-    secondary=property_accessibility_table,
-    back_populates='accessibilities'
-)
     properties = relationship("Property", back_populates="user", cascade="all, delete-orphan")
     
 
 class Property(Base):
     __tablename__ = 'property'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)  # New column for property name
     size_sqft = Column(Float)
     price = Column(Float)
     bedrooms = Column(Integer)
@@ -97,6 +93,11 @@ class Property(Base):
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship("User", back_populates="properties")
     images = relationship("PropertyImage", back_populates="property", cascade="all, delete-orphan")
+    accessibilities = relationship(
+        'Accessibility',
+        secondary=property_accessibility_table,
+        back_populates='properties'
+    )
 
 class PropertyImage(Base):
     __tablename__ = 'property_images'
