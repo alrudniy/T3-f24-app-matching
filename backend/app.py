@@ -9,8 +9,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from flask_cors import CORS
 from flask import send_from_directory
 import os
+from sqlalchemy.orm import relationship, backref
+from sqlalchemy import Table
 
 app = Flask(__name__)
+
+
 
 # Configure the app for sessions
 app.secret_key = "your_secret_key"  # Change this to something secret
@@ -41,6 +45,20 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 # Models
+
+# Join table for property and accessibility
+property_accessibility_table = Table(
+    'property_accessibility',
+    Base.metadata,
+    Column('propertyID', Integer, ForeignKey('property.id', ondelete="CASCADE"), primary_key=True),
+    Column('accessibilityID', Integer, ForeignKey('accessibility.accessibilityID', ondelete="CASCADE"), primary_key=True)
+)
+
+class Accessibility(Base):
+    __tablename__ = 'accessibility'
+    accessibilityID = Column(Integer, primary_key=True, autoincrement=True)
+    accessibilityType = Column(String(255), nullable=False)
+
 class User(UserMixin, Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -54,7 +72,18 @@ class User(UserMixin, Base):
     role = Column(String(length=50), default="tenant")  # Role: 'tenant' or 'landlord'
     businessName = Column(String(length=200), nullable=True)  # Only for landlords
     profile_picture = Column(String(length=255), nullable=True)  # Profile picture path
+    accessibilities = relationship(
+        'Accessibility',
+        secondary=property_accessibility_table,
+        back_populates='properties'
+    )
+    Accessibility.properties = relationship( #double check this code
+    'Property',
+    secondary=property_accessibility_table,
+    back_populates='accessibilities'
+)
     properties = relationship("Property", back_populates="user", cascade="all, delete-orphan")
+    
 
 class Property(Base):
     __tablename__ = 'property'
@@ -359,16 +388,21 @@ def get_properties():
             if property.images and len(property.images) > 0:
                 image_url = f"http://localhost:5000/uploads/{property.images[0].image_url}"
 
+            accessibilities = [
+                accessibility.accessibilityType for accessibility in property.accessibilities
+            ]
+
             property_data = {
                 "id": property.id,
                 "size_sqft": property.size_sqft,
                 "price": property.price,
                 "bedrooms": property.bedrooms,
                 "bathrooms": property.bathrooms,
-                "street": property.street_address ,
+                "street": property.street_address,
                 "city": property.city,
                 "user_id": property.user_id,
-                "image_url": image_url  # First image or placeholder
+                "image_url": image_url,  # First image or placeholder
+                "accessibilities": accessibilities
             }
             property_list.append(property_data)
 
@@ -455,6 +489,40 @@ def upload_property_images(property_id):
     except Exception as e:
         print("Unexpected error:", str(e))
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+    
+# Add Accessbilities to Properties
+@app.route('/property/<int:property_id>/add-accessibility', methods=['POST'])
+@login_required
+def add_accessibility_to_property(property_id):
+    try:
+        if current_user.role != "landlord":
+            return jsonify({"success": False, "message": "Only landlords can modify property accessibility"}), 403
+
+        data = request.json
+        accessibility_ids = data.get('accessibility_ids')  # List of accessibility IDs
+
+        if not accessibility_ids:
+            return jsonify({"success": False, "message": "No accessibility IDs provided"}), 400
+
+        property = session.query(Property).filter_by(id=property_id, user_id=current_user.id).first()
+        if not property:
+            return jsonify({"success": False, "message": "Property not found"}), 404
+
+        for accessibility_id in accessibility_ids:
+            accessibility = session.query(Accessibility).filter_by(accessibilityID=accessibility_id).first()
+            if accessibility and accessibility not in property.accessibilities:
+                property.accessibilities.append(accessibility)
+
+        session.commit()
+        return jsonify({"success": True, "message": "Accessibility added to property successfully"}), 200
+    except SQLAlchemyError as e:
+        session.rollback()
+        print("Database error:", str(e))
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        print("Unexpected error:", str(e))
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+
 
 
 # Main entry point
