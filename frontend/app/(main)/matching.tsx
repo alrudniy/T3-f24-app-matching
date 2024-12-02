@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
@@ -20,6 +20,7 @@ interface Property {
 
 export default function Matching() {
   const [properties, setProperties] = useState<Property[]>([]);
+  const swiperRef = useRef<any>(null); // Use `any` because `react-native-deck-swiper` lacks proper TypeScript types
 
   useEffect(() => {
     fetchProperties();
@@ -79,6 +80,16 @@ export default function Matching() {
     }
   };
 
+  const handleDislike = () => {
+    swiperRef.current?.swipeLeft(); // Trigger a swipe left animation
+  };
+
+  const handleLike = () => {
+    const currentIndex = swiperRef.current?.state.cardIndex ?? 0; // Safely access cardIndex
+    swiperRef.current?.swipeRight(); // Trigger a swipe right animation
+    handleSwipeRight(currentIndex);
+  };
+
   const handleSwipeLeft = (index: number) => {
     const property = properties[index];
     if (!property) return;
@@ -94,13 +105,13 @@ export default function Matching() {
           source={{ uri: property.image_url || "https://via.placeholder.com/400x300" }}
           style={styles.propertyImage}
         />
-  
+
         {/* Modern Title Banner */}
         <View style={styles.titleBanner}>
           <Text style={styles.cardTitle}>{property.name}</Text>
           <Text style={styles.cardSubtitle}>{property.businessName}</Text>
         </View>
-  
+
         {/* Property Details */}
         <View style={styles.propertyDetails}>
           <View style={styles.propertyRow}>
@@ -125,16 +136,16 @@ export default function Matching() {
             <Ionicons name="water-outline" size={20} color="#666" />
             <Text style={styles.propertyText}>{property.bathrooms} Baths</Text>
           </View>
-  
+
           {/* Matching Buttons */}
           <View style={styles.cardButtonsContainer}>
-            <TouchableOpacity style={styles.circularButton} onPress={() => console.log("Dislike Button")}>
+            <TouchableOpacity style={styles.circularButton} onPress={handleDislike}>
               <Ionicons name="close-outline" size={30} color="#FF3B30" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.circularButton} onPress={() => console.log("Info Button")}>
               <Ionicons name="information-circle-outline" size={30} color="#007BFF" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.circularButton} onPress={() => console.log("Like Button")}>
+            <TouchableOpacity style={styles.circularButton} onPress={handleLike}>
               <Ionicons name="heart-outline" size={30} color="#4CAF50" />
             </TouchableOpacity>
           </View>
@@ -142,13 +153,13 @@ export default function Matching() {
       </View>
     );
   };
-  
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container}>
         {properties.length > 0 ? (
           <Swiper
+            ref={swiperRef} // Attach the swiper ref here
             cards={properties}
             renderCard={(card: Property) => renderCard(card)}
             onSwipedRight={(index: number) => handleSwipeRight(index)}
@@ -165,4 +176,4 @@ export default function Matching() {
       </SafeAreaView>
     </SafeAreaProvider>
   );
-};
+}
