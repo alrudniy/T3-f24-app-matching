@@ -440,3 +440,74 @@ circularButton: {
 },
 
 });
+
+export const matchingHistoryStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#f5f5f5",
+  },
+  innerContainer: {
+    width: "100%",
+    maxWidth: 400,
+    alignItems: "center",
+  },
+  propertyCard: {
+    flexDirection: "row", // Align content horizontally
+    alignItems: "center", // Center items vertically
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 8, // Slightly rounded corners for a clean look
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    alignSelf: "center",
+    marginVertical: 10,
+    padding: 15, // Add padding inside the card
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8, // Slightly rounded square
+    backgroundColor: "#E0E0E0", // Placeholder color
+    marginRight: 15, // Space between image and text
+  },
+  propertyDetails: {
+    padding: 10,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 5,
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: "#555",
+  },
+  propertyText: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 5,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+    marginVertical: 20,
+  },
+  noData: {
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+    marginTop: 20,
+  },
+  cardTextContainer: {
+    flex: 1, // Take the remaining horizontal space
+    flexDirection: "column",
+  },
+});

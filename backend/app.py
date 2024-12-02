@@ -528,6 +528,45 @@ def add_accessibility_to_property(property_id):
         print("Unexpected error:", str(e))
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
 
+# Get all matched properties
+@app.route('/api/user/matched-properties', methods=['GET'])
+@login_required
+def get_matched_properties():
+    try:
+        if current_user.role != "tenant":
+            return jsonify({"success": False, "message": "Only tenants can view matched properties"}), 403
+
+        matches = session.query(Match).filter_by(user_id=current_user.id).all()
+        matched_properties = []
+
+        for match in matches:
+            property = session.query(Property).filter_by(id=match.property_id).first()
+            if property:
+                # Retrieve the first image URL or use a placeholder
+                image_url = "https://via.placeholder.com/400x300"
+                if property.images and len(property.images) > 0:
+                    image_url = f"http://localhost:5000/uploads/{property.images[0].image_url}"
+
+                matched_properties.append({
+                    "id": property.id,
+                    "name": property.name,
+                    "size_sqft": property.size_sqft,
+                    "price": property.price,
+                    "bedrooms": property.bedrooms,
+                    "bathrooms": property.bathrooms,
+                    "street": property.street_address,
+                    "city": property.city,
+                    "image_url": image_url,
+                    "businessName": property.user.businessName if property.user else None
+                })
+
+        return jsonify({"success": True, "matched_properties": matched_properties}), 200
+    except SQLAlchemyError as e:
+        print("Database error:", str(e))
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        print("Unexpected error:", str(e))
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
 
 
 # Main entry point
