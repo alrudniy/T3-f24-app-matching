@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons"; // Importing icons
 import { styles } from "./styles"; // Importing the provided styles
 
 interface Property {
@@ -10,14 +11,13 @@ interface Property {
   price: number;
   bedrooms: number;
   bathrooms: number;
-  street_address: string;
+  street: string;
   city: string;
   image_url: string;
 }
 
 export default function Matching() {
   const [properties, setProperties] = useState<Property[]>([]);
-  const [lastSwiped, setLastSwiped] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProperties();
@@ -82,7 +82,6 @@ export default function Matching() {
     if (!property) return;
 
     console.log(`Property ${property.id} discarded`);
-    setLastSwiped("left");
   };
 
   const renderCard = (property: Property) => {
@@ -93,11 +92,41 @@ export default function Matching() {
           style={styles.propertyImage}
         />
         <View style={styles.propertyDetails}>
-          <Text style={styles.propertyText}>Address: {property.street_address}, {property.city}</Text>
-          <Text style={styles.propertyText}>Size: {property.size_sqft} sqft</Text>
-          <Text style={styles.propertyText}>Price: ${property.price.toLocaleString()}</Text>
-          <Text style={styles.propertyText}>Beds: {property.bedrooms}</Text>
-          <Text style={styles.propertyText}>Baths: {property.bathrooms}</Text>
+          <View style={styles.propertyRow}>
+            <Ionicons name="location-outline" size={20} color="#666" />
+            <Text style={styles.propertyText}>
+              {property.street}, {property.city}
+            </Text>
+          </View>
+          <View style={styles.propertyRow}>
+            <Ionicons name="resize-outline" size={20} color="#666" />
+            <Text style={styles.propertyText}>{property.size_sqft} sqft</Text>
+          </View>
+          <View style={styles.propertyRow}>
+            <Ionicons name="cash-outline" size={20} color="#666" />
+            <Text style={styles.propertyText}>${property.price.toLocaleString()}</Text>
+          </View>
+          <View style={styles.propertyRow}>
+            <Ionicons name="bed-outline" size={20} color="#666" />
+            <Text style={styles.propertyText}>{property.bedrooms} Beds</Text>
+          </View>
+          <View style={styles.propertyRow}>
+            <Ionicons name="water-outline" size={20} color="#666" />
+            <Text style={styles.propertyText}>{property.bathrooms} Baths</Text>
+          </View>
+
+          {/* Matching Buttons */}
+          <View style={styles.cardButtonsContainer}>
+            <TouchableOpacity style={styles.circularButton} onPress={() => console.log("Dislike Button")}>
+              <Ionicons name="close-outline" size={30} color="#FF3B30" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.circularButton} onPress={() => console.log("Info Button")}>
+              <Ionicons name="information-circle-outline" size={30} color="#007BFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.circularButton} onPress={() => console.log("Like Button")}>
+              <Ionicons name="heart-outline" size={30} color="#4CAF50" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -121,14 +150,6 @@ export default function Matching() {
             <Text style={styles.propertyText}>No properties available.</Text>
           </View>
         )}
-        <View style={styles.matchButtonContainer}>
-          <TouchableOpacity style={styles.swipeLeft} onPress={() => console.log("Swiped Left!")}>
-            <Text style={styles.buttonText}>❌</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.swipeRight} onPress={() => console.log("Swiped Right!")}>
-            <Text style={styles.buttonText}>✔️</Text>
-          </TouchableOpacity>
-        </View>
       </SafeAreaView>
     </SafeAreaProvider>
   );

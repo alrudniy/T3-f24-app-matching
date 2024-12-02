@@ -278,44 +278,49 @@ export const styles = StyleSheet.create({
 
   // Property card and image
   propertyCard: {
-    width: "100%",
-    height: 400,
+    width: "90%",
     backgroundColor: "#fff",
     borderRadius: 10,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
-    overflow: "hidden",
-    marginBottom: 20,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-  },
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    alignSelf: "center",
+    marginVertical: 10,
+    overflow: "hidden", // Ensures no overflow outside the card
+    paddingBottom: 20, // Add extra padding for the buttons
+    flexGrow: 1, // Ensures the card grows dynamically with content
+    flexShrink: 1, // Prevents overflow for long content
+    minHeight: 600, // Minimum height for smaller cards
+  },  
   propertyImage: {
     width: "100%",
     height: "60%",
     objectFit: "cover",
   },
-  propertyDetails: {
-    padding: 10,
-  },
-  propertyText: {
-    fontSize: 16,
-    color: "#333",
-  },
-
   // Buttons for swiping
   matchButtonContainer: {
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 20,
-    marginTop: 20,
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    marginVertical: 20,
+    paddingHorizontal: 10, // Spacing from screen edges
+    width: "100%",
   },
+  // circleButton: {
+  //   width: 60, // Set width and height to make it a circle
+  //   height: 60,
+  //   borderRadius: 30, // Half of width/height to make it circular
+  //   backgroundColor: "#fff", // White background for the buttons
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   shadowColor: "#000",
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.1,
+  //   shadowRadius: 3,
+  //   elevation: 4, // Add elevation for a subtle shadow effect
+  // },
   swipeLeft: {
     backgroundColor: "#FF3B30",
     padding: 15,
@@ -350,7 +355,6 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  
   editOverlay: {
     position: "absolute",
     bottom: 10,
@@ -365,5 +369,47 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  cardButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around", // Spreads buttons evenly
+    alignItems: "center",
+    marginTop: 10, // Space above buttons
+    paddingVertical: 10, // Padding for spacing above/below buttons
+    borderTopWidth: 1, // Optional separator line
+    borderTopColor: "#eee", // Light gray for the separator
+    backgroundColor: "#fff", // Matches card background
+  },  
+  propertyDetails: {
+    padding: 10,
+    flexGrow: 1, // Allow content to determine height
+  },
+  propertyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  propertyText: {
+    fontSize: 16,
+    color: "#333",
+    marginLeft: 10,
+    flexShrink: 1, // Ensure long text wraps
+    flexWrap: "wrap", // Handle multiline text
+  },
+  circularButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
 });
