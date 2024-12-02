@@ -14,8 +14,8 @@ interface Property {
   street: string;
   city: string;
   image_url: string;
-  user_firstname: string; // replace with name after db change
-  user_lastname: string; // replace with bussinessName after db change
+  name: string; // User's first name
+  businessName: string; // User's business name
 }
 
 export default function Matching() {
@@ -85,20 +85,22 @@ export default function Matching() {
 
     console.log(`Property ${property.id} discarded`);
   };
-//Replace firstname with name and lastname bussinessName when DB is updated
+
   const renderCard = (property: Property) => {
     return (
       <View style={styles.propertyCard}>
-        {/* Title Headers */}
-        <Text style={styles.cardTitle}>{property.user_firstname}</Text> 
-        <Text style={styles.cardSubtitle}>{property.user_lastname}</Text>
-
         {/* Property Image */}
         <Image
           source={{ uri: property.image_url || "https://via.placeholder.com/400x300" }}
           style={styles.propertyImage}
         />
-
+  
+        {/* Modern Title Banner */}
+        <View style={styles.titleBanner}>
+          <Text style={styles.cardTitle}>{property.name}</Text>
+          <Text style={styles.cardSubtitle}>{property.businessName}</Text>
+        </View>
+  
         {/* Property Details */}
         <View style={styles.propertyDetails}>
           <View style={styles.propertyRow}>
@@ -123,7 +125,7 @@ export default function Matching() {
             <Ionicons name="water-outline" size={20} color="#666" />
             <Text style={styles.propertyText}>{property.bathrooms} Baths</Text>
           </View>
-
+  
           {/* Matching Buttons */}
           <View style={styles.cardButtonsContainer}>
             <TouchableOpacity style={styles.circularButton} onPress={() => console.log("Dislike Button")}>
@@ -140,6 +142,7 @@ export default function Matching() {
       </View>
     );
   };
+  
 
   return (
     <SafeAreaProvider>
@@ -162,4 +165,4 @@ export default function Matching() {
       </SafeAreaView>
     </SafeAreaProvider>
   );
-}
+};

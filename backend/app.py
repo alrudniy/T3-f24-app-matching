@@ -308,9 +308,10 @@ def create_property():
         bathrooms = data.get('bathrooms')
         street_address = data.get('street_address')
         city = data.get('city')
+        name = data.get('name')
 
         # Validate all fields
-        if not all([size_sqft, price, bedrooms, bathrooms, street_address, city]):
+        if not all([size_sqft, price, bedrooms, bathrooms, street_address, city,name]):
             return jsonify({"success": False, "message": "All property fields are required"})
 
         new_property = Property(
@@ -320,6 +321,7 @@ def create_property():
             bathrooms=bathrooms,
             street_address=street_address,
             city=city,
+            name=name,
             user_id=current_user.id
         )
 
@@ -395,6 +397,7 @@ def get_properties():
 
             property_data = {
                 "id": property.id,
+                "name": property.name,
                 "size_sqft": property.size_sqft,
                 "price": property.price,
                 "bedrooms": property.bedrooms,
@@ -403,7 +406,8 @@ def get_properties():
                 "city": property.city,
                 "user_id": property.user_id,
                 "image_url": image_url,  # First image or placeholder
-                "accessibilities": accessibilities
+                "accessibilities": accessibilities,
+                "businessName": property.user.businessName if property.user else None  # Owner's business name
             }
             property_list.append(property_data)
 

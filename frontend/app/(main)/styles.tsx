@@ -276,29 +276,6 @@ export const styles = StyleSheet.create({
 
   // Matching Page Specific Styles
 
-  // Property card and image
-  propertyCard: {
-    width: "90%",
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    alignSelf: "center",
-    marginVertical: 10,
-    overflow: "hidden", // Ensures no overflow outside the card
-    paddingBottom: 20, // Add extra padding for the buttons
-    flexGrow: 1, // Ensures the card grows dynamically with content
-    flexShrink: 1, // Prevents overflow for long content
-    minHeight: 600, // Minimum height for smaller cards
-  },  
-  propertyImage: {
-    width: "100%",
-    height: "60%",
-    objectFit: "cover",
-  },
   // Buttons for swiping
   matchButtonContainer: {
     flexDirection: "row",
@@ -369,61 +346,97 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  }, 
+  titleContainer: {
+    paddingVertical: 10, // Space above and below titles
+    alignItems: "center", // Center titles horizontally
+    backgroundColor: "#f9f9f9", // Optional: Light background for separation
   },
-  cardButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around", // Spreads buttons evenly
-    alignItems: "center",
-    marginTop: 10, // Space above buttons
-    paddingVertical: 10, // Padding for spacing above/below buttons
-    borderTopWidth: 1, // Optional separator line
-    borderTopColor: "#eee", // Light gray for the separator
-    backgroundColor: "#fff", // Matches card background
-  },  
-  propertyDetails: {
-    padding: 10,
-    flexGrow: 1, // Allow content to determine height
-  },
-  propertyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  propertyText: {
-    fontSize: 16,
-    color: "#333",
-    marginLeft: 10,
-    flexShrink: 1, // Ensure long text wraps
-    flexWrap: "wrap", // Handle multiline text
-  },
-  circularButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-    marginTop: 10,
-  },
-  cardSubtitle: {
-    fontSize: 16,
-    color: "#555",
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  
+propertyCard: {
+  width: "90%",
+  backgroundColor: "#fff",
+  borderRadius: 12, // Rounded corners for the card
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+  alignSelf: "center",
+  marginVertical: 10,
+  overflow: "hidden", // Prevent overflow outside the card
+},
+
+propertyImage: {
+  width: "100%",
+  height: 250, // Fixed height for the image
+  resizeMode: "cover",
+},
+
+titleBanner: {
+  backgroundColor: "#fff",
+  borderRadius: 10, // Modern rounded look
+  padding: 5, // Padding inside the banner
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.2,
+  shadowRadius: 6,
+  elevation: 5,
+  alignItems: "center", // Center text horizontally
+  width: "50%", // Full width with padding from edges
+  alignSelf: "center",
+  marginTop: -20, // Pull closer to the image for overlap effect
+  zIndex: 1, // Ensure it stays above the card body
+},
+
+cardTitle: {
+  fontSize: 18,
+  fontWeight: "bold",
+  color: "#333",
+},
+
+cardSubtitle: {
+  fontSize: 14,
+  color: "#555",
+  marginTop: 5,
+},
+
+propertyDetails: {
+  padding: 15,
+  marginTop: 30, // Add spacing to push content below the banner
+},
+
+propertyRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginBottom: 10,
+},
+
+propertyText: {
+  fontSize: 16,
+  color: "#333",
+  marginLeft: 10,
+  flexShrink: 1,
+},
+
+cardButtonsContainer: {
+  flexDirection: "row",
+  justifyContent: "space-around",
+  alignItems: "center",
+  marginTop: 20,
+},
+
+circularButton: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  backgroundColor: "#fff",
+  justifyContent: "center",
+  alignItems: "center",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 3,
+  elevation: 2,
+},
+
 });
