@@ -49,33 +49,27 @@ const Profile = () => {
           },
           credentials: "include",
         });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch user profile: ${response.statusText}`);
-        }
-
+  
         const data = await response.json();
         if (data.success) {
-          const profile = data.profile;
           setUser({
-            profilePicture: profile.profile_picture || "",
-            firstName: profile.firstname || "",
-            lastName: profile.lastname || "",
-            email: profile.username || "",
-            phone: profile.phone || "",
-            role: profile.role || "",
-            businessName: profile.businessName || "",
+            profilePicture: data.profile.profile_picture || "",
+            firstName: data.profile.firstname || "",
+            lastName: data.profile.lastname || "",
+            email: data.profile.email || "", // Confirm the full email is set
+            phone: data.profile.phone || "",
+            role: data.profile.role || "",
+            businessName: data.profile.businessName || "",
           });
-        } else {
-          showModal(data.message || "Failed to fetch profile.");
         }
       } catch (error) {
-        showModal("Failed to fetch user data.");
+        console.error("Error fetching user data:", error);
       }
     };
-
+  
     fetchUserData();
   }, []);
+  
 
   const handleSave = async () => {
     if (!emailRegex.test(user.email)) {

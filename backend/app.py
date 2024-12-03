@@ -190,13 +190,16 @@ def register():
         session.close()
 
 # Login route
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'GET':
+        return jsonify({"success": False, "message": "Login is required"}), 401
+
+    # Handle POST request for login
     try:
-        # Ensure any existing session is cleared before logging in
         if current_user.is_authenticated:
             logout_user()
-        
+
         data = request.json
         username = data.get('username')
         password = data.get('password')
@@ -204,20 +207,13 @@ def login():
         if not username or not password:
             return jsonify({"success": False, "message": "Username and password are required"})
 
-        # Query the user from the database
         user = session.query(User).filter_by(username=username).first()
-
-        # Validate user credentials
         if user and check_password_hash(user.password, password):
-            login_user(user)  # Start a new session
+            login_user(user)
             return jsonify({"success": True, "message": "Login successful"}), 200
 
         return jsonify({"success": False, "message": "Invalid username or password"}), 401
-    except SQLAlchemyError as e:
-        app.logger.error("Database error during login: %s", str(e))
-        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
     except Exception as e:
-        app.logger.error("Unexpected error during login: %s", str(e))
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
 
 # Logout route
