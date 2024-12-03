@@ -37,8 +37,32 @@ export default function AccountCreationView() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^[0-9]{10}$/;
 
+  const formatPhoneNumberInput = (phone: string): string => {
+    const cleaned = phone.replace(/\D/g, ""); // Remove all non-numeric characters
+    const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+
+    if (!match) return phone;
+
+    const [, areaCode, prefix, lineNumber] = match;
+
+    if (lineNumber) {
+      return `(${areaCode}) ${prefix}-${lineNumber}`;
+    } else if (prefix) {
+      return `(${areaCode}) ${prefix}`;
+    } else if (areaCode) {
+      return `(${areaCode}`;
+    }
+
+    return "";
+  };
+
   const handleChange = (name: string, value: string) => {
-    setForm({ ...form, [name]: value });
+    if (name === "phone") {
+      const formattedPhone = formatPhoneNumberInput(value);
+      setForm({ ...form, [name]: formattedPhone });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async () => {
@@ -77,7 +101,7 @@ export default function AccountCreationView() {
       return;
     }
 
-    if (!phoneRegex.test(phone)) {
+    if (!phoneRegex.test(phone.replace(/\D/g, ""))) {
       setErrorMessage(
         "Please enter a valid phone number (10 digits, no spaces or special characters)."
       );
@@ -112,7 +136,7 @@ export default function AccountCreationView() {
         body: JSON.stringify({
           username,
           email,
-          phone,
+          phone: phone.replace(/\D/g, ""), // Send unformatted phone number
           password,
           businessName: role === "landlord" ? businessName : null, // Include businessName if landlord
           firstName,
