@@ -192,11 +192,11 @@ def register():
 # Login route
 @app.route('/login', methods=['POST'])
 def login():
-
-    if request.method == 'GET':
-        return jsonify({"success": False, "message": "Please log in to access this resource"}), 405
-    
     try:
+        # Ensure any existing session is cleared before logging in
+        if current_user.is_authenticated:
+            logout_user()
+        
         data = request.json
         username = data.get('username')
         password = data.get('password')
@@ -204,17 +204,21 @@ def login():
         if not username or not password:
             return jsonify({"success": False, "message": "Username and password are required"})
 
+        # Query the user from the database
         user = session.query(User).filter_by(username=username).first()
 
+        # Validate user credentials
         if user and check_password_hash(user.password, password):
-            login_user(user)
-            return jsonify({"success": True, "message": "Login successful"})
+            login_user(user)  # Start a new session
+            return jsonify({"success": True, "message": "Login successful"}), 200
 
-        return jsonify({"success": False, "message": "Invalid username or password"})
+        return jsonify({"success": False, "message": "Invalid username or password"}), 401
     except SQLAlchemyError as e:
-        return jsonify({"success": False, "message": "Database error", "error": str(e)})
-    finally:
-        session.close()
+        app.logger.error("Database error during login: %s", str(e))
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        app.logger.error("Unexpected error during login: %s", str(e))
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
 
 # Logout route
 @app.route('/logout', methods=['GET'])
@@ -568,6 +572,12 @@ def get_matched_properties():
         print("Unexpected error:", str(e))
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
 
+# Flask teardown to clean up sessions
+@app.teardown_appcontext
+def cleanup_session(exception=None):
+    if exception:
+        session.rollback()  # Rollback if there's an exception
+    session.close()  # Always close the session
 
 # Main entry point
 if __name__ == '__main__':
