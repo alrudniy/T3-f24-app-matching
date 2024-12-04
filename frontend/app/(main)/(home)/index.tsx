@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TextInput, TouchableOpacity, Alert, Modal, View, Text } from "react-native";
+import { TextInput, TouchableOpacity, Alert, Modal, View, Text, Image } from "react-native"; // Added Image
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { styles } from "../styles";
@@ -57,11 +57,13 @@ export default function HomeView() {
     <SafeAreaProvider>
       <ThemedView style={styles.container}>
         <SafeAreaView style={styles.innerContainer}>
-          {/* Logo Placeholder */}
+          {/* Logo */}
           <View style={styles.logoContainer}>
-            <View style={styles.logoPlaceholder}>
-              <Text style={styles.logoText}>LOGO</Text>
-            </View>
+            <Image 
+              source={require("./assets/images/logo.png")} // Path to your logo image
+              style={styles.logoImage} // Add a style for the image
+              resizeMode="contain" // Ensure the image fits well
+            />
           </View>
 
           {/* Login Title */}

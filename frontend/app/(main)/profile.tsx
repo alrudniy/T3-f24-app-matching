@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Image, TouchableOpacity, Modal, Button } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./styles";
 import * as ImagePicker from "expo-image-picker";
-import { Ionicons } from "@expo/vector-icons";
 
 type UserProfile = {
   profilePicture: string;
@@ -38,6 +40,7 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -49,14 +52,14 @@ const Profile = () => {
           },
           credentials: "include",
         });
-  
+
         const data = await response.json();
         if (data.success) {
           setUser({
             profilePicture: data.profile.profile_picture || "",
             firstName: data.profile.firstname || "",
             lastName: data.profile.lastname || "",
-            email: data.profile.email || "", // Confirm the full email is set
+            email: data.profile.email || "",
             phone: data.profile.phone || "",
             role: data.profile.role || "",
             businessName: data.profile.businessName || "",
@@ -66,10 +69,9 @@ const Profile = () => {
         console.error("Error fetching user data:", error);
       }
     };
-  
+
     fetchUserData();
   }, []);
-  
 
   const handleSave = async () => {
     if (!emailRegex.test(user.email)) {
@@ -146,105 +148,123 @@ const Profile = () => {
   };
 
   return (
-    <View style={styles.profileContainer}>
-      <View style={styles.imageContainer}>
-        <TouchableOpacity onPress={editing ? pickImage : undefined} activeOpacity={editing ? 0.7 : 1}>
-          <Image
-            source={{ uri: selectedImage || user.profilePicture || "https://via.placeholder.com/150" }}
-            style={styles.profileImage}
-          />
-          {editing && (
-            <View style={styles.editOverlay}>
-              <Ionicons name="camera" size={30} color="white" />
-            </View>
-          )}
+    <SafeAreaProvider>
+      {/* Header */}
+      <View style={styles.LoggedInHeader}>
+        <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+          <Ionicons name="person-circle-outline" size={40} color="#333" />
+        </TouchableOpacity>
+
+        <Image
+          source={require("./(home)/assets/images/icon_logo.png")}
+          style={styles.LoggedInLogo}
+          resizeMode="contain"
+        />
+
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+          <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
       </View>
-      {editing ? (
-        <View style={styles.profileDetails}>
-          <Text style={styles.profileLabel}>First Name</Text>
-          <TextInput
-            style={styles.input}
-            value={user.firstName}
-            onChangeText={(text) => setUser({ ...user, firstName: text })}
-          />
-          <Text style={styles.profileLabel}>Last Name</Text>
-          <TextInput
-            style={styles.input}
-            value={user.lastName}
-            onChangeText={(text) => setUser({ ...user, lastName: text })}
-          />
-          <Text style={styles.profileLabel}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={user.email}
-            onChangeText={(text) => setUser({ ...user, email: text })}
-          />
-          <Text style={styles.profileLabel}>Phone</Text>
-          <TextInput
-            style={styles.input}
-            value={user.phone}
-            onChangeText={(text) => setUser({ ...user, phone: text })}
-            keyboardType="phone-pad"
-          />
-          {user.role === "landlord" && (
-            <>
-              <Text style={styles.profileLabel}>Business Name</Text>
-              <TextInput
-                style={styles.input}
-                value={user.businessName}
-                onChangeText={(text) => setUser({ ...user, businessName: text })}
-              />
-            </>
-          )}
-          <View style={styles.profileActions}>
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveButtonText}>Save</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : (
-        <View style={styles.profileDetails}>
-          <Text style={styles.profileLabel}>First Name</Text>
-          <Text style={styles.profileValue}>{user.firstName}</Text>
-          <Text style={styles.profileLabel}>Last Name</Text>
-          <Text style={styles.profileValue}>{user.lastName}</Text>
-          <Text style={styles.profileLabel}>Email</Text>
-          <Text style={styles.profileValue}>{user.email}</Text>
-          <Text style={styles.profileLabel}>Phone</Text>
-          <Text style={styles.profileValue}>{formatPhoneNumber(user.phone)}</Text>
-          {user.role === "landlord" && (
-            <>
-              <Text style={styles.profileLabel}>Business Name</Text>
-              <Text style={styles.profileValue}>{user.businessName}</Text>
-            </>
-          )}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => setEditing(true)}
-          >
-            <Text style={styles.buttonText}>Edit Profile</Text>
+
+      {/* Profile Content */}
+      <View style={styles.profileContainer}>
+      <View style={{ marginTop: 20 }} />
+        <View style={styles.imageContainer}>
+          <TouchableOpacity onPress={editing ? pickImage : undefined} activeOpacity={editing ? 0.7 : 1}>
+            <Image
+              source={{ uri: selectedImage || user.profilePicture || "https://via.placeholder.com/150" }}
+              style={styles.profileImage}
+            />
+            {editing && (
+              <View style={styles.editOverlay}>
+                <Ionicons name="camera" size={30} color="white" />
+              </View>
+            )}
           </TouchableOpacity>
         </View>
-      )}
-      {/* Modal for displaying messages */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>{modalMessage}</Text>
-            <Button title="Close" onPress={() => setModalVisible(false)} color="#6200ee" />
+        {editing ? (
+          <View style={styles.profileDetails}>
+            <Text style={styles.profileLabel}>First Name</Text>
+            <TextInput
+              style={styles.input}
+              value={user.firstName}
+              onChangeText={(text) => setUser({ ...user, firstName: text })}
+            />
+            <Text style={styles.profileLabel}>Last Name</Text>
+            <TextInput
+              style={styles.input}
+              value={user.lastName}
+              onChangeText={(text) => setUser({ ...user, lastName: text })}
+            />
+            <Text style={styles.profileLabel}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={user.email}
+              onChangeText={(text) => setUser({ ...user, email: text })}
+            />
+            <Text style={styles.profileLabel}>Phone</Text>
+            <TextInput
+              style={styles.input}
+              value={user.phone}
+              onChangeText={(text) => setUser({ ...user, phone: text })}
+              keyboardType="phone-pad"
+            />
+            {user.role === "landlord" && (
+              <>
+                <Text style={styles.profileLabel}>Business Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={user.businessName}
+                  onChangeText={(text) => setUser({ ...user, businessName: text })}
+                />
+              </>
+            )}
+            <View style={styles.profileActions}>
+              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        ) : (
+          <View style={styles.profileDetails}>
+            <Text style={styles.profileLabel}>First Name</Text>
+            <Text style={styles.profileValue}>{user.firstName}</Text>
+            <Text style={styles.profileLabel}>Last Name</Text>
+            <Text style={styles.profileValue}>{user.lastName}</Text>
+            <Text style={styles.profileLabel}>Email</Text>
+            <Text style={styles.profileValue}>{user.email}</Text>
+            <Text style={styles.profileLabel}>Phone</Text>
+            <Text style={styles.profileValue}>{formatPhoneNumber(user.phone)}</Text>
+            {user.role === "landlord" && (
+              <>
+                <Text style={styles.profileLabel}>Business Name</Text>
+                <Text style={styles.profileValue}>{user.businessName}</Text>
+              </>
+            )}
+            <TouchableOpacity style={styles.button} onPress={() => setEditing(true)}>
+              <Text style={styles.buttonText}>Edit Profile</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {/* Modal for displaying messages */}
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>{modalMessage}</Text>
+              <Button title="Close" onPress={() => setModalVisible(false)} color="#6200ee" />
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </SafeAreaProvider>
   );
 };
 

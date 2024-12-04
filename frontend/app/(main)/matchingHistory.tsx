@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, ScrollView, StyleSheet } from "react-native";
+import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { matchingHistoryStyles as styles } from "./styles";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { styles } from "./styles";
+import { matchingHistoryStyles as style } from "./styles";
+
+
+
 
 interface MatchedProperty {
   id: number;
@@ -19,6 +25,7 @@ interface MatchedProperty {
 export default function MatchingHistoryView() {
   const [matchedProperties, setMatchedProperties] = useState<MatchedProperty[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     fetchMatchedProperties();
@@ -53,9 +60,29 @@ export default function MatchingHistoryView() {
 
   return (
     <SafeAreaProvider>
+      {/* LoggedInHeader */}
+      <View style={styles.LoggedInHeader}>
+        {/* Profile Icon */}
+        <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+          <Ionicons name="person-circle-outline" size={40} color="#333" />
+        </TouchableOpacity>
+
+        {/* Logo */}
+        <Image
+          source={require("./(home)/assets/images/icon_logo.png")}
+          style={styles.LoggedInLogo}
+          resizeMode="contain"
+        />
+
+        {/* Paper/Info Icon */}
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+          <Ionicons name="newspaper-outline" size={30} color="#333" />
+        </TouchableOpacity>
+      </View>
+
       <SafeAreaView style={styles.container}>
         {loading ? (
-          <Text style={styles.loadingText}>Loading matched properties...</Text>
+          <Text style={style.loadingText}>Loading matched properties...</Text>
         ) : matchedProperties.length > 0 ? (
           <ScrollView contentContainerStyle={styles.innerContainer}>
             {matchedProperties.map((property) => (
@@ -67,7 +94,7 @@ export default function MatchingHistoryView() {
                 />
 
                 {/* Property Details */}
-                <View style={styles.cardTextContainer}>
+                <View style={style.cardTextContainer}>
                   <Text style={styles.cardTitle}>{property.name}</Text>
                   {property.businessName && (
                     <Text style={styles.cardSubtitle}>Owner: {property.businessName}</Text>

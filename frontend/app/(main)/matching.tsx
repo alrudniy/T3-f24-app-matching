@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons"; // Importing icons
+import { useRouter } from "expo-router"; // Router for navigation
 import { styles } from "./styles"; // Importing the provided styles
 
 interface Property {
@@ -21,6 +22,7 @@ interface Property {
 export default function Matching() {
   const [properties, setProperties] = useState<Property[]>([]);
   const swiperRef = useRef<any>(null); // Use `any` because `react-native-deck-swiper` lacks proper TypeScript types
+  const router = useRouter(); // Expo router for navigation
 
   useEffect(() => {
     fetchProperties();
@@ -100,19 +102,14 @@ export default function Matching() {
   const renderCard = (property: Property) => {
     return (
       <View style={styles.propertyCard}>
-        {/* Property Image */}
         <Image
           source={{ uri: property.image_url || "https://via.placeholder.com/400x300" }}
           style={styles.propertyImage}
         />
-
-        {/* Modern Title Banner */}
         <View style={styles.titleBanner}>
           <Text style={styles.cardTitle}>{property.name}</Text>
           <Text style={styles.cardSubtitle}>{property.businessName}</Text>
         </View>
-
-        {/* Property Details */}
         <View style={styles.propertyDetails}>
           <View style={styles.propertyRow}>
             <Ionicons name="location-outline" size={20} color="#666" />
@@ -136,8 +133,6 @@ export default function Matching() {
             <Ionicons name="water-outline" size={20} color="#666" />
             <Text style={styles.propertyText}>{property.bathrooms} Baths</Text>
           </View>
-
-          {/* Matching Buttons */}
           <View style={styles.cardButtonsContainer}>
             <TouchableOpacity style={styles.circularButton} onPress={handleDislike}>
               <Ionicons name="close-outline" size={30} color="#FF3B30" />
@@ -156,10 +151,31 @@ export default function Matching() {
 
   return (
     <SafeAreaProvider>
+      {/* Header */}
+      <View style={styles.LoggedInHeader}>
+  {/* Profile Icon */}
+  <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+    <Ionicons name="person-circle-outline" size={40} color="#333" />
+  </TouchableOpacity>
+
+  {/* Logo */}
+  <Image
+    source={require("./(home)/assets/images/icon_logo.png")}
+    style={styles.LoggedInLogo}
+    resizeMode="contain"
+  />
+
+  {/* Paper/Info Icon */}
+  <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+    <Ionicons name="newspaper-outline" size={30} color="#333" />
+  </TouchableOpacity>
+</View>
+
+
       <SafeAreaView style={styles.container}>
         {properties.length > 0 ? (
           <Swiper
-            ref={swiperRef} // Attach the swiper ref here
+            ref={swiperRef}
             cards={properties}
             renderCard={(card: Property) => renderCard(card)}
             onSwipedRight={(index: number) => handleSwipeRight(index)}

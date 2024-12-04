@@ -2,6 +2,61 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   // General
+  LoggedInHeader: {
+    flexDirection: "row", // Align items in a row
+    justifyContent: "space-between", // Space items evenly
+    alignItems: "center", // Vertically center items
+    paddingHorizontal: 15, // Add horizontal padding
+    paddingVertical: 10, // Add vertical padding
+    backgroundColor: "#FFF", // Background color
+    borderBottomWidth: 1, // Optional border for header
+    borderBottomColor: "#EEE", // Optional border color
+  },
+  
+  LoggedInHeaderIcon: {
+    padding: 5, // Add padding around icons for better touch area
+  },
+  
+  LoggedInLogo: {
+    width: 40, // Adjust width of the logo
+    height: 40, // Adjust height of the logo
+  },
+  
+  logoImage: {
+    width: 425, // Adjust as needed
+    height: 140, // Adjust as needed
+    marginBottom: 10, // Space below the logo
+    alignSelf: "center", // Center the image
+  },
+  header: {
+    width: "100%",
+    height: 100, 
+    backgroundColor: "#ffffff", // White background for the header
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute", // Keep the header fixed at the top
+    top: 0,
+    zIndex: 100, // Ensure it stays above other content
+    borderBottomWidth: 1, // Optional: Add a border for separation
+    borderBottomColor: "#ddd",
+  },
+  logo: {
+    width: 200, 
+    height: 65,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: "#555",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  contentContainer: {
+    flex: 1,
+    marginTop: 100, // Push content below the header
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },  
   container: {
     flex: 1,
     justifyContent: "center",
@@ -216,6 +271,7 @@ export const styles = StyleSheet.create({
     borderRadius: 75,
     backgroundColor: "#E0E0E0",
     marginBottom: 20,
+    marginTop: 50,
   },
   profileDetails: {
     width: "100%",
