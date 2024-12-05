@@ -2,6 +2,89 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   // General
+  bottomNavBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+  },
+  navBarItem: {
+    alignItems: "center",
+    flex: 1,
+  },
+  activeNavBarItem: {
+    borderBottomWidth: 2,
+    borderBottomColor: "#007BFF",
+  },
+  navBarText: {
+    fontSize: 12,
+    color: "#666",
+  },
+  activeNavBarText: {
+    color: "#007BFF",
+  },  
+  LoggedInHeader: {
+    flexDirection: "row", // Align items in a row
+    justifyContent: "space-between", // Space items evenly
+    alignItems: "center", // Vertically center items
+    paddingHorizontal: 15, // Add horizontal padding
+    paddingVertical: 10, // Add vertical padding
+    backgroundColor: "#FFF", // Background color
+    borderBottomWidth: 1, // Optional border for header
+    borderBottomColor: "#EEE", // Optional border color
+  },
+  
+  LoggedInHeaderIcon: {
+    padding: 5, // Add padding around icons for better touch area
+  },
+  
+  LoggedInLogo: {
+    width: 40, // Adjust width of the logo
+    height: 40, // Adjust height of the logo
+  },
+  
+  logoImage: {
+    width: 425, // Adjust as needed
+    height: 140, // Adjust as needed
+    marginBottom: 10, // Space below the logo
+    alignSelf: "center", // Center the image
+  },
+  header: {
+    width: "100%",
+    height: 100, 
+    backgroundColor: "#ffffff", // White background for the header
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute", // Keep the header fixed at the top
+    top: 0,
+    zIndex: 100, // Ensure it stays above other content
+    borderBottomWidth: 1, // Optional: Add a border for separation
+    borderBottomColor: "#ddd",
+  },
+  logo: {
+    width: 200, 
+    height: 65,
+  },
+  subtitle: {
+    fontSize: 18,
+    color: "#555",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  contentContainer: {
+    flex: 1,
+    marginTop: 100, // Push content below the header
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },  
   container: {
     flex: 1,
     justifyContent: "center",
@@ -216,6 +299,7 @@ export const styles = StyleSheet.create({
     borderRadius: 75,
     backgroundColor: "#E0E0E0",
     marginBottom: 20,
+    marginTop: 20,
   },
   profileDetails: {
     width: "100%",
@@ -276,46 +360,28 @@ export const styles = StyleSheet.create({
 
   // Matching Page Specific Styles
 
-  // Property card and image
-  propertyCard: {
-    width: "100%",
-    height: 400,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
-    overflow: "hidden",
-    marginBottom: 20,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "space-between",
-  },
-  propertyImage: {
-    width: "100%",
-    height: "60%",
-    objectFit: "cover",
-  },
-  propertyDetails: {
-    padding: 10,
-  },
-  propertyText: {
-    fontSize: 16,
-    color: "#333",
-  },
-
   // Buttons for swiping
   matchButtonContainer: {
     flexDirection: "row",
-    justifyContent: "center",
-    gap: 20,
-    marginTop: 20,
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    marginVertical: 20,
+    paddingHorizontal: 10, // Spacing from screen edges
+    width: "100%",
   },
+  // circleButton: {
+  //   width: 60, // Set width and height to make it a circle
+  //   height: 60,
+  //   borderRadius: 30, // Half of width/height to make it circular
+  //   backgroundColor: "#fff", // White background for the buttons
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   shadowColor: "#000",
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.1,
+  //   shadowRadius: 3,
+  //   elevation: 4, // Add elevation for a subtle shadow effect
+  // },
   swipeLeft: {
     backgroundColor: "#FF3B30",
     padding: 15,
@@ -350,7 +416,6 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  
   editOverlay: {
     position: "absolute",
     bottom: 10,
@@ -365,5 +430,168 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  }, 
+  titleContainer: {
+    paddingVertical: 10, // Space above and below titles
+    alignItems: "center", // Center titles horizontally
+    backgroundColor: "#f9f9f9", // Optional: Light background for separation
+  },
+propertyCard: {
+  width: "90%",
+  backgroundColor: "#fff",
+  borderRadius: 12, // Rounded corners for the card
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+  alignSelf: "center",
+  marginVertical: 10,
+  overflow: "hidden", // Prevent overflow outside the card
+},
+
+propertyImage: {
+  width: "100%",
+  height: 250, // Fixed height for the image
+  resizeMode: "cover",
+},
+
+titleBanner: {
+  backgroundColor: "#fff",
+  borderRadius: 10, // Modern rounded look
+  padding: 5, // Padding inside the banner
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.2,
+  shadowRadius: 6,
+  elevation: 5,
+  alignItems: "center", // Center text horizontally
+  width: "50%", // Full width with padding from edges
+  alignSelf: "center",
+  marginTop: -20, // Pull closer to the image for overlap effect
+  zIndex: 1, // Ensure it stays above the card body
+},
+
+cardTitle: {
+  fontSize: 18,
+  fontWeight: "bold",
+  color: "#333",
+},
+
+cardSubtitle: {
+  fontSize: 14,
+  color: "#555",
+  marginTop: 5,
+},
+
+propertyDetails: {
+  padding: 15,
+  marginTop: 30, // Add spacing to push content below the banner
+},
+
+propertyRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginBottom: 10,
+},
+
+propertyText: {
+  fontSize: 16,
+  color: "#333",
+  marginLeft: 10,
+  flexShrink: 1,
+},
+
+cardButtonsContainer: {
+  flexDirection: "row",
+  justifyContent: "space-around",
+  alignItems: "center",
+  marginTop: 20,
+},
+
+circularButton: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  backgroundColor: "#fff",
+  justifyContent: "center",
+  alignItems: "center",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 3,
+  elevation: 2,
+},
+
+});
+
+export const matchingHistoryStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#f5f5f5",
+  },
+  innerContainer: {
+    width: "100%",
+    maxWidth: 400,
+    alignItems: "center",
+  },
+  propertyCard: {
+    flexDirection: "row", // Align content horizontally
+    alignItems: "center", // Center items vertically
+    width: "90%",
+    backgroundColor: "#fff",
+    borderRadius: 8, // Slightly rounded corners for a clean look
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    alignSelf: "center",
+    marginVertical: 10,
+    padding: 15, // Add padding inside the card
+  },
+  profileImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8, // Slightly rounded square
+    backgroundColor: "#E0E0E0", // Placeholder color
+    marginRight: 15, // Space between image and text
+  },
+  propertyDetails: {
+    padding: 10,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 5,
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: "#555",
+  },
+  propertyText: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 5,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+    marginVertical: 20,
+  },
+  noData: {
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+    marginTop: 20,
+  },
+  cardTextContainer: {
+    flex: 1, // Take the remaining horizontal space
+    flexDirection: "column",
   },
 });

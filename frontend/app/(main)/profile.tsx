@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Image, TouchableOpacity, Modal, Button } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { useRouter, useSegments } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./styles";
 import * as ImagePicker from "expo-image-picker";
-import { Ionicons } from "@expo/vector-icons";
 
 type UserProfile = {
   profilePicture: string;
@@ -19,7 +21,7 @@ const phoneRegex = /^[0-9]{10}$/;
 
 const formatPhoneNumber = (phone: string): string => {
   const cleaned = phone.replace(/\D/g, "");
-  if (cleaned.length !== 10) return phone; // Return unformatted if not 10 digits
+  if (cleaned.length !== 10) return phone;
   const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
   return match ? `(${match[1]}) ${match[2]}-${match[3]}` : phone;
 };
@@ -38,6 +40,8 @@ const Profile = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
+  const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -50,27 +54,20 @@ const Profile = () => {
           credentials: "include",
         });
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch user profile: ${response.statusText}`);
-        }
-
         const data = await response.json();
         if (data.success) {
-          const profile = data.profile;
           setUser({
-            profilePicture: profile.profile_picture || "",
-            firstName: profile.firstname || "",
-            lastName: profile.lastname || "",
-            email: profile.username || "",
-            phone: profile.phone || "",
-            role: profile.role || "",
-            businessName: profile.businessName || "",
+            profilePicture: data.profile.profile_picture || "",
+            firstName: data.profile.firstname || "",
+            lastName: data.profile.lastname || "",
+            email: data.profile.email || "",
+            phone: data.profile.phone || "",
+            role: data.profile.role || "",
+            businessName: data.profile.businessName || "",
           });
-        } else {
-          showModal(data.message || "Failed to fetch profile.");
         }
       } catch (error) {
-        showModal("Failed to fetch user data.");
+        console.error("Error fetching user data:", error);
       }
     };
 
@@ -152,105 +149,155 @@ const Profile = () => {
   };
 
   return (
-    <View style={styles.profileContainer}>
-      <View style={styles.imageContainer}>
-        <TouchableOpacity onPress={editing ? pickImage : undefined} activeOpacity={editing ? 0.7 : 1}>
-          <Image
-            source={{ uri: selectedImage || user.profilePicture || "https://via.placeholder.com/150" }}
-            style={styles.profileImage}
-          />
-          {editing && (
-            <View style={styles.editOverlay}>
-              <Ionicons name="camera" size={30} color="white" />
-            </View>
-          )}
+    <SafeAreaProvider>
+      {/* Header */}
+      <View style={styles.LoggedInHeader}>
+        <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+          <Ionicons name="person-circle-outline" size={40} color="#333" />
+        </TouchableOpacity>
+
+        <Image
+          source={require("./(home)/assets/images/icon_logo.png")}
+          style={styles.LoggedInLogo}
+          resizeMode="contain"
+        />
+
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+          <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
       </View>
-      {editing ? (
-        <View style={styles.profileDetails}>
-          <Text style={styles.profileLabel}>First Name</Text>
-          <TextInput
-            style={styles.input}
-            value={user.firstName}
-            onChangeText={(text) => setUser({ ...user, firstName: text })}
-          />
-          <Text style={styles.profileLabel}>Last Name</Text>
-          <TextInput
-            style={styles.input}
-            value={user.lastName}
-            onChangeText={(text) => setUser({ ...user, lastName: text })}
-          />
-          <Text style={styles.profileLabel}>Email</Text>
-          <TextInput
-            style={styles.input}
-            value={user.email}
-            onChangeText={(text) => setUser({ ...user, email: text })}
-          />
-          <Text style={styles.profileLabel}>Phone</Text>
-          <TextInput
-            style={styles.input}
-            value={user.phone}
-            onChangeText={(text) => setUser({ ...user, phone: text })}
-            keyboardType="phone-pad"
-          />
-          {user.role === "landlord" && (
-            <>
-              <Text style={styles.profileLabel}>Business Name</Text>
-              <TextInput
-                style={styles.input}
-                value={user.businessName}
-                onChangeText={(text) => setUser({ ...user, businessName: text })}
-              />
-            </>
-          )}
-          <View style={styles.profileActions}>
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveButtonText}>Save</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ) : (
-        <View style={styles.profileDetails}>
-          <Text style={styles.profileLabel}>First Name</Text>
-          <Text style={styles.profileValue}>{user.firstName}</Text>
-          <Text style={styles.profileLabel}>Last Name</Text>
-          <Text style={styles.profileValue}>{user.lastName}</Text>
-          <Text style={styles.profileLabel}>Email</Text>
-          <Text style={styles.profileValue}>{user.email}</Text>
-          <Text style={styles.profileLabel}>Phone</Text>
-          <Text style={styles.profileValue}>{formatPhoneNumber(user.phone)}</Text>
-          {user.role === "landlord" && (
-            <>
-              <Text style={styles.profileLabel}>Business Name</Text>
-              <Text style={styles.profileValue}>{user.businessName}</Text>
-            </>
-          )}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => setEditing(true)}
-          >
-            <Text style={styles.buttonText}>Edit Profile</Text>
+
+      {/* Profile Content */}
+      <SafeAreaView style={styles.profileContainer}>
+        <View style={{ marginTop: 20 }} />
+        <View style={styles.imageContainer}>
+          <TouchableOpacity onPress={editing ? pickImage : undefined} activeOpacity={editing ? 0.7 : 1}>
+            <Image
+              source={{ uri: selectedImage || user.profilePicture || "https://via.placeholder.com/150" }}
+              style={styles.profileImage}
+            />
+            {editing && (
+              <View style={styles.editOverlay}>
+                <Ionicons name="camera" size={30} color="white" />
+              </View>
+            )}
           </TouchableOpacity>
         </View>
-      )}
-      {/* Modal for displaying messages */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalText}>{modalMessage}</Text>
-            <Button title="Close" onPress={() => setModalVisible(false)} color="#6200ee" />
+        {editing ? (
+          <View style={styles.profileDetails}>
+            <Text style={styles.profileLabel}>First Name</Text>
+            <TextInput
+              style={styles.input}
+              value={user.firstName}
+              onChangeText={(text) => setUser({ ...user, firstName: text })}
+            />
+            <Text style={styles.profileLabel}>Last Name</Text>
+            <TextInput
+              style={styles.input}
+              value={user.lastName}
+              onChangeText={(text) => setUser({ ...user, lastName: text })}
+            />
+            <Text style={styles.profileLabel}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={user.email}
+              onChangeText={(text) => setUser({ ...user, email: text })}
+            />
+            <Text style={styles.profileLabel}>Phone</Text>
+            <TextInput
+              style={styles.input}
+              value={user.phone}
+              onChangeText={(text) => setUser({ ...user, phone: text })}
+              keyboardType="phone-pad"
+            />
+            {user.role === "landlord" && (
+              <>
+                <Text style={styles.profileLabel}>Business Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={user.businessName}
+                  onChangeText={(text) => setUser({ ...user, businessName: text })}
+                />
+              </>
+            )}
+            <View style={styles.profileActions}>
+              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        ) : (
+          <View style={styles.profileDetails}>
+            <Text style={styles.profileLabel}>First Name</Text>
+            <Text style={styles.profileValue}>{user.firstName}</Text>
+            <Text style={styles.profileLabel}>Last Name</Text>
+            <Text style={styles.profileValue}>{user.lastName}</Text>
+            <Text style={styles.profileLabel}>Email</Text>
+            <Text style={styles.profileValue}>{user.email}</Text>
+            <Text style={styles.profileLabel}>Phone</Text>
+            <Text style={styles.profileValue}>{formatPhoneNumber(user.phone)}</Text>
+            {user.role === "landlord" && (
+              <>
+                <Text style={styles.profileLabel}>Business Name</Text>
+                <Text style={styles.profileValue}>{user.businessName}</Text>
+              </>
+            )}
+            <TouchableOpacity style={styles.button} onPress={() => setEditing(true)}>
+              <Text style={styles.buttonText}>Edit Profile</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {/* Modal for displaying messages */}
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalText}>{modalMessage}</Text>
+              <Button title="Close" onPress={() => setModalVisible(false)} color="#6200ee" />
+            </View>
+          </View>
+        </Modal>
+      </SafeAreaView>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNavBar}>
+        <TouchableOpacity
+          style={[styles.navBarItem, segments[0] === "matching" && styles.activeNavBarItem]}
+          onPress={() => router.push("/matching")}
+        >
+          <Ionicons
+            name="compass-outline"
+            size={24}
+            color={segments[0] === "matching" ? "#007BFF" : "#666"}
+          />
+          <Text style={[styles.navBarText, segments[0] === "matching" && styles.activeNavBarText]}>
+            Explore
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.navBarItem, segments[0] === "matchingHistory" && styles.activeNavBarItem]}
+          onPress={() => router.push("/matchingHistory")}
+        >
+          <Ionicons
+            name="heart-outline"
+            size={24}
+            color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
+          />
+          <Text
+            style={[styles.navBarText, segments[0] === "matchingHistory" && styles.activeNavBarText]}
+          >
+            Matches
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaProvider>
   );
 };
 

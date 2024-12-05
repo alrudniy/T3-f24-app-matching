@@ -8,12 +8,13 @@ import {
   View,
   Text,
   ActivityIndicator,
+  TouchableOpacity,
+  Image,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { styles } from "../styles";
+import { Ionicons } from "@expo/vector-icons"; // Importing Ionicons for the toggle icon
 
 export default function AccountCreationView() {
   const { role } = useLocalSearchParams<{ role?: string }>();
@@ -30,6 +31,8 @@ export default function AccountCreationView() {
     confirmPassword: "",
     phone: "",
   });
+  const [passwordVisible, setPasswordVisible] = useState(false); // Toggle for password
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false); // Toggle for confirm password
   const [loading, setLoading] = useState(false);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -37,8 +40,29 @@ export default function AccountCreationView() {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const phoneRegex = /^[0-9]{10}$/;
 
+  const formatPhoneNumberInput = (phone: string): string => {
+    const cleaned = phone.replace(/\D/g, "");
+    const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+    if (!match) return phone;
+
+    const [, areaCode, prefix, lineNumber] = match;
+    if (lineNumber) {
+      return `(${areaCode}) ${prefix}-${lineNumber}`;
+    } else if (prefix) {
+      return `(${areaCode}) ${prefix}`;
+    } else if (areaCode) {
+      return `(${areaCode}`;
+    }
+    return "";
+  };
+
   const handleChange = (name: string, value: string) => {
-    setForm({ ...form, [name]: value });
+    if (name === "phone") {
+      const formattedPhone = formatPhoneNumberInput(value);
+      setForm({ ...form, [name]: formattedPhone });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const handleSubmit = async () => {
@@ -54,7 +78,6 @@ export default function AccountCreationView() {
       phone,
     } = form;
 
-    // Validate form fields
     if (
       !username ||
       !firstName ||
@@ -64,7 +87,7 @@ export default function AccountCreationView() {
       !password ||
       !confirmPassword ||
       !phone ||
-      (role === "landlord" && !businessName) // Additional check for landlords
+      (role === "landlord" && !businessName)
     ) {
       setErrorMessage("All fields are required.");
       setErrorModalVisible(true);
@@ -77,7 +100,7 @@ export default function AccountCreationView() {
       return;
     }
 
-    if (!phoneRegex.test(phone)) {
+    if (!phoneRegex.test(phone.replace(/\D/g, ""))) {
       setErrorMessage(
         "Please enter a valid phone number (10 digits, no spaces or special characters)."
       );
@@ -112,9 +135,9 @@ export default function AccountCreationView() {
         body: JSON.stringify({
           username,
           email,
-          phone,
+          phone: phone.replace(/\D/g, ""),
           password,
-          businessName: role === "landlord" ? businessName : null, // Include businessName if landlord
+          businessName: role === "landlord" ? businessName : null,
           firstName,
           lastName,
           role,
@@ -140,139 +163,118 @@ export default function AccountCreationView() {
 
   return (
     <SafeAreaProvider>
-      <ThemedView style={styles.container}>
-        <SafeAreaView style={[styles.innerContainer, { flex: 1 }]}>
-          <ScrollView
-            contentContainerStyle={{
-              paddingVertical: 20,
-              alignItems: "center",
-            }}
-            showsVerticalScrollIndicator={false}
-          >
-            <ThemedText type="title" style={{ marginBottom: 20 }}>
-              Create Account
-            </ThemedText>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Image
+            source={require("./assets/images/logo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
-            <ThemedText style={{ marginBottom: 20 }}>
-              Role: {role || "Not Selected"}
-            </ThemedText>
-
-            <ThemedView style={styles.formContainer}>
+        <ScrollView
+          contentContainerStyle={{
+            marginTop: 100,
+            paddingVertical: 20,
+            alignItems: "center",
+          }}
+        >
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Role: {role || "Not Selected"}</Text>
+          <View style={styles.formContainer}>
+            <TextInput
+              placeholder="Username"
+              style={styles.input}
+              value={form.username}
+              onChangeText={(text) => handleChange("username", text)}
+            />
+            {role === "landlord" && (
               <TextInput
-                placeholder="Username"
+                placeholder="Business Name"
                 style={styles.input}
-                value={form.username}
-                onChangeText={(text) => handleChange("username", text)}
+                value={form.businessName}
+                onChangeText={(text) => handleChange("businessName", text)}
               />
-              {role === "landlord" && (
-                <TextInput
-                  placeholder="Business Name"
-                  style={styles.input}
-                  value={form.businessName}
-                  onChangeText={(text) => handleChange("businessName", text)}
-                />
-              )}
-              <TextInput
-                placeholder="First Name"
-                style={styles.input}
-                value={form.firstName}
-                onChangeText={(text) => handleChange("firstName", text)}
-              />
-              <TextInput
-                placeholder="Last Name"
-                style={styles.input}
-                value={form.lastName}
-                onChangeText={(text) => handleChange("lastName", text)}
-              />
-              <TextInput
-                placeholder="Email"
-                style={styles.input}
-                value={form.email}
-                onChangeText={(text) => handleChange("email", text)}
-                keyboardType="email-address"
-              />
-              <TextInput
-                placeholder="Confirm Email"
-                style={styles.input}
-                value={form.confirmEmail}
-                onChangeText={(text) => handleChange("confirmEmail", text)}
-                keyboardType="email-address"
-              />
-              <TextInput
-                placeholder="Phone Number"
-                style={styles.input}
-                value={form.phone}
-                onChangeText={(text) => handleChange("phone", text)}
-                keyboardType="phone-pad"
-              />
+            )}
+            <TextInput
+              placeholder="First Name"
+              style={styles.input}
+              value={form.firstName}
+              onChangeText={(text) => handleChange("firstName", text)}
+            />
+            <TextInput
+              placeholder="Last Name"
+              style={styles.input}
+              value={form.lastName}
+              onChangeText={(text) => handleChange("lastName", text)}
+            />
+            <TextInput
+              placeholder="Email"
+              style={styles.input}
+              value={form.email}
+              onChangeText={(text) => handleChange("email", text)}
+              keyboardType="email-address"
+            />
+            <TextInput
+              placeholder="Confirm Email"
+              style={styles.input}
+              value={form.confirmEmail}
+              onChangeText={(text) => handleChange("confirmEmail", text)}
+              keyboardType="email-address"
+            />
+            <TextInput
+              placeholder="Phone Number"
+              style={styles.input}
+              value={form.phone}
+              onChangeText={(text) => handleChange("phone", text)}
+              keyboardType="phone-pad"
+            />
+            <View style={styles.passwordContainer}>
               <TextInput
                 placeholder="Password"
-                secureTextEntry
                 style={styles.input}
                 value={form.password}
                 onChangeText={(text) => handleChange("password", text)}
+                secureTextEntry={!passwordVisible}
               />
+              <TouchableOpacity
+                onPress={() => setPasswordVisible(!passwordVisible)}
+                style={styles.toggleButton}
+              >
+                <Ionicons
+                  name={passwordVisible ? "eye-off" : "eye"}
+                  size={24}
+                  color="gray"
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.passwordContainer}>
               <TextInput
                 placeholder="Confirm Password"
-                secureTextEntry
                 style={styles.input}
                 value={form.confirmPassword}
                 onChangeText={(text) => handleChange("confirmPassword", text)}
+                secureTextEntry={!confirmPasswordVisible}
               />
-              <Button
-                title="Create Account"
-                onPress={handleSubmit}
-                color="#4CAF50"
-              />
-            </ThemedView>
-          </ScrollView>
-
-          {loading && (
-            <ActivityIndicator
-              size="large"
-              color="#4CAF50"
-              style={{ marginTop: 20 }}
-            />
-          )}
-        </SafeAreaView>
-
-        <Modal
-          visible={errorModalVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setErrorModalVisible(false)}
-        >
-          <View
-            style={{
-              flex: 1,
-              justifyContent: "center",
-              alignItems: "center",
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-            }}
-          >
-            <View
-              style={{
-                width: "80%",
-                backgroundColor: "white",
-                borderRadius: 10,
-                padding: 20,
-              }}
-            >
-              <Text
-                style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}
+              <TouchableOpacity
+                onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+                style={styles.toggleButton}
               >
-                Error
-              </Text>
-              <Text style={{ marginBottom: 20 }}>{errorMessage}</Text>
-              <Button
-                title="Close"
-                onPress={() => setErrorModalVisible(false)}
-                color="#FF3B30"
-              />
+                <Ionicons
+                  name={confirmPasswordVisible ? "eye-off" : "eye"}
+                  size={24}
+                  color="gray"
+                />
+              </TouchableOpacity>
             </View>
+            <Button
+              title="Create Account"
+              onPress={handleSubmit}
+              color="#4CAF50"
+            />
           </View>
-        </Modal>
-      </ThemedView>
+        </ScrollView>
+      </View>
     </SafeAreaProvider>
   );
 }

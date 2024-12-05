@@ -9,8 +9,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from flask_cors import CORS
 from flask import send_from_directory
 import os
+from sqlalchemy.orm import relationship, backref
+from sqlalchemy import Table
 
 app = Flask(__name__)
+
+
 
 # Configure the app for sessions
 app.secret_key = "your_secret_key"  # Change this to something secret
@@ -41,6 +45,25 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 # Models
+
+# Join table for property and accessibility
+property_accessibility_table = Table(
+    'property_accessibility',
+    Base.metadata,
+    Column('propertyID', Integer, ForeignKey('property.id', ondelete="CASCADE"), primary_key=True),
+    Column('accessibilityID', Integer, ForeignKey('accessibility.accessibilityID', ondelete="CASCADE"), primary_key=True)
+)
+
+class Accessibility(Base):
+    __tablename__ = 'accessibility'
+    accessibilityID = Column(Integer, primary_key=True, autoincrement=True)
+    accessibilityType = Column(String(255), nullable=False, unique=True)  # Unique ensures no duplicates
+    properties = relationship(
+        'Property',
+        secondary=property_accessibility_table,
+        back_populates='accessibilities'
+    )
+
 class User(UserMixin, Base):
     __tablename__ = 'user'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -55,10 +78,12 @@ class User(UserMixin, Base):
     businessName = Column(String(length=200), nullable=True)  # Only for landlords
     profile_picture = Column(String(length=255), nullable=True)  # Profile picture path
     properties = relationship("Property", back_populates="user", cascade="all, delete-orphan")
+    
 
 class Property(Base):
     __tablename__ = 'property'
     id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)  # New column for property name
     size_sqft = Column(Float)
     price = Column(Float)
     bedrooms = Column(Integer)
@@ -68,6 +93,11 @@ class Property(Base):
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship("User", back_populates="properties")
     images = relationship("PropertyImage", back_populates="property", cascade="all, delete-orphan")
+    accessibilities = relationship(
+        'Accessibility',
+        secondary=property_accessibility_table,
+        back_populates='properties'
+    )
 
 class PropertyImage(Base):
     __tablename__ = 'property_images'
@@ -160,13 +190,16 @@ def register():
         session.close()
 
 # Login route
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-
     if request.method == 'GET':
-        return jsonify({"success": False, "message": "Please log in to access this resource"}), 405
-    
+        return jsonify({"success": False, "message": "Login is required"}), 401
+
+    # Handle POST request for login
     try:
+        if current_user.is_authenticated:
+            logout_user()
+
         data = request.json
         username = data.get('username')
         password = data.get('password')
@@ -175,16 +208,13 @@ def login():
             return jsonify({"success": False, "message": "Username and password are required"})
 
         user = session.query(User).filter_by(username=username).first()
-
         if user and check_password_hash(user.password, password):
             login_user(user)
-            return jsonify({"success": True, "message": "Login successful"})
+            return jsonify({"success": True, "message": "Login successful"}), 200
 
-        return jsonify({"success": False, "message": "Invalid username or password"})
-    except SQLAlchemyError as e:
-        return jsonify({"success": False, "message": "Database error", "error": str(e)})
-    finally:
-        session.close()
+        return jsonify({"success": False, "message": "Invalid username or password"}), 401
+    except Exception as e:
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
 
 # Logout route
 @app.route('/logout', methods=['GET'])
@@ -278,9 +308,10 @@ def create_property():
         bathrooms = data.get('bathrooms')
         street_address = data.get('street_address')
         city = data.get('city')
+        name = data.get('name')
 
         # Validate all fields
-        if not all([size_sqft, price, bedrooms, bathrooms, street_address, city]):
+        if not all([size_sqft, price, bedrooms, bathrooms, street_address, city,name]):
             return jsonify({"success": False, "message": "All property fields are required"})
 
         new_property = Property(
@@ -290,6 +321,7 @@ def create_property():
             bathrooms=bathrooms,
             street_address=street_address,
             city=city,
+            name=name,
             user_id=current_user.id
         )
 
@@ -359,16 +391,23 @@ def get_properties():
             if property.images and len(property.images) > 0:
                 image_url = f"http://localhost:5000/uploads/{property.images[0].image_url}"
 
+            accessibilities = [
+                accessibility.accessibilityType for accessibility in property.accessibilities
+            ]
+
             property_data = {
                 "id": property.id,
+                "name": property.name,
                 "size_sqft": property.size_sqft,
                 "price": property.price,
                 "bedrooms": property.bedrooms,
                 "bathrooms": property.bathrooms,
-                "street": property.street_address ,
+                "street": property.street_address,
                 "city": property.city,
                 "user_id": property.user_id,
-                "image_url": image_url  # First image or placeholder
+                "image_url": image_url,  # First image or placeholder
+                "accessibilities": accessibilities,
+                "businessName": property.user.businessName if property.user else None  # Owner's business name
             }
             property_list.append(property_data)
 
@@ -455,7 +494,86 @@ def upload_property_images(property_id):
     except Exception as e:
         print("Unexpected error:", str(e))
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+    
+# Add Accessbilities to Properties
+@app.route('/property/<int:property_id>/add-accessibility', methods=['POST'])
+@login_required
+def add_accessibility_to_property(property_id):
+    try:
+        if current_user.role != "landlord":
+            return jsonify({"success": False, "message": "Only landlords can modify property accessibility"}), 403
 
+        data = request.json
+        accessibility_ids = data.get('accessibility_ids')  # List of accessibility IDs
+
+        if not accessibility_ids:
+            return jsonify({"success": False, "message": "No accessibility IDs provided"}), 400
+
+        property = session.query(Property).filter_by(id=property_id, user_id=current_user.id).first()
+        if not property:
+            return jsonify({"success": False, "message": "Property not found"}), 404
+
+        for accessibility_id in accessibility_ids:
+            accessibility = session.query(Accessibility).filter_by(accessibilityID=accessibility_id).first()
+            if accessibility and accessibility not in property.accessibilities:
+                property.accessibilities.append(accessibility)
+
+        session.commit()
+        return jsonify({"success": True, "message": "Accessibility added to property successfully"}), 200
+    except SQLAlchemyError as e:
+        session.rollback()
+        print("Database error:", str(e))
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        print("Unexpected error:", str(e))
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+
+# Get all matched properties
+@app.route('/api/user/matched-properties', methods=['GET'])
+@login_required
+def get_matched_properties():
+    try:
+        if current_user.role != "tenant":
+            return jsonify({"success": False, "message": "Only tenants can view matched properties"}), 403
+
+        matches = session.query(Match).filter_by(user_id=current_user.id).all()
+        matched_properties = []
+
+        for match in matches:
+            property = session.query(Property).filter_by(id=match.property_id).first()
+            if property:
+                # Retrieve the first image URL or use a placeholder
+                image_url = "https://via.placeholder.com/400x300"
+                if property.images and len(property.images) > 0:
+                    image_url = f"http://localhost:5000/uploads/{property.images[0].image_url}"
+
+                matched_properties.append({
+                    "id": property.id,
+                    "name": property.name,
+                    "size_sqft": property.size_sqft,
+                    "price": property.price,
+                    "bedrooms": property.bedrooms,
+                    "bathrooms": property.bathrooms,
+                    "street": property.street_address,
+                    "city": property.city,
+                    "image_url": image_url,
+                    "businessName": property.user.businessName if property.user else None
+                })
+
+        return jsonify({"success": True, "matched_properties": matched_properties}), 200
+    except SQLAlchemyError as e:
+        print("Database error:", str(e))
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        print("Unexpected error:", str(e))
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+
+# Flask teardown to clean up sessions
+@app.teardown_appcontext
+def cleanup_session(exception=None):
+    if exception:
+        session.rollback()  # Rollback if there's an exception
+    session.close()  # Always close the session
 
 # Main entry point
 if __name__ == '__main__':
