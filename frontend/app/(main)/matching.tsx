@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons"; // Importing icons
-import { useRouter } from "expo-router"; // Router for navigation
+import { useRouter, useSegments } from "expo-router"; // Router for navigation
 import { styles } from "./styles"; // Importing the provided styles
 
 interface Property {
@@ -23,6 +23,7 @@ export default function Matching() {
   const [properties, setProperties] = useState<Property[]>([]);
   const swiperRef = useRef<any>(null); // Use `any` because `react-native-deck-swiper` lacks proper TypeScript types
   const router = useRouter(); // Expo router for navigation
+  const segments = useSegments(); // Use segments to get the current route
 
   useEffect(() => {
     fetchProperties();
@@ -153,24 +154,20 @@ export default function Matching() {
     <SafeAreaProvider>
       {/* Header */}
       <View style={styles.LoggedInHeader}>
-  {/* Profile Icon */}
-  <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
-    <Ionicons name="person-circle-outline" size={40} color="#333" />
-  </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+          <Ionicons name="person-circle-outline" size={40} color="#333" />
+        </TouchableOpacity>
 
-  {/* Logo */}
-  <Image
-    source={require("./(home)/assets/images/icon_logo.png")}
-    style={styles.LoggedInLogo}
-    resizeMode="contain"
-  />
+        <Image
+          source={require("./(home)/assets/images/icon_logo.png")}
+          style={styles.LoggedInLogo}
+          resizeMode="contain"
+        />
 
-  {/* Paper/Info Icon */}
-  <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
-    <Ionicons name="newspaper-outline" size={30} color="#333" />
-  </TouchableOpacity>
-</View>
-
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+          <Ionicons name="newspaper-outline" size={30} color="#333" />
+        </TouchableOpacity>
+      </View>
 
       <SafeAreaView style={styles.container}>
         {properties.length > 0 ? (
@@ -190,6 +187,38 @@ export default function Matching() {
           </View>
         )}
       </SafeAreaView>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNavBar}>
+        <TouchableOpacity
+          style={[styles.navBarItem, segments[0] === "matching" && styles.activeNavBarItem]}
+          onPress={() => router.push("/matching")}
+        >
+          <Ionicons
+            name="compass-outline"
+            size={24}
+            color={segments[0] === "matching" ? "#007BFF" : "#666"}
+          />
+          <Text style={[styles.navBarText, segments[0] === "matching" && styles.activeNavBarText]}>
+            Explore
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.navBarItem, segments[0] === "matchingHistory" && styles.activeNavBarItem]}
+          onPress={() => router.push("/matchingHistory")}
+        >
+          <Ionicons
+            name="heart-outline"
+            size={24}
+            color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
+          />
+          <Text
+            style={[styles.navBarText, segments[0] === "matchingHistory" && styles.activeNavBarText]}
+          >
+            Matches
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaProvider>
   );
 }

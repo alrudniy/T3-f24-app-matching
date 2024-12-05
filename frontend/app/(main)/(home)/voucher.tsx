@@ -1,21 +1,122 @@
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { ScrollView } from "react-native";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import React, { useState } from "react";
-import { Text, TextInput, View, TouchableOpacity } from "react-native";
+import {
+  Alert,
+  ScrollView,
+  TextInput,
+  Button,
+  Modal,
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  Image,
+} from "react-native";
+import { useLocalSearchParams, useRouter, useSegments } from "expo-router";
 import { Picker } from "@react-native-picker/picker";
+import { ThemedView } from "@/components/ThemedView";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons"; // For icons
 import { styles } from "../styles";
 
 export default function VoucherView() {
-  const [housingType, setHousingType] = useState("");
-  const [familyMembers, setFamilyMembers] = useState(0);
+  const { role } = useLocalSearchParams<{ role?: string }>();
+  const router = useRouter();
+  const segments = useSegments();
 
-  const addFamilyMember = () => setFamilyMembers((prev) => prev + 1);
-  const removeFamilyMember = () => setFamilyMembers((prev) => (prev > 0 ? prev - 1 : 0));
+  const [form, setForm] = useState({
+    expireDate: "",
+    priceLimit: "",
+    housingType: "",
+    familyMembers: 0,
+  });
+  const [loading, setLoading] = useState(false);
+  const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const expireRegex = /^[0-9]{8}$/; // Example format: YYYYMMDD
+  const priceRegex = /^[0-9]+$/; // Allow numeric values only
+
+  const handleChange = (name: string, value: string | number) => {
+    setForm({ ...form, [name]: value });
+  };
+
+  const handleSubmit = async () => {
+    const { expireDate, priceLimit, housingType, familyMembers } = form;
+
+    console.log("Form State at Submit:", form); // Debugging log to confirm field values
+
+    if (!expireDate || !priceLimit || !housingType || familyMembers <= 0) {
+      const missingFields = [];
+      if (!expireDate) missingFields.push("Expire Date");
+      if (!priceLimit) missingFields.push("Price Limit");
+      if (!housingType) missingFields.push("Housing Type");
+      if (familyMembers <= 0) missingFields.push("Family Members");
+      setErrorMessage(`Missing fields: ${missingFields.join(", ")}`);
+      setErrorModalVisible(true);
+      return;
+    }
+
+    if (!expireRegex.test(expireDate)) {
+      setErrorMessage("Please enter a valid expiration date in YYYYMMDD format.");
+      setErrorModalVisible(true);
+      return;
+    }
+
+    if (!priceRegex.test(priceLimit)) {
+      setErrorMessage("Please enter a valid price limit (numeric values only).");
+      setErrorModalVisible(true);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://127.0.0.1:5000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          role,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        router.push("/matching");
+      } else {
+        setErrorMessage(data.message || "Registration failed.");
+        setErrorModalVisible(true);
+      }
+    } catch (error) {
+      console.error("Error during registration:", error);
+      setErrorMessage("An error occurred. Please try again.");
+      setErrorModalVisible(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaProvider>
+      {/* Header */}
+      <View style={styles.LoggedInHeader}>
+        <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+          <Ionicons name="person-circle-outline" size={40} color="#333" />
+        </TouchableOpacity>
+
+        <Image
+          source={require("./assets/images/icon_logo.png")}
+          style={styles.LoggedInLogo}
+          resizeMode="contain"
+        />
+
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+          <Ionicons name="newspaper-outline" size={30} color="#333" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Content */}
       <ThemedView style={styles.container}>
         <SafeAreaView style={[styles.innerContainer, { flex: 1 }]}>
           <ScrollView
@@ -25,34 +126,33 @@ export default function VoucherView() {
             }}
             showsVerticalScrollIndicator={false}
           >
-            <ThemedText type="title" style={{ marginBottom: 20 }}>
-              Enter Voucher Information
-            </ThemedText>
+            <Text style={{ fontSize: 24, marginBottom: 20 }}>Input Voucher</Text>
 
-            <ThemedView style={styles.formContainer}>
+            <View style={styles.formContainer}>
               <TextInput
-                placeholder="Enter Full Legal Name"
+                placeholder="Expiration Date (YYYYMMDD)"
                 style={styles.input}
+                value={form.expireDate}
+                onChangeText={(text) => handleChange("expireDate", text)}
+                keyboardType="number-pad"
               />
+
               <TextInput
-                placeholder="Enter Date of Birth"
+                placeholder="Price Limit"
                 style={styles.input}
-              />
-              <TextInput
-                placeholder="Enter Social Security Number"
-                style={styles.input}
-              />
-              <TextInput
-                placeholder="Enter Phone Number"
-                style={styles.input}
+                value={form.priceLimit}
+                onChangeText={(text) => handleChange("priceLimit", text)}
+                keyboardType="number-pad"
               />
 
               {/* Dropdown for Housing Type */}
               <View style={styles.dropdown}>
                 <Text style={styles.dropdownText}>Housing Type:</Text>
                 <Picker
-                  selectedValue={housingType}
-                  onValueChange={(itemValue) => setHousingType(itemValue)}
+                  selectedValue={form.housingType}
+                  onValueChange={(itemValue) =>
+                    handleChange("housingType", itemValue)
+                  }
                   style={{ flex: 1, marginLeft: 10 }}
                 >
                   <Picker.Item label="Select Housing Type" value="" />
@@ -69,28 +169,107 @@ export default function VoucherView() {
                 <View style={styles.familyButtons}>
                   <TouchableOpacity
                     style={styles.familyButton}
-                    onPress={removeFamilyMember}
+                    onPress={() =>
+                      handleChange(
+                        "familyMembers",
+                        Math.max(form.familyMembers - 1, 0)
+                      )
+                    }
                   >
                     <Text style={styles.familyButtonText}>-</Text>
                   </TouchableOpacity>
-                  <Text>{familyMembers}</Text>
+                  <Text>{form.familyMembers}</Text>
                   <TouchableOpacity
                     style={styles.familyButton}
-                    onPress={addFamilyMember}
+                    onPress={() =>
+                      handleChange("familyMembers", form.familyMembers + 1)
+                    }
                   >
                     <Text style={styles.familyButtonText}>+</Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
-              {/* Verify Identity Button */}
-              <TouchableOpacity style={styles.verifyButton}>
-                <Text style={styles.verifyButtonText}>Verify Identity</Text>
-              </TouchableOpacity>
-            </ThemedView>
+              <Button title="Submit Voucher" onPress={handleSubmit} color="#4CAF50" />
+            </View>
           </ScrollView>
+
+          {loading && (
+            <ActivityIndicator
+              size="large"
+              color="#4CAF50"
+              style={{ marginTop: 20 }}
+            />
+          )}
         </SafeAreaView>
+
+        <Modal
+          visible={errorModalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setErrorModalVisible(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+            }}
+          >
+            <View
+              style={{
+                width: "80%",
+                backgroundColor: "white",
+                borderRadius: 10,
+                padding: 20,
+              }}
+            >
+              <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
+                Error
+              </Text>
+              <Text style={{ marginBottom: 20 }}>{errorMessage}</Text>
+              <Button
+                title="Close"
+                onPress={() => setErrorModalVisible(false)}
+                color="#FF3B30"
+              />
+            </View>
+          </View>
+        </Modal>
       </ThemedView>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNavBar}>
+        <TouchableOpacity
+          style={[styles.navBarItem, segments[0] === "matching" && styles.activeNavBarItem]}
+          onPress={() => router.push("/matching")}
+        >
+          <Ionicons
+            name="compass-outline"
+            size={24}
+            color={segments[0] === "matching" ? "#007BFF" : "#666"}
+          />
+          <Text style={[styles.navBarText, segments[0] === "matching" && styles.activeNavBarText]}>
+            Explore
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.navBarItem, segments[0] === "matchingHistory" && styles.activeNavBarItem]}
+          onPress={() => router.push("/matchingHistory")}
+        >
+          <Ionicons
+            name="heart-outline"
+            size={24}
+            color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
+          />
+          <Text
+            style={[styles.navBarText, segments[0] === "matchingHistory" && styles.activeNavBarText]}
+          >
+            Matches
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaProvider>
   );
 }

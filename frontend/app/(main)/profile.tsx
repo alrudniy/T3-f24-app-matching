@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Image, TouchableOpacity, Modal, Button } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useSegments } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { styles } from "./styles";
 import * as ImagePicker from "expo-image-picker";
@@ -21,7 +21,7 @@ const phoneRegex = /^[0-9]{10}$/;
 
 const formatPhoneNumber = (phone: string): string => {
   const cleaned = phone.replace(/\D/g, "");
-  if (cleaned.length !== 10) return phone; // Return unformatted if not 10 digits
+  if (cleaned.length !== 10) return phone;
   const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
   return match ? `(${match[1]}) ${match[2]}-${match[3]}` : phone;
 };
@@ -41,6 +41,7 @@ const Profile = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -167,8 +168,8 @@ const Profile = () => {
       </View>
 
       {/* Profile Content */}
-      <View style={styles.profileContainer}>
-      <View style={{ marginTop: 20 }} />
+      <SafeAreaView style={styles.profileContainer}>
+        <View style={{ marginTop: 20 }} />
         <View style={styles.imageContainer}>
           <TouchableOpacity onPress={editing ? pickImage : undefined} activeOpacity={editing ? 0.7 : 1}>
             <Image
@@ -263,6 +264,38 @@ const Profile = () => {
             </View>
           </View>
         </Modal>
+      </SafeAreaView>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNavBar}>
+        <TouchableOpacity
+          style={[styles.navBarItem, segments[0] === "matching" && styles.activeNavBarItem]}
+          onPress={() => router.push("/matching")}
+        >
+          <Ionicons
+            name="compass-outline"
+            size={24}
+            color={segments[0] === "matching" ? "#007BFF" : "#666"}
+          />
+          <Text style={[styles.navBarText, segments[0] === "matching" && styles.activeNavBarText]}>
+            Explore
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.navBarItem, segments[0] === "matchingHistory" && styles.activeNavBarItem]}
+          onPress={() => router.push("/matchingHistory")}
+        >
+          <Ionicons
+            name="heart-outline"
+            size={24}
+            color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
+          />
+          <Text
+            style={[styles.navBarText, segments[0] === "matchingHistory" && styles.activeNavBarText]}
+          >
+            Matches
+          </Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaProvider>
   );

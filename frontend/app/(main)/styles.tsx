@@ -2,6 +2,34 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   // General
+  bottomNavBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
+  },
+  navBarItem: {
+    alignItems: "center",
+    flex: 1,
+  },
+  activeNavBarItem: {
+    borderBottomWidth: 2,
+    borderBottomColor: "#007BFF",
+  },
+  navBarText: {
+    fontSize: 12,
+    color: "#666",
+  },
+  activeNavBarText: {
+    color: "#007BFF",
+  },  
   LoggedInHeader: {
     flexDirection: "row", // Align items in a row
     justifyContent: "space-between", // Space items evenly
@@ -271,7 +299,7 @@ export const styles = StyleSheet.create({
     borderRadius: 75,
     backgroundColor: "#E0E0E0",
     marginBottom: 20,
-    marginTop: 50,
+    marginTop: 20,
   },
   profileDetails: {
     width: "100%",

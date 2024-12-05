@@ -2,12 +2,9 @@ import React, { useState, useEffect } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useSegments } from "expo-router";
 import { styles } from "./styles";
 import { matchingHistoryStyles as style } from "./styles";
-
-
-
 
 interface MatchedProperty {
   id: number;
@@ -26,6 +23,7 @@ export default function MatchingHistoryView() {
   const [matchedProperties, setMatchedProperties] = useState<MatchedProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     fetchMatchedProperties();
@@ -80,6 +78,7 @@ export default function MatchingHistoryView() {
         </TouchableOpacity>
       </View>
 
+      {/* Main Content */}
       <SafeAreaView style={styles.container}>
         {loading ? (
           <Text style={style.loadingText}>Loading matched properties...</Text>
@@ -114,6 +113,38 @@ export default function MatchingHistoryView() {
           <Text style={styles.noData}>No matched properties found.</Text>
         )}
       </SafeAreaView>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNavBar}>
+        <TouchableOpacity
+          style={[styles.navBarItem, segments[0] === "matching" && styles.activeNavBarItem]}
+          onPress={() => router.push("/matching")}
+        >
+          <Ionicons
+            name="compass-outline"
+            size={24}
+            color={segments[0] === "matching" ? "#007BFF" : "#666"}
+          />
+          <Text style={[styles.navBarText, segments[0] === "matching" && styles.activeNavBarText]}>
+            Explore
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.navBarItem, segments[0] === "matchingHistory" && styles.activeNavBarItem]}
+          onPress={() => router.push("/matchingHistory")}
+        >
+          <Ionicons
+            name="heart-outline"
+            size={24}
+            color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
+          />
+          <Text
+            style={[styles.navBarText, segments[0] === "matchingHistory" && styles.activeNavBarText]}
+          >
+            Matches
+          </Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaProvider>
   );
 }
