@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Image, TouchableOpacity, Modal, Button } from "react-native";
+import { View, Text, TextInput, Image, TouchableOpacity, Modal, Button, Alert } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useSegments } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -73,6 +73,26 @@ const Profile = () => {
 
     fetchUserData();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/logout", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        Alert.alert("Logged Out", "You have been logged out successfully.");
+        router.push("/");
+      } else {
+        Alert.alert("Error", data.message || "Failed to log out.");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      Alert.alert("Error", "An error occurred while logging out.");
+    }
+  };
 
   const handleSave = async () => {
     if (!emailRegex.test(user.email)) {
@@ -185,6 +205,7 @@ const Profile = () => {
         </View>
         {editing ? (
           <View style={styles.profileDetails}>
+            {/* Editable Profile Fields */}
             <Text style={styles.profileLabel}>First Name</Text>
             <TextInput
               style={styles.input}
@@ -231,6 +252,7 @@ const Profile = () => {
           </View>
         ) : (
           <View style={styles.profileDetails}>
+            {/* Static Profile Details */}
             <Text style={styles.profileLabel}>First Name</Text>
             <Text style={styles.profileValue}>{user.firstName}</Text>
             <Text style={styles.profileLabel}>Last Name</Text>
@@ -264,6 +286,11 @@ const Profile = () => {
             </View>
           </View>
         </Modal>
+
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Log Out</Text>
+        </TouchableOpacity>
       </SafeAreaView>
 
       {/* Bottom Navigation */}
