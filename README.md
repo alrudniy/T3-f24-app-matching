@@ -1,3 +1,10 @@
+<h1 align="center">
+<img
+		width="500"
+		alt="Team 3 | Mobile Matching App"
+		src="https://raw.githubusercontent.com/alrudniy/T3-f24-app-matching/refs/heads/master/frontend/app/(main)/(home)/assets/images/logo.png?token=GHSAT0AAAAAACZJOM5EBL32YBFW6IZZ4EZ6Z2UYAZA">
+</h1>
+<h3 align="center">
 # Team 3 | Mobile Matching App
 
 A matching app designed to work on IOS and Android
@@ -9,6 +16,26 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 - [@Kaan](https://github.com/TheKaanK)
 - [@Matthew](https://github.com/mcolucci40)
 - [@Phil](https://github.com/PhilPingPNG)
+
+
+## Screenshots
+
+<img
+		width="210"
+		alt="Capture 1"
+		src="https://github.com/alrudniy/T3-f24-app-matching/blob/master/preview_images/LoginPage.png">
+<img
+		width="210"
+		alt="Capture 2"
+		src="https://github.com/alrudniy/T3-f24-app-matching/blob/master/preview_images/AccountCreationPage.png">
+<img
+		width="210"
+		alt="Capture 3"
+		src="https://github.com/alrudniy/T3-f24-app-matching/blob/master/preview_images/PropertyCreationPage.png">
+<img
+		width="210"
+		alt="Capture 4"
+		src="https://github.com/alrudniy/T3-f24-app-matching/blob/master/preview_images/MatchingPage.png">
 
 # Backend Testing w/ Postman:
 
