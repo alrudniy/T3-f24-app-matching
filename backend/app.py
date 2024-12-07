@@ -11,6 +11,7 @@ from flask import send_from_directory
 import os
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import Table
+from datetime import timedelta
 
 app = Flask(__name__)
 
@@ -121,7 +122,16 @@ login_manager.login_view = "login"
 
 @login_manager.user_loader
 def load_user(user_id):
-    return session.get(User, user_id)
+    user = session.get(User, user_id)
+    print(f"load_user called for user_id: {user_id}, Found: {user}")
+    return user
+
+@app.before_request
+def check_user():
+    if not current_user.is_authenticated:
+        print("User not authenticated")
+
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=4)
 
 # Helper function to check allowed file extensions
 def allowed_file(filename):
@@ -193,27 +203,42 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
-        return jsonify({"success": False, "message": "Login is required"}), 401
+        # Return a clear unauthorized message for unauthenticated access
+        return jsonify({"success": False, "message": "Login required"}), 401
 
-    # Handle POST request for login
     try:
+        # Handle POST request for login
         if current_user.is_authenticated:
+            # If the user is already authenticated, log them out to refresh the session
             logout_user()
 
-        data = request.json
+        data = request.json  # Parse incoming JSON data
         username = data.get('username')
         password = data.get('password')
 
         if not username or not password:
-            return jsonify({"success": False, "message": "Username and password are required"})
+            return jsonify({"success": False, "message": "Username and password are required"}), 400
 
+        # Retrieve the user from the database
         user = session.query(User).filter_by(username=username).first()
-        if user and check_password_hash(user.password, password):
-            login_user(user)
-            return jsonify({"success": True, "message": "Login successful"}), 200
 
+        if user and check_password_hash(user.password, password):
+            login_user(user)  # Log the user in
+            session.permanent = True  # Keep the session alive
+            print(f"User {user.username} logged in successfully.")  # Debug log
+            return jsonify({"success": True, "message": "Login successful", "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "role": user.role,
+            }}), 200
+
+        # If authentication fails
         return jsonify({"success": False, "message": "Invalid username or password"}), 401
+
     except Exception as e:
+        # Handle unexpected errors gracefully
+        print(f"Error during login: {str(e)}")
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
 
 # Logout route
@@ -295,45 +320,50 @@ def update_user_profile():
 
 # Property creation
 @app.route('/property/create', methods=['POST'])
-@login_required
 def create_property():
     try:
-        if current_user.role != "landlord":
-            return jsonify({"success": False, "message": "Only landlords can create properties"})
-
-        data = request.json
-        size_sqft = data.get('size_sqft')
-        price = data.get('price')
-        bedrooms = data.get('bedrooms')
-        bathrooms = data.get('bathrooms')
-        street_address = data.get('street_address')
-        city = data.get('city')
-        name = data.get('name')
+        print("Headers:", request.headers)  # Log headers
+        print("Raw data:", request.data)    # Log raw data
+        print("Request form data:", request.form)  # Log form data
+        # Parse form data
+        size_sqft = request.form.get('size_sqft')
+        price = request.form.get('price')
+        bedrooms = request.form.get('bedrooms')
+        bathrooms = request.form.get('bathrooms')
+        street_address = request.form.get('street_address')
+        city = request.form.get('city')
+        name = request.form.get('name')
+        user_id = request.form.get('user_id')  # Get user ID from the form data
 
         # Validate all fields
-        if not all([size_sqft, price, bedrooms, bathrooms, street_address, city,name]):
-            return jsonify({"success": False, "message": "All property fields are required"})
+        if not all([size_sqft, price, bedrooms, bathrooms, street_address, city, name, user_id]):
+            return jsonify({"success": False, "message": "All property fields are required"}), 400
 
+        # Create the property
         new_property = Property(
-            size_sqft=size_sqft,
-            price=price,
-            bedrooms=bedrooms,
-            bathrooms=bathrooms,
+            size_sqft=float(size_sqft),
+            price=float(price),
+            bedrooms=int(bedrooms),
+            bathrooms=int(bathrooms),
             street_address=street_address,
             city=city,
             name=name,
-            user_id=current_user.id
+            user_id=int(user_id),
         )
 
+        # Save the property
         session.add(new_property)
         session.commit()
-        return jsonify({"success": True, "message": "Property created successfully"})
+
+        return jsonify({"success": True, "message": "Property created successfully"}), 201
     except SQLAlchemyError as e:
         session.rollback()
-        return jsonify({"success": False, "message": "Database error", "error": str(e)})
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        print("Unexpected error:", str(e))  # Log the unexpected error
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
     finally:
         session.close()
-
 
 # Delete user
 @app.route('/user/delete/<int:user_id>', methods=['DELETE'])

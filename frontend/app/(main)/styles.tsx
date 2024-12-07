@@ -2,6 +2,92 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   // General
+
+    // Section headers
+    logoutButton: {
+      marginTop: 20,
+      backgroundColor: "#FF3B30",
+      padding: 15,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    logoutButtonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    sectionHeader: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginTop: 20,
+      marginBottom: 10,
+      color: "#333",
+      textAlign: "center",
+    },
+    // Input field styles
+    halfWidth: {
+      width: "48%",
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    // Instructions text
+    instructions: {
+      fontSize: 14,
+      color: "#666",
+      textAlign: "center",
+      marginBottom: 15,
+    },
+    // Image upload button
+    imageUploadButton: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 10,
+      borderWidth: 1,
+      borderColor: "#ccc",
+      borderRadius: 8,
+      backgroundColor: "#fff",
+      marginBottom: 15,
+    },
+    imageUploadText: {
+      fontSize: 16,
+      color: "#333",
+      marginLeft: 10,
+    },
+    // Preview images container
+    imagePreviewContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      marginVertical: 10,
+    },
+    previewImage: {
+      width: 100,
+      height: 100,
+      margin: 5,
+      borderRadius: 8,
+    },
+    // Submit button
+    submitButton: {
+      backgroundColor: "#6a1b9a",
+      borderRadius: 8,
+      paddingVertical: 12,
+      alignItems: "center",
+      marginVertical: 20,
+    },
+    submitButtonText: {
+      fontSize: 18,
+      color: "#fff",
+      fontWeight: "bold",
+    },
+    modalMessage: {
+      fontSize: 16,
+      color: "#333",
+      textAlign: "center",
+      marginBottom: 20,
+    },
   bottomNavBar: {
     position: "absolute",
     bottom: 0,
