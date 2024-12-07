@@ -322,6 +322,9 @@ def update_user_profile():
 @app.route('/property/create', methods=['POST'])
 def create_property():
     try:
+        print("Headers:", request.headers)  # Log headers
+        print("Raw data:", request.data)    # Log raw data
+        print("Request form data:", request.form)  # Log form data
         # Parse form data
         size_sqft = request.form.get('size_sqft')
         price = request.form.get('price')
@@ -357,7 +360,7 @@ def create_property():
         session.rollback()
         return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
     except Exception as e:
-        print("Unexpected error:", str(e))
+        print("Unexpected error:", str(e))  # Log the unexpected error
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
     finally:
         session.close()
