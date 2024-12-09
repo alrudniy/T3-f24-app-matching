@@ -1,0 +1,11 @@
+*important documentation for working with assets
+
+Fonts:
+-to add new fonts (unlikely), add key-value pairs in fontsNew map in stylesNew.jsx; additionaly, in the
+root _layout.tsx add the font falues inside of "useFonts" you just added to the fontsNew map - the strings
+must match the values in the map perfectly for it to work. Finally, when using fonts, simply use the getFontStyles
+method in stylesNew (if assigning more than just font style/weight), or if just assigning font style/weight use the
+fontFamily property of each component's style (if you're not using the method, you will have to use import the fontsNew 
+map object in every page, otherwise, with the method, you just need to write the string representation of the target font weight 
+(the keys from the map))
+-etc
