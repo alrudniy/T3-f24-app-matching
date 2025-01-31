@@ -1,9 +1,4 @@
 <h1 align="center">
-<img
-		width="500"
-		alt="Team 3 | Mobile Matching App"
-		src="https://raw.githubusercontent.com/alrudniy/T3-f24-app-matching/refs/heads/master/frontend/app/(main)/(home)/assets/images/logo.png?token=GHSAT0AAAAAACZJOM5EBL32YBFW6IZZ4EZ6Z2UYAZA">
-</h1>
 <h3 align="center">
 # Team 3 | Mobile Matching App
 
@@ -36,6 +31,30 @@ It is meant to be used for property owners, tenants and case handlers to ensure 
 		width="210"
 		alt="Capture 4"
 		src="https://github.com/alrudniy/T3-f24-app-matching/blob/master/preview_images/MatchingPage.png">
+
+# Installation and usage
+## Running the project
+Clone this repository :
+
+```
+git clone https://github.com/alrudniy/T3-f24-app-matching.git
+cd T3-f24-app-matching
+```
+Running the backend :
+
+```
+cd /backend
+pip install -r requirements.txt
+flask run
+```
+
+Running the frontend
+```
+cd /frontend
+npm install
+npx expo start
+```
+
 
 # Backend Testing w/ Postman:
 
