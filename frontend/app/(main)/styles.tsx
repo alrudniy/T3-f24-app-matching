@@ -1,94 +1,291 @@
 import { StyleSheet } from "react-native";
 
-export const styles = StyleSheet.create({
-  // General
+const fontSize = {
+  ExtraSmall: 12,
+  SubtitleSmall: 14,
+  Small: 15,
+  Base: 16,
+  Subtitle: 18,
+  Large: 20,
+  Title: 64,
+};
 
-    // Section headers
-    logoutButton: {
-      marginTop: 20,
-      backgroundColor: "#FF3B30",
-      padding: 15,
-      borderRadius: 10,
-      alignItems: "center",
-      justifyContent: "center",
+const paddingSize = {
+  ExtraSmall: 5,
+  Small: 10,
+  Medium: 15,
+  Large: 20,
+  ExtraLarge: 30,
+};
+
+const borderSize = {
+  ExtraSmall: 8,
+  Small: 10,
+  Medium: 12,
+  Large: 15,
+  ExtraLarge: 25,
+};
+
+const colors = {
+  White: "#FFFFFF",
+  Pale: "#F9F9F9",
+  Pale2: "#F5F5F5",
+  Pale3: "#E0E0E0",
+  LightGrey: "#CCCCCC",
+  Grey: "#666666",
+  DarkGrey: "#555555",
+  Black: "#000000",
+  TransparentBlack: "rgba(0, 0, 0, 0.5)",
+  LightBlue: "#6C63FF",
+  Blue: "#6200EE",
+  Red: "#FF3B30",
+  Purple: "#6A1B9A",
+};
+
+export const button = StyleSheet.create({
+  base: {
+    backgroundColor: "#6200ee",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 20,
+  },
+  baseText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  logout: {
+    marginTop: 20,
+    backgroundColor: "#FF3B30",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoutText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  submit: {
+    backgroundColor: "#6a1b9a",
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  submitText: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  verify: {
+    backgroundColor: "#6C63FF",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  verifyText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  save: {
+    backgroundColor: "#6200ee",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    flex: 1,
+    marginRight: 10,
+  },
+  saveText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  cancel: {
+    backgroundColor: "#FF3B30",
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    flex: 1,
+  },
+  cancelText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  family: {
+    width: 40,
+    height: 40,
+    backgroundColor: "#E0E0E0",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 8,
+    marginLeft: 10,
+  },
+  familyText: {
+    fontSize: 20,
+    color: "#555",
+  },
+  circular: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  square: {
+    backgroundColor: "#6200ee",
+    padding: 20,
+    borderRadius: 8,
+    width: 120,
+    height: 160,
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 10,
+  },
+  toggle: {
+    position: "absolute",
+    right: 10, // Align the icon to the right
+    top: "50%", // Vertically center the icon
+    transform: [{ translateY: -12 }], // Fine-tune the vertical alignment to center the icon
+  },
+  imageUpload: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    backgroundColor: "#fff",
+    marginBottom: 15,
+  },
+});
+
+export const image = StyleSheet.create({
+  preview: {
+    width: 100,
+    height: 100,
+    margin: 5,
+    borderRadius: 8,
+  },
+  logo: {
+    width: 425, // Adjust as needed
+    height: 140, // Adjust as needed
+    marginBottom: 10, // Space below the logo
+    alignSelf: "center", // Center the image
+  },
+  loggedInLogo: {
+    width: 40, // Adjust width of the logo
+    height: 40, // Adjust height of the logo
+  },
+  loggedInHeaderIcon: {
+    padding: 5, // Add padding around icons for better touch area
+  },
+});
+
+export const container = StyleSheet.create({
+  base: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#f5f5f5",
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  content: {
+    flex: 1,
+    marginTop: 100, // Push content below the header
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+  },
+  inner: {
+    width: "100%",
+    maxWidth: 400,
+    alignItems: "center",
+  },
+  modal: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+  },
+  header: {
+    width: "100%",
+    height: 100, 
+    backgroundColor: "#ffffff", // White background for the header
+    justifyContent: "center",
+    alignItems: "center",
+    position: "absolute", // Keep the header fixed at the top
+    top: 0,
+    zIndex: 100, // Ensure it stays above other content
+    borderBottomWidth: 1, // Optional: Add a border for separation
+    borderBottomColor: "#ddd",
+  },
+  form: {
+    width: "100%",
+    maxWidth: 400,
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
     },
-    logoutButtonText: {
-      color: "#fff",
-      fontSize: 16,
-      fontWeight: "bold",
-    },
-    sectionHeader: {
-      fontSize: 18,
-      fontWeight: "bold",
-      marginTop: 20,
-      marginBottom: 10,
-      color: "#333",
-      textAlign: "center",
-    },
-    // Input field styles
-    halfWidth: {
-      width: "48%",
-    },
-    row: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-    },
-    // Instructions text
-    instructions: {
-      fontSize: 14,
-      color: "#666",
-      textAlign: "center",
-      marginBottom: 15,
-    },
-    // Image upload button
-    imageUploadButton: {
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 10,
-      borderWidth: 1,
-      borderColor: "#ccc",
-      borderRadius: 8,
-      backgroundColor: "#fff",
-      marginBottom: 15,
-    },
-    imageUploadText: {
-      fontSize: 16,
-      color: "#333",
-      marginLeft: 10,
-    },
-    // Preview images container
-    imagePreviewContainer: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      marginVertical: 10,
-    },
-    previewImage: {
-      width: 100,
-      height: 100,
-      margin: 5,
-      borderRadius: 8,
-    },
-    // Submit button
-    submitButton: {
-      backgroundColor: "#6a1b9a",
-      borderRadius: 8,
-      paddingVertical: 12,
-      alignItems: "center",
-      marginVertical: 20,
-    },
-    submitButtonText: {
-      fontSize: 18,
-      color: "#fff",
-      fontWeight: "bold",
-    },
-    modalMessage: {
-      fontSize: 16,
-      color: "#333",
-      textAlign: "center",
-      marginBottom: 20,
-    },
-  bottomNavBar: {
+  },
+  familyMembers: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  profile: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#f5f5f5",
+  },
+  password: {
+    position: "relative", // To position the toggle button
+    marginBottom: 20,
+    width: "100%", // Ensure the container takes full width
+  },
+  title: {
+    paddingVertical: 10, // Space above and below titles
+    alignItems: "center", // Center titles horizontally
+    backgroundColor: "#f9f9f9", // Optional: Light background for separation
+  },
+  logo: {
+    marginBottom: 20,
+  },
+  LoggedInHeader: {
+    flexDirection: "row", // Align items in a row
+    justifyContent: "space-between", // Space items evenly
+    alignItems: "center", // Vertically center items
+    paddingHorizontal: 15, // Add horizontal padding
+    paddingVertical: 10, // Add vertical padding
+    backgroundColor: "#FFF", // Background color
+    borderBottomWidth: 1, // Optional border for header
+    borderBottomColor: "#EEE", // Optional border color
+  },
+  navBar: {
     position: "absolute",
     bottom: 0,
     left: 0,
@@ -109,50 +306,71 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: "#007BFF",
   },
-  navBarText: {
+  image: {
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  imagePreview: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginVertical: 10,
+  },
+  button: {
+    flexDirection: "row",
+    justifyContent: "center",
+    flexWrap: "wrap",
+  },
+  matchButton: {
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    marginVertical: 20,
+    paddingHorizontal: 10, // Spacing from screen edges
+    width: "100%",
+  },
+  cardButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    marginTop: 20,
+  },
+});
+
+export const text = StyleSheet.create({
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 20,
+    marginBottom: 10,
+    color: "#333",
+    textAlign: "center",
+  },
+  instructions: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 15,
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: "#333",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  navBar: {
     fontSize: 12,
     color: "#666",
   },
-  activeNavBarText: {
+  activeNavBar: {
     color: "#007BFF",
   },  
-  LoggedInHeader: {
-    flexDirection: "row", // Align items in a row
-    justifyContent: "space-between", // Space items evenly
-    alignItems: "center", // Vertically center items
-    paddingHorizontal: 15, // Add horizontal padding
-    paddingVertical: 10, // Add vertical padding
-    backgroundColor: "#FFF", // Background color
-    borderBottomWidth: 1, // Optional border for header
-    borderBottomColor: "#EEE", // Optional border color
-  },
-  
-  LoggedInHeaderIcon: {
-    padding: 5, // Add padding around icons for better touch area
-  },
-  
-  LoggedInLogo: {
-    width: 40, // Adjust width of the logo
-    height: 40, // Adjust height of the logo
-  },
-  
-  logoImage: {
-    width: 425, // Adjust as needed
-    height: 140, // Adjust as needed
-    marginBottom: 10, // Space below the logo
-    alignSelf: "center", // Center the image
-  },
-  header: {
-    width: "100%",
-    height: 100, 
-    backgroundColor: "#ffffff", // White background for the header
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute", // Keep the header fixed at the top
-    top: 0,
-    zIndex: 100, // Ensure it stays above other content
-    borderBottomWidth: 1, // Optional: Add a border for separation
-    borderBottomColor: "#ddd",
+});
+
+export const styles = StyleSheet.create({
+  // Input field styles
+  halfWidth: {
+    width: "48%",
   },
   logo: {
     width: 200, 
