@@ -15,8 +15,6 @@ from datetime import timedelta
 
 app = Flask(__name__)
 
-
-
 # Configure the app for sessions
 app.secret_key = "your_secret_key"  # Change this to something secret
 app.config["SESSION_COOKIE_NAME"] = "session_id"
@@ -597,6 +595,12 @@ def get_matched_properties():
     except Exception as e:
         print("Unexpected error:", str(e))
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+
+from voucher import voucher_bp  # Import your voucher blueprint
+# Register the voucher blueprint for all voucher-related routes
+app.register_blueprint(voucher_bp, url_prefix='/voucher')
+
+
 
 # Flask teardown to clean up sessions
 @app.teardown_appcontext

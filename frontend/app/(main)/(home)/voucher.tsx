@@ -70,16 +70,25 @@ export default function VoucherView() {
 
     setLoading(true);
 
+    // Get the auth token (adjust this depending on where you store it, e.g., localStorage, context, etc.)
+    const authToken = localStorage.getItem("authToken");
+
     try {
-      const response = await fetch("http://127.0.0.1:5000/register", {
+      const response = await fetch("http://127.0.0.1:5000/submit-voucher", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${authToken}`, // Add the Authorization header
+        },
         body: JSON.stringify({
-          ...form,
-          role,
+          expiration_date: expireDate,
+          price_limit: priceLimit,
+          housing_type: housingType,
+          family_members: familyMembers,
         }),
       });
 
+      console.log("API response:", response);
       const data = await response.json();
 
       if (data.success) {

@@ -12,9 +12,9 @@ import {
   Image,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import { styles } from "../styles";
-import { Ionicons } from "@expo/vector-icons"; // Importing Ionicons for the toggle icon
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons"; // Icons for UI
+import { styles } from "../styles"; // Ensure styles are correctly defined
 
 export default function AccountCreationView() {
   const { role } = useLocalSearchParams<{ role?: string }>();
@@ -31,8 +31,8 @@ export default function AccountCreationView() {
     confirmPassword: "",
     phone: "",
   });
-  const [passwordVisible, setPasswordVisible] = useState(false); // Toggle for password
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false); // Toggle for confirm password
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -163,118 +163,100 @@ export default function AccountCreationView() {
 
   return (
     <SafeAreaProvider>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Image
-            source={require("./assets/images/logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-
-        <ScrollView
-          contentContainerStyle={{
-            marginTop: 100,
-            paddingVertical: 20,
-            alignItems: "center",
+      <SafeAreaView style={{ flex: 1 }}>
+        {/* Back Button */}
+        <TouchableOpacity
+          onPress={() => router.push("/accountSelection")}
+          style={{
+            position: "absolute",
+            top: 110, // Adjust this value to move it further down if needed
+            left: 20,
+            padding: 10,
+            backgroundColor: "white", // No background color
+            borderRadius: 50,
+            zIndex: 10, // Keeps it above other elements
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 5, // Android shadow
           }}
         >
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Role: {role || "Not Selected"}</Text>
-          <View style={styles.formContainer}>
-            <TextInput
-              placeholder="Username"
-              style={styles.input}
-              value={form.username}
-              onChangeText={(text) => handleChange("username", text)}
-            />
-            {role === "landlord" && (
-              <TextInput
-                placeholder="Business Name"
-                style={styles.input}
-                value={form.businessName}
-                onChangeText={(text) => handleChange("businessName", text)}
-              />
-            )}
-            <TextInput
-              placeholder="First Name"
-              style={styles.input}
-              value={form.firstName}
-              onChangeText={(text) => handleChange("firstName", text)}
-            />
-            <TextInput
-              placeholder="Last Name"
-              style={styles.input}
-              value={form.lastName}
-              onChangeText={(text) => handleChange("lastName", text)}
-            />
-            <TextInput
-              placeholder="Email"
-              style={styles.input}
-              value={form.email}
-              onChangeText={(text) => handleChange("email", text)}
-              keyboardType="email-address"
-            />
-            <TextInput
-              placeholder="Confirm Email"
-              style={styles.input}
-              value={form.confirmEmail}
-              onChangeText={(text) => handleChange("confirmEmail", text)}
-              keyboardType="email-address"
-            />
-            <TextInput
-              placeholder="Phone Number"
-              style={styles.input}
-              value={form.phone}
-              onChangeText={(text) => handleChange("phone", text)}
-              keyboardType="phone-pad"
-            />
-            <View style={styles.passwordContainer}>
-              <TextInput
-                placeholder="Password"
-                style={styles.input}
-                value={form.password}
-                onChangeText={(text) => handleChange("password", text)}
-                secureTextEntry={!passwordVisible}
-              />
-              <TouchableOpacity
-                onPress={() => setPasswordVisible(!passwordVisible)}
-                style={styles.toggleButton}
-              >
-                <Ionicons
-                  name={passwordVisible ? "eye-off" : "eye"}
-                  size={24}
-                  color="gray"
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                placeholder="Confirm Password"
-                style={styles.input}
-                value={form.confirmPassword}
-                onChangeText={(text) => handleChange("confirmPassword", text)}
-                secureTextEntry={!confirmPasswordVisible}
-              />
-              <TouchableOpacity
-                onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
-                style={styles.toggleButton}
-              >
-                <Ionicons
-                  name={confirmPasswordVisible ? "eye-off" : "eye"}
-                  size={24}
-                  color="gray"
-                />
-              </TouchableOpacity>
-            </View>
-            <Button
-              title="Create Account"
-              onPress={handleSubmit}
-              color="#4CAF50"
+          <Ionicons name="arrow-back" size={30} color="black" />
+        </TouchableOpacity>
+
+
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <Image
+              source={require("./assets/images/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
             />
           </View>
-        </ScrollView>
-      </View>
+
+          <ScrollView
+            contentContainerStyle={{
+              marginTop: 100,
+              paddingVertical: 20,
+              alignItems: "center",
+            }}
+          >
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Role: {role || "Not Selected"}</Text>
+            <View style={styles.formContainer}>
+              <TextInput
+                placeholder="Username"
+                style={styles.input}
+                value={form.username}
+                onChangeText={(text) => handleChange("username", text)}
+              />
+              {role === "landlord" && (
+                <TextInput
+                  placeholder="Business Name"
+                  style={styles.input}
+                  value={form.businessName}
+                  onChangeText={(text) => handleChange("businessName", text)}
+                />
+              )}
+              <TextInput
+                placeholder="First Name"
+                style={styles.input}
+                value={form.firstName}
+                onChangeText={(text) => handleChange("firstName", text)}
+              />
+              <TextInput
+                placeholder="Last Name"
+                style={styles.input}
+                value={form.lastName}
+                onChangeText={(text) => handleChange("lastName", text)}
+              />
+              <TextInput
+                placeholder="Email"
+                style={styles.input}
+                value={form.email}
+                onChangeText={(text) => handleChange("email", text)}
+                keyboardType="email-address"
+              />
+              <TextInput
+                placeholder="Confirm Email"
+                style={styles.input}
+                value={form.confirmEmail}
+                onChangeText={(text) => handleChange("confirmEmail", text)}
+                keyboardType="email-address"
+              />
+              <TextInput
+                placeholder="Phone Number"
+                style={styles.input}
+                value={form.phone}
+                onChangeText={(text) => handleChange("phone", text)}
+                keyboardType="phone-pad"
+              />
+              <Button title="Create Account" onPress={handleSubmit} color="#4CAF50" />
+            </View>
+          </ScrollView>
+        </View>
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 }
