@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { View, Text, TouchableOpacity, Image, StyleSheet } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { styles} from "../styles"
+import { general, button, image, container, text } from "../styles";
 
 export default function AccountSelectionView() {
   const router = useRouter();
@@ -18,36 +18,36 @@ export default function AccountSelectionView() {
   return (
     <SafeAreaProvider>
       {/* Full Screen Container */}
-      <View style={styles.container}>
+      <View style={container.base}>
         {/* Fixed Header */}
-        <View style={styles.header}>
+        <View style={container.header}>
           <Image
             source={require("./assets/images/logo.png")}
-            style={styles.logo}
+            style={image.logo}
             resizeMode="contain"
           />
         </View>
 
         {/* Main Content */}
-        <View style={styles.contentContainer}>
-          <Text style={styles.title}>Select an account type</Text>
-          <View style={styles.buttonContainer}>
+        <View style={container.content}>
+          <Text style={text.title}>Select an account type</Text>
+          <View style={container.button}>
             {/* Tenant Button */}
             <TouchableOpacity
-              style={styles.squareButton}
+              style={button.square}
               onPress={() => handleRoleSelection("tenant")}
             >
               <Icon name="account" size={80} color="#fff" />
-              <Text style={styles.buttonText}>Tenant</Text>
+              <Text style={button.baseText}>Tenant</Text>
             </TouchableOpacity>
 
             {/* Property Owner Button */}
             <TouchableOpacity
-              style={styles.squareButton}
+              style={button.square}
               onPress={() => handleRoleSelection("landlord")}
             >
               <Icon name="home" size={80} color="#fff" />
-              <Text style={styles.buttonText}>Property Owner</Text>
+              <Text style={button.baseText}>Property Owner</Text>
             </TouchableOpacity>
           </View>
         </View>

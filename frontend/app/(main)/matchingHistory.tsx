@@ -3,8 +3,7 @@ import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useSegments } from "expo-router";
-import { styles } from "./styles";
-import { matchingHistoryStyles as style } from "./styles";
+import { general, button, image, container, text } from "./styles";
 
 interface MatchedProperty {
   id: number;
@@ -59,65 +58,65 @@ export default function MatchingHistoryView() {
   return (
     <SafeAreaProvider>
       {/* LoggedInHeader */}
-      <View style={styles.LoggedInHeader}>
+      <View style={container.loggedInHeader}>
         {/* Profile Icon */}
-        <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+        <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
         </TouchableOpacity>
 
         {/* Logo */}
         <Image
           source={require("./(home)/assets/images/icon_logo.png")}
-          style={styles.LoggedInLogo}
+          style={image.loggedInLogo}
           resizeMode="contain"
         />
 
         {/* Paper/Info Icon */}
-        <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
           <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
       </View>
 
       {/* Main Content */}
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={container.base}>
         {loading ? (
-          <Text style={style.loadingText}>Loading matched properties...</Text>
+          <Text style={text.loading}>Loading matched properties...</Text>
         ) : matchedProperties.length > 0 ? (
-          <ScrollView contentContainerStyle={styles.innerContainer}>
+          <ScrollView contentContainerStyle={container.inner}>
             {matchedProperties.map((property) => (
-              <View key={property.id} style={styles.propertyCard}>
+              <View key={property.id} style={container.propertyCard}>
                 {/* Property Image */}
                 <Image
                   source={{ uri: property.image_url || "https://via.placeholder.com/150" }}
-                  style={styles.profileImage}
+                  style={container.profile}
                 />
 
                 {/* Property Details */}
-                <View style={style.cardTextContainer}>
-                  <Text style={styles.cardTitle}>{property.name}</Text>
+                <View style={container.cardText}>
+                  <Text style={text.cardTitle}>{property.name}</Text>
                   {property.businessName && (
-                    <Text style={styles.cardSubtitle}>Owner: {property.businessName}</Text>
+                    <Text style={text.cardSubtitle}>Owner: {property.businessName}</Text>
                   )}
-                  <Text style={styles.propertyText}>
+                  <Text style={text.property}>
                     Location: {property.street}, {property.city}
                   </Text>
-                  <Text style={styles.propertyText}>
+                  <Text style={text.property}>
                     Bed: {property.bedrooms}, Bath: {property.bathrooms}, Size: {property.size_sqft} sqft
                   </Text>
-                  <Text style={styles.propertyText}>Price: ${property.price.toLocaleString()}</Text>
+                  <Text style={text.property}>Price: ${property.price.toLocaleString()}</Text>
                 </View>
               </View>
             ))}
           </ScrollView>
         ) : (
-          <Text style={styles.noData}>No matched properties found.</Text>
+          <Text style={container.noData}>No matched properties found.</Text>
         )}
       </SafeAreaView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNavBar}>
+      <View style={container.navBar}>
         <TouchableOpacity
-          style={[styles.navBarItem, segments[0] === "matching" && styles.activeNavBarItem]}
+          style={[container.navBarItem, segments[0] === "matching" && container.activeNavBarItem]}
           onPress={() => router.push("/matching")}
         >
           <Ionicons
@@ -125,12 +124,12 @@ export default function MatchingHistoryView() {
             size={24}
             color={segments[0] === "matching" ? "#007BFF" : "#666"}
           />
-          <Text style={[styles.navBarText, segments[0] === "matching" && styles.activeNavBarText]}>
+          <Text style={[text.navBar, segments[0] === "matching" && text.activeNavBar]}>
             Explore
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.navBarItem, segments[0] === "matchingHistory" && styles.activeNavBarItem]}
+          style={[container.navBarItem, segments[0] === "matchingHistory" && container.activeNavBarItem]}
           onPress={() => router.push("/matchingHistory")}
         >
           <Ionicons
@@ -139,7 +138,7 @@ export default function MatchingHistoryView() {
             color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
           />
           <Text
-            style={[styles.navBarText, segments[0] === "matchingHistory" && styles.activeNavBarText]}
+            style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}
           >
             Matches
           </Text>

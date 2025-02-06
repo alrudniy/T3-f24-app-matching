@@ -153,7 +153,7 @@ export default function Matching() {
   return (
     <SafeAreaProvider>
       {/* Header */}
-      <View style={container.LoggedInHeader}>
+      <View style={container.loggedInHeader}>
         <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
         </TouchableOpacity>

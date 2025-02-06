@@ -16,7 +16,7 @@ import { Picker } from "@react-native-picker/picker";
 import { ThemedView } from "@/components/ThemedView";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons"; // For icons
-import { styles } from "../styles";
+import { general, button, image, container, text } from "../styles";
 
 export default function VoucherView() {
   const { role } = useLocalSearchParams<{ role?: string }>();
@@ -100,25 +100,25 @@ export default function VoucherView() {
   return (
     <SafeAreaProvider>
       {/* Header */}
-      <View style={styles.LoggedInHeader}>
-        <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+      <View style={container.loggedInHeader}>
+        <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
         </TouchableOpacity>
 
         <Image
           source={require("./assets/images/icon_logo.png")}
-          style={styles.LoggedInLogo}
+          style={image.loggedInLogo}
           resizeMode="contain"
         />
 
-        <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
           <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
       </View>
 
       {/* Content */}
-      <ThemedView style={styles.container}>
-        <SafeAreaView style={[styles.innerContainer, { flex: 1 }]}>
+      <ThemedView style={container.base}>
+        <SafeAreaView style={[container.inner, { flex: 1 }]}>
           <ScrollView
             contentContainerStyle={{
               paddingVertical: 20,
@@ -128,10 +128,10 @@ export default function VoucherView() {
           >
             <Text style={{ fontSize: 24, marginBottom: 20 }}>Input Voucher</Text>
 
-            <View style={styles.formContainer}>
+            <View style={container.form}>
               <TextInput
                 placeholder="Expiration Date (YYYYMMDD)"
-                style={styles.input}
+                style={container.input}
                 value={form.expireDate}
                 onChangeText={(text) => handleChange("expireDate", text)}
                 keyboardType="number-pad"
@@ -139,15 +139,15 @@ export default function VoucherView() {
 
               <TextInput
                 placeholder="Price Limit"
-                style={styles.input}
+                style={container.input}
                 value={form.priceLimit}
                 onChangeText={(text) => handleChange("priceLimit", text)}
                 keyboardType="number-pad"
               />
 
               {/* Dropdown for Housing Type */}
-              <View style={styles.dropdown}>
-                <Text style={styles.dropdownText}>Housing Type:</Text>
+              <View style={container.dropdown}>
+                <Text style={text.dropdown}>Housing Type:</Text>
                 <Picker
                   selectedValue={form.housingType}
                   onValueChange={(itemValue) =>
@@ -164,11 +164,11 @@ export default function VoucherView() {
               </View>
 
               {/* Family Members Section */}
-              <View style={styles.familyMembersContainer}>
-                <Text style={styles.familyMembersLabel}>Family Members:</Text>
-                <View style={styles.familyButtons}>
+              <View style={container.familyMembers}>
+                <Text style={text.familyMembersLabel}>Family Members:</Text>
+                <View style={container.familyButtons}>
                   <TouchableOpacity
-                    style={styles.familyButton}
+                    style={button.family}
                     onPress={() =>
                       handleChange(
                         "familyMembers",
@@ -176,16 +176,16 @@ export default function VoucherView() {
                       )
                     }
                   >
-                    <Text style={styles.familyButtonText}>-</Text>
+                    <Text style={button.familyText}>-</Text>
                   </TouchableOpacity>
                   <Text>{form.familyMembers}</Text>
                   <TouchableOpacity
-                    style={styles.familyButton}
+                    style={button.family}
                     onPress={() =>
                       handleChange("familyMembers", form.familyMembers + 1)
                     }
                   >
-                    <Text style={styles.familyButtonText}>+</Text>
+                    <Text style={button.familyText}>+</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -240,9 +240,9 @@ export default function VoucherView() {
       </ThemedView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNavBar}>
+      <View style={container.navBar}>
         <TouchableOpacity
-          style={[styles.navBarItem, segments[0] === "matching" && styles.activeNavBarItem]}
+          style={[container.navBarItem, segments[0] === "matching" && container.activeNavBarItem]}
           onPress={() => router.push("/matching")}
         >
           <Ionicons
@@ -250,12 +250,12 @@ export default function VoucherView() {
             size={24}
             color={segments[0] === "matching" ? "#007BFF" : "#666"}
           />
-          <Text style={[styles.navBarText, segments[0] === "matching" && styles.activeNavBarText]}>
+          <Text style={[text.navBar, segments[0] === "matching" && text.activeNavBar]}>
             Explore
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.navBarItem, segments[0] === "matchingHistory" && styles.activeNavBarItem]}
+          style={[container.navBarItem, segments[0] === "matchingHistory" && container.activeNavBarItem]}
           onPress={() => router.push("/matchingHistory")}
         >
           <Ionicons
@@ -264,7 +264,7 @@ export default function VoucherView() {
             color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
           />
           <Text
-            style={[styles.navBarText, segments[0] === "matchingHistory" && styles.activeNavBarText]}
+            style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}
           >
             Matches
           </Text>

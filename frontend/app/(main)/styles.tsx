@@ -182,6 +182,11 @@ export const button = StyleSheet.create({
     backgroundColor: colors.White,
     marginBottom: 15,
   },
+  imageUploadText: {
+    fontSize: 16,
+    color: "#333",
+    marginLeft: 10,
+  },
 });
 
 export const image = StyleSheet.create({
@@ -385,7 +390,7 @@ export const container = StyleSheet.create({
     alignItems: "center",
     borderRadius: borderSize.Small,
   },
-  LoggedInHeader: {
+  loggedInHeader: {
     flexDirection: "row", // Align items in a row
     justifyContent: "space-between", // Space items evenly
     alignItems: "center", // Vertically center items
@@ -421,7 +426,7 @@ export const container = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  imagePreview: {
+  preview: {
     flexDirection: "row",
     flexWrap: "wrap",
     marginVertical: 10,
@@ -459,6 +464,10 @@ export const container = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     marginTop: 20,
+  },
+  cardText: {
+    flex: 1, // Take the remaining horizontal space
+    flexDirection: "column",
   },
   propertyCard: {
     width: "90%",
@@ -517,6 +526,12 @@ export const text = StyleSheet.create({
   logo: {
     fontSize: fontSize.Base,
     color: colors.DarkGrey,
+  },
+  loading: {
+    fontSize: fontSize.Base,
+    color: colors.DarkGrey,
+    textAlign: "center",
+    marginVertical: 20,
   },
   familyMembersLabel: {
     fontSize: fontSize.Base,
@@ -586,76 +601,5 @@ export const text = StyleSheet.create({
     color: "#333",
     marginLeft: 10,
     flexShrink: 1,
-  },
-});
-
-export const matchingHistoryStyles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: paddingSize.Large,
-    backgroundColor: colors.Pale2,
-  },
-  innerContainer: {
-    width: "100%",
-    maxWidth: 400,
-    alignItems: "center",
-  },
-  propertyCard: {
-    flexDirection: "row", // Align content horizontally
-    alignItems: "center", // Center items vertically
-    width: "90%",
-    backgroundColor: colors.White,
-    borderRadius: borderSize.ExtraSmall, // Slightly rounded corners for a clean look
-    shadowColor: colors.Black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    alignSelf: "center",
-    marginVertical: 10,
-    padding: paddingSize.Medium, // Add padding inside the card
-  },
-  profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: borderSize.ExtraSmall, // Slightly rounded square
-    backgroundColor: colors.Pale3, // Placeholder color
-    marginRight: 15, // Space between image and text
-  },
-  propertyDetails: {
-    padding: paddingSize.Small,
-  },
-  cardTitle: {
-    fontSize: fontSize.Base,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 5,
-  },
-  cardSubtitle: {
-    fontSize: fontSize.SubtitleSmall,
-    color: colors.DarkGrey,
-  },
-  propertyText: {
-    fontSize: fontSize.SubtitleSmall,
-    color: colors.DarkGrey,
-    marginBottom: 5,
-  },
-  loadingText: {
-    fontSize: fontSize.Base,
-    color: colors.DarkGrey,
-    textAlign: "center",
-    marginVertical: 20,
-  },
-  noData: {
-    fontSize: fontSize.Base,
-    color: colors.DarkGrey,
-    textAlign: "center",
-    marginTop: 20,
-  },
-  cardTextContainer: {
-    flex: 1, // Take the remaining horizontal space
-    flexDirection: "column",
   },
 });
