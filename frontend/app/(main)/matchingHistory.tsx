@@ -88,7 +88,7 @@ export default function MatchingHistoryView() {
                 {/* Property Image */}
                 <Image
                   source={{ uri: property.image_url || "https://via.placeholder.com/150" }}
-                  style={container.profile}
+                  style={image.profile}
                 />
 
                 {/* Property Details */}

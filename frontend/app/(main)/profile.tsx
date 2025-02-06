@@ -194,7 +194,7 @@ const Profile = () => {
           <TouchableOpacity onPress={editing ? pickImage : undefined} activeOpacity={editing ? 0.7 : 1}>
             <Image
               source={{ uri: selectedImage || user.profilePicture || "https://via.placeholder.com/150" }}
-              style={container.profile}
+              style={image.profile}
             />
             {editing && (
               <View style={container.editOverlay}>

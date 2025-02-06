@@ -196,6 +196,14 @@ export const image = StyleSheet.create({
     margin: 5,
     borderRadius: borderSize.ExtraSmall,
   },
+  profile: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: "#E0E0E0",
+    marginBottom: 20,
+    marginTop: 20,
+  },
   property: {
     width: "100%",
     height: 250, // Fixed height for the image
