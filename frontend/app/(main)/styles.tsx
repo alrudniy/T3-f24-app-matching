@@ -7,7 +7,7 @@ const fontSize = {
   Base: 16,
   Subtitle: 18,
   Large: 20,
-  Title: 64,
+  Title: 32,
 };
 
 const paddingSize = {
@@ -55,110 +55,110 @@ export const general = StyleSheet.create({
 
 export const button = StyleSheet.create({
   base: {
-    backgroundColor: "#6200ee",
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: colors.Blue,
+    padding: paddingSize.Medium,
+    borderRadius: borderSize.ExtraSmall,
     alignItems: "center",
     width: "100%",
     marginBottom: 20,
   },
   baseText: {
-    color: "#fff",
-    fontSize: 16,
+    color: colors.White,
+    fontSize: fontSize.Base,
     fontWeight: "bold",
     textAlign: "center",
   },
   logout: {
     marginTop: 20,
-    backgroundColor: "#FF3B30",
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: colors.Red,
+    padding: paddingSize.Medium,
+    borderRadius: borderSize.Small,
     alignItems: "center",
     justifyContent: "center",
   },
   logoutText: {
-    color: "#fff",
-    fontSize: 16,
+    color: colors.White,
+    fontSize: fontSize.Base,
     fontWeight: "bold",
   },
   submit: {
-    backgroundColor: "#6a1b9a",
-    borderRadius: 8,
+    backgroundColor: colors.Purple,
+    borderRadius: borderSize.ExtraSmall,
     paddingVertical: 12,
     alignItems: "center",
     marginVertical: 20,
   },
   submitText: {
-    fontSize: 18,
-    color: "#fff",
+    fontSize: fontSize.Subtitle,
+    color: colors.White,
     fontWeight: "bold",
   },
   verify: {
-    backgroundColor: "#6C63FF",
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: colors.LightBlue,
+    padding: paddingSize.Medium,
+    borderRadius: borderSize.ExtraSmall,
     alignItems: "center",
   },
   verifyText: {
-    color: "#fff",
-    fontSize: 16,
+    color: colors.White,
+    fontSize: fontSize.Base,
     fontWeight: "bold",
   },
   save: {
-    backgroundColor: "#6200ee",
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: colors.Blue,
+    padding: paddingSize.Medium,
+    borderRadius: borderSize.ExtraSmall,
     alignItems: "center",
     flex: 1,
     marginRight: 10,
   },
   saveText: {
-    color: "#fff",
-    fontSize: 16,
+    color: colors.White,
+    fontSize: fontSize.Base,
     fontWeight: "bold",
   },
   cancel: {
-    backgroundColor: "#FF3B30",
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: colors.Red,
+    padding: paddingSize.Medium,
+    borderRadius: borderSize.ExtraSmall,
     alignItems: "center",
     flex: 1,
   },
   cancelText: {
-    color: "#fff",
-    fontSize: 16,
+    color: colors.White,
+    fontSize: fontSize.Base,
     fontWeight: "bold",
   },
   family: {
     width: 40,
     height: 40,
-    backgroundColor: "#E0E0E0",
+    backgroundColor: colors.Pale3,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: borderSize.ExtraSmall,
     marginLeft: 10,
   },
   familyText: {
-    fontSize: 20,
-    color: "#555",
+    fontSize: fontSize.Large,
+    color: colors.DarkGrey,
   },
   circular: {
     width: 50,
     height: 50,
-    borderRadius: 25,
-    backgroundColor: "#fff",
+    borderRadius: borderSize.ExtraLarge,
+    backgroundColor: colors.White,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: colors.Black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
   },
   square: {
-    backgroundColor: "#6200ee",
-    padding: 20,
-    borderRadius: 8,
+    backgroundColor: colors.Blue,
+    padding: paddingSize.Large,
+    borderRadius: borderSize.ExtraSmall,
     width: 120,
     height: 160,
     justifyContent: "center",
@@ -175,11 +175,11 @@ export const button = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    padding: 10,
+    padding: paddingSize.Small,
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    backgroundColor: "#fff",
+    borderColor: colors.LightGrey,
+    borderRadius: borderSize.ExtraSmall,
+    backgroundColor: colors.White,
     marginBottom: 15,
   },
 });
@@ -189,7 +189,7 @@ export const image = StyleSheet.create({
     width: 100,
     height: 100,
     margin: 5,
-    borderRadius: 8,
+    borderRadius: borderSize.ExtraSmall,
   },
   property: {
     width: "100%",
@@ -207,7 +207,7 @@ export const image = StyleSheet.create({
     height: 40, // Adjust height of the logo
   },
   loggedInHeaderIcon: {
-    padding: 5, // Add padding around icons for better touch area
+    padding: paddingSize.ExtraSmall, // Add padding around icons for better touch area
   },
 });
 
@@ -216,8 +216,8 @@ export const container = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-    backgroundColor: "#f5f5f5",
+    padding: paddingSize.Large,
+    backgroundColor: colors.Pale2,
   },
   row: {
     flexDirection: "row",
@@ -240,7 +240,7 @@ export const container = StyleSheet.create({
     height: 50,
     borderColor: "gray",
     borderWidth: 1,
-    borderRadius: 10,
+    borderRadius: borderSize.Small,
     paddingLeft: 15,
     marginBottom: 15,
     width: "100%", // Ensure it takes up full width
@@ -255,25 +255,25 @@ export const container = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+    backgroundColor: colors.TransparentBlack,
   },
   modalContent: {
     backgroundColor: "white",
-    padding: 20,
-    borderRadius: 10,
+    padding: paddingSize.Large,
+    borderRadius: borderSize.Small,
     width: "80%",
     alignItems: "center",
   },
   incomeInfo: {
     marginBottom: 20,
-    padding: 10,
-    backgroundColor: "#F9F9F9",
-    borderRadius: 8,
+    padding: paddingSize.Small,
+    backgroundColor: colors.Pale,
+    borderRadius: borderSize.ExtraSmall,
   },
   header: {
     width: "100%",
     height: 100, 
-    backgroundColor: "#ffffff", // White background for the header
+    backgroundColor: colors.White, // White background for the header
     justifyContent: "center",
     alignItems: "center",
     position: "absolute", // Keep the header fixed at the top
@@ -285,10 +285,10 @@ export const container = StyleSheet.create({
   form: {
     width: "100%",
     maxWidth: 400,
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    shadowColor: "#000",
+    backgroundColor: colors.White,
+    padding: paddingSize.Large,
+    borderRadius: borderSize.ExtraSmall,
+    shadowColor: colors.Black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -308,16 +308,16 @@ export const container = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-    backgroundColor: "#f5f5f5",
+    padding: paddingSize.Large,
+    backgroundColor: colors.Pale2,
   },
   profileDetails: {
     width: "100%",
     maxWidth: 400,
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 8,
-    shadowColor: "#000",
+    backgroundColor: colors.White,
+    padding: paddingSize.Large,
+    borderRadius: borderSize.ExtraSmall,
+    shadowColor: colors.Black,
     shadowOffset: {
       width: 0,
       height: 2,
@@ -339,13 +339,13 @@ export const container = StyleSheet.create({
   title: {
     paddingVertical: 10, // Space above and below titles
     alignItems: "center", // Center titles horizontally
-    backgroundColor: "#f9f9f9", // Optional: Light background for separation
+    backgroundColor: colors.Pale, // Optional: Light background for separation
   },
   titleBanner: {
-    backgroundColor: "#fff",
-    borderRadius: 10, // Modern rounded look
-    padding: 5, // Padding inside the banner
-    shadowColor: "#000",
+    backgroundColor: colors.White,
+    borderRadius: borderSize.Small, // Modern rounded look
+    padding: paddingSize.ExtraSmall, // Padding inside the banner
+    shadowColor: colors.Black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -357,9 +357,9 @@ export const container = StyleSheet.create({
     zIndex: 1, // Ensure it stays above the card body
   },
   swipeLeft: {
-    backgroundColor: "#FF3B30",
-    padding: 15,
-    borderRadius: 8,
+    backgroundColor: colors.Red,
+    padding: paddingSize.Medium,
+    borderRadius: borderSize.ExtraSmall,
     width: 120,
     height: 60,
     justifyContent: "center",
@@ -367,8 +367,8 @@ export const container = StyleSheet.create({
   },
   swipeRight: {
     backgroundColor: "#4CAF50",
-    padding: 15,
-    borderRadius: 8,
+    padding: paddingSize.Medium,
+    borderRadius: borderSize.ExtraSmall,
     width: 120,
     height: 60,
     justifyContent: "center",
@@ -380,10 +380,10 @@ export const container = StyleSheet.create({
   logoPlaceholder: {
     width: 100,
     height: 100,
-    backgroundColor: "#E0E0E0",
+    backgroundColor: colors.Pale3,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 10,
+    borderRadius: borderSize.Small,
   },
   LoggedInHeader: {
     flexDirection: "row", // Align items in a row
@@ -391,7 +391,7 @@ export const container = StyleSheet.create({
     alignItems: "center", // Vertically center items
     paddingHorizontal: 15, // Add horizontal padding
     paddingVertical: 10, // Add vertical padding
-    backgroundColor: "#FFF", // Background color
+    backgroundColor: colors.White, // Background color
     borderBottomWidth: 1, // Optional border for header
     borderBottomColor: "#EEE", // Optional border color
   },
@@ -404,7 +404,7 @@ export const container = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: colors.White,
     borderTopWidth: 1,
     borderTopColor: "#ddd",
   },
@@ -430,9 +430,9 @@ export const container = StyleSheet.create({
     position: "absolute",
     bottom: 10,
     right: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderRadius: 15,
-    padding: 5,
+    backgroundColor: colors.TransparentBlack,
+    borderRadius: borderSize.Large,
+    padding: paddingSize.ExtraSmall,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -462,9 +462,9 @@ export const container = StyleSheet.create({
   },
   propertyCard: {
     width: "90%",
-    backgroundColor: "#fff",
-    borderRadius: 12, // Rounded corners for the card
-    shadowColor: "#000",
+    backgroundColor: colors.White,
+    borderRadius: borderSize.Medium, // Rounded corners for the card
+    shadowColor: colors.Black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -474,7 +474,7 @@ export const container = StyleSheet.create({
     overflow: "hidden", // Prevent overflow outside the card
   },
   propertyDetails: {
-    padding: 15,
+    padding: paddingSize.Medium,
     marginTop: 30, // Add spacing to push content below the banner
   },
   propertyRow: {
@@ -486,7 +486,7 @@ export const container = StyleSheet.create({
 
 export const text = StyleSheet.create({
   sectionHeader: {
-    fontSize: 18,
+    fontSize: fontSize.Subtitle,
     fontWeight: "bold",
     marginTop: 20,
     marginBottom: 10,
@@ -494,95 +494,95 @@ export const text = StyleSheet.create({
     textAlign: "center",
   },
   instructions: {
-    fontSize: 14,
-    color: "#666",
+    fontSize: fontSize.SubtitleSmall,
+    color: colors.Grey2,
     textAlign: "center",
     marginBottom: 15,
   },
   modal: {
-    fontSize: 16,
+    fontSize: fontSize.Base,
     marginBottom: 20,
     textAlign: "center",
   },
   modalMessage: {
-    fontSize: 16,
+    fontSize: fontSize.Base,
     color: "#333",
     textAlign: "center",
     marginBottom: 20,
   },
   incomeInfo: {
-    fontSize: 14,
-    color: "#555",
+    fontSize: fontSize.SubtitleSmall,
+    color: colors.DarkGrey,
   },
   logo: {
-    fontSize: 16,
-    color: "#555",
+    fontSize: fontSize.Base,
+    color: colors.DarkGrey,
   },
   familyMembersLabel: {
-    fontSize: 16,
+    fontSize: fontSize.Base,
     fontWeight: "500",
   },
   title: {
-    fontSize: 32,
+    fontSize: fontSize.Title,
     fontWeight: "bold",
     marginBottom: 40,
   },
   subtitle: {
-    fontSize: 18,
-    color: "#555",
+    fontSize: fontSize.Subtitle,
+    color: colors.DarkGrey,
     textAlign: "center",
     marginBottom: 20,
   },
   cardTitle: {
-    fontSize: 18,
+    fontSize: fontSize.Subtitle,
     fontWeight: "bold",
     color: "#333",
   },
   cardSubtitle: {
-    fontSize: 14,
-    color: "#555",
+    fontSize: fontSize.SubtitleSmall,
+    color: colors.DarkGrey,
     marginTop: 5,
   },
   link: {
-    color: "#6200ee",
-    fontSize: 16,
+    color: colors.Blue,
+    fontSize: fontSize.Base,
     textDecorationLine: "underline",
     marginVertical: 10,
   },
   footer: {
-    fontSize: 14,
-    color: "#888",
+    fontSize: fontSize.SubtitleSmall,
+    color: colors.Grey,
     textAlign: "center",
     marginTop: 20,
   },
   dropdown: {
-    fontSize: 16,
+    fontSize: fontSize.Base,
     fontWeight: "500",
   },
   dropdownValue: {
-    fontSize: 16,
-    color: "#555",
+    fontSize: fontSize.Base,
+    color: colors.DarkGrey,
   },
   profileLabel: {
-    fontSize: 16,
+    fontSize: fontSize.Base,
     fontWeight: "bold",
-    color: "#555",
+    color: colors.DarkGrey,
     marginBottom: 5,
   },
   profileValue: {
-    fontSize: 16,
+    fontSize: fontSize.Base,
     color: "#333",
     marginBottom: 15,
   },
   navBar: {
-    fontSize: 12,
-    color: "#666",
+    fontSize: fontSize.ExtraSmall,
+    color: colors.Grey2,
   },
   activeNavBar: {
     color: "#007BFF",
   },
   property: {
-    fontSize: 16,
+    fontSize: fontSize.Base,
     color: "#333",
     marginLeft: 10,
     flexShrink: 1,
@@ -594,8 +594,8 @@ export const matchingHistoryStyles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-    backgroundColor: "#f5f5f5",
+    padding: paddingSize.Large,
+    backgroundColor: colors.Pale2,
   },
   innerContainer: {
     width: "100%",
@@ -606,51 +606,51 @@ export const matchingHistoryStyles = StyleSheet.create({
     flexDirection: "row", // Align content horizontally
     alignItems: "center", // Center items vertically
     width: "90%",
-    backgroundColor: "#fff",
-    borderRadius: 8, // Slightly rounded corners for a clean look
-    shadowColor: "#000",
+    backgroundColor: colors.White,
+    borderRadius: borderSize.ExtraSmall, // Slightly rounded corners for a clean look
+    shadowColor: colors.Black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
     alignSelf: "center",
     marginVertical: 10,
-    padding: 15, // Add padding inside the card
+    padding: paddingSize.Medium, // Add padding inside the card
   },
   profileImage: {
     width: 50,
     height: 50,
-    borderRadius: 8, // Slightly rounded square
-    backgroundColor: "#E0E0E0", // Placeholder color
+    borderRadius: borderSize.ExtraSmall, // Slightly rounded square
+    backgroundColor: colors.Pale3, // Placeholder color
     marginRight: 15, // Space between image and text
   },
   propertyDetails: {
-    padding: 10,
+    padding: paddingSize.Small,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: fontSize.Base,
     fontWeight: "bold",
     color: "#333",
     marginBottom: 5,
   },
   cardSubtitle: {
-    fontSize: 14,
-    color: "#555",
+    fontSize: fontSize.SubtitleSmall,
+    color: colors.DarkGrey,
   },
   propertyText: {
-    fontSize: 14,
-    color: "#555",
+    fontSize: fontSize.SubtitleSmall,
+    color: colors.DarkGrey,
     marginBottom: 5,
   },
   loadingText: {
-    fontSize: 16,
-    color: "#555",
+    fontSize: fontSize.Base,
+    color: colors.DarkGrey,
     textAlign: "center",
     marginVertical: 20,
   },
   noData: {
-    fontSize: 16,
-    color: "#555",
+    fontSize: fontSize.Base,
+    color: colors.DarkGrey,
     textAlign: "center",
     marginTop: 20,
   },
