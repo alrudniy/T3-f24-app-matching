@@ -4,12 +4,17 @@ from werkzeug.utils import secure_filename
 import os
 from sqlalchemy.exc import SQLAlchemyError
 from models import session, Property, PropertyImage
-from config import UPLOAD_FOLDER
+from config import UPLOAD_FOLDER, ALLOWED_EXTENSIONS
 from models import session, Property, PropertyImage
 
 
 
+
 uploads_bp = Blueprint("uploads", __name__)
+
+def allowed_file(filename):
+    """Check if the file has an allowed extension."""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Serve uploaded images
 @uploads_bp.route('/uploads/<filename>')
