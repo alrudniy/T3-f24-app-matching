@@ -1,23 +1,27 @@
-from flask import Blueprint, request, jsonify, send_from_directory, current_app
+from flask import Blueprint, request, jsonify, send_from_directory, current_app, abort
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
 from sqlalchemy.exc import SQLAlchemyError
 from models import session, Property, PropertyImage
+from config import UPLOAD_FOLDER
+from models import session, Property, PropertyImage
+
 
 
 uploads_bp = Blueprint("uploads", __name__)
 
 # Serve uploaded images
 @uploads_bp.route('/uploads/<filename>')
-def serve_image(filename):
-    return send_from_directory(current_app.config['UPLOAD_FOLDER'], filename)
+def serve_uploaded_file(filename):
+    """ Serve uploaded images """
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    
+    if not os.path.exists(file_path):
+        print(f"File not found: {file_path}")
+        abort(404)  # Return a 404 if file doesn't exist
 
-# Check allowed file types
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 # Upload property images
 @uploads_bp.route('/property/<int:property_id>/upload-images', methods=['POST'])

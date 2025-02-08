@@ -2,21 +2,30 @@ from flask import Flask
 from flask_login import LoginManager, current_user
 from flask_cors import CORS
 from datetime import timedelta
-from models import init_db, session, User
+from models import init_db, User, SessionLocal
 from routes.properties import properties_bp
 from routes.uploads import uploads_bp
 from routes.auth import auth_bp
 from routes.users import users_bp
 from routes.matches import matches_bp
-
+from flask import Flask
+from config import UPLOAD_FOLDER, DATABASE_CONFIG, SECRET_KEY, SESSION_COOKIE_NAME
+from sqlalchemy import create_engine
 
 # Initialize Flask app
 app = Flask(__name__)
 
-# Configure the app for sessions
-app.secret_key = "your_secret_key"  # Should change this to something secure
-app.config["SESSION_COOKIE_NAME"] = "session_id"
-app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=4)
+# Load configurations
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.secret_key = SECRET_KEY
+app.config["SESSION_COOKIE_NAME"] = SESSION_COOKIE_NAME
+
+# Use DATABASE_CONFIG for database setup
+db_config = DATABASE_CONFIG
+engine = create_engine(
+    f"mysql+pymysql://{db_config['username']}:{db_config['password']}@{db_config['db_host']}/{db_config['db_name']}",
+    connect_args={'ssl': {'disabled': True}}
+)
 
 # Initialize the database tables
 init_db()
@@ -34,27 +43,36 @@ CORS(app, supports_credentials=True)
 # Flask-Login setup
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "login"
+login_manager.login_view = "auth.login"
 
 @login_manager.user_loader
 def load_user(user_id):
-    user = session.get(User, user_id)
+    """ Load the user session when needed """
+    db = SessionLocal()  # Create a session instance
+    user = db.get(User, user_id)
+    db.close()  # Close session after use
     print(f"load_user called for user_id: {user_id}, Found: {user}")
     return user
 
 @app.before_request
 def check_user():
-    """Logs if a user is not authenticated before processing a request."""
+    """ Logs if a user is not authenticated before processing a request """
     if not current_user.is_authenticated:
         print("User not authenticated")
 
-# Flask teardown to clean up sessions
 @app.teardown_appcontext
 def cleanup_session(exception=None):
-    """Ensures the session is properly closed to prevent issues."""
-    if exception:
-        session.rollback()  # Rollback if there's an exception
-    session.close()  # Always close the session
+    """ Close the database session after each request """
+    db = SessionLocal()
+    try:
+        if exception:
+            db.rollback()
+        else:
+            db.commit()
+    except:
+        db.rollback()
+    finally:
+        db.close()
 
 # Main entry point
 if __name__ == '__main__':

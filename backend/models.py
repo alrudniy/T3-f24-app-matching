@@ -1,25 +1,32 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from sqlalchemy import create_engine, Column, String, Boolean, Integer, Float, ForeignKey, Table, func
 from flask_login import UserMixin
 import os
+from config import DATABASE_CONFIG
 
 # Database Configuration
-username = 't3'
-password = 'Hav0nBDwD4uyvcZt'
-db_host = '34.125.69.91'
-db_name = 'f24_housing_db'
+db_config = DATABASE_CONFIG
+
 
 # Initialize database engine
 engine = create_engine(
-    f"mysql+pymysql://{username}:{password}@{db_host}/{db_name}",
+    f"mysql+pymysql://{db_config['username']}:{db_config['password']}@{db_config['db_host']}/{db_config['db_name']}",
     connect_args={'ssl': {'disabled': True}}
 )
 
-# Initialize Base and Session
+# Base Model
 Base = declarative_base()
-SessionLocal = sessionmaker(bind=engine)
-session = SessionLocal()
+
+# Create a new session factory
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Scoped session (thread-safe)
+session = scoped_session(SessionLocal)
+
+# Ensure tables exist
+def init_db():
+    Base.metadata.create_all(bind=engine)
 
 # Define Many-to-Many Relationship Table for Property and Accessibility
 property_accessibility_table = Table(
