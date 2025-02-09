@@ -14,7 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { styles } from "./styles";
+import { general, button, image, container, text } from "./styles";
 
 export default function PropertyCreation() {
   const [form, setForm] = useState({
@@ -103,86 +103,86 @@ export default function PropertyCreation() {
   return (
     <SafeAreaProvider>
       {/* Header */}
-      <View style={styles.LoggedInHeader}>
-        <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+      <View style={container.loggedInHeader}>
+        <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
         </TouchableOpacity>
 
         <Image
           source={require("./(home)/assets/images/icon_logo.png")}
-          style={styles.LoggedInLogo}
+          style={image.loggedInLogo}
           resizeMode="contain"
         />
 
-        <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
           <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
       </View>
 
       {/* Content */}
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={container.base}>
         <ScrollView contentContainerStyle={{ padding: 20 }}>
-          <Text style={styles.sectionHeader}>General Information</Text>
+          <Text style={text.sectionHeader}>General Information</Text>
           <TextInput
             placeholder="Name"
-            style={styles.input}
+            style={container.input}
             value={form.name}
             onChangeText={(text) => handleInputChange("name", text)}
           />
           <TextInput
             placeholder="Property Address"
-            style={styles.input}
+            style={container.input}
             value={form.street}
             onChangeText={(text) => handleInputChange("street", text)}
           />
           <TextInput
             placeholder="City"
-            style={styles.input}
+            style={container.input}
             value={form.city}
             onChangeText={(text) => handleInputChange("city", text)}
           />
 
-          <Text style={styles.sectionHeader}>Details</Text>
-          <View style={styles.row}>
+          <Text style={text.sectionHeader}>Details</Text>
+          <View style={container.row}>
             <TextInput
               placeholder="Size"
-              style={[styles.input, styles.halfWidth]}
+              style={[container.input, general.halfWidth]}
               value={form.size}
               onChangeText={(text) => handleInputChange("size", text)}
             />
             <TextInput
               placeholder="Value"
-              style={[styles.input, styles.halfWidth]}
+              style={[container.input, general.halfWidth]}
               value={form.value}
               onChangeText={(text) => handleInputChange("value", text)}
             />
           </View>
 
-          <Text style={styles.sectionHeader}>Rooms</Text>
-          <View style={styles.row}>
+          <Text style={text.sectionHeader}>Rooms</Text>
+          <View style={container.row}>
             <TextInput
               placeholder="Bedrooms"
-              style={[styles.input, styles.halfWidth]}
+              style={[container.input, general.halfWidth]}
               value={form.bedrooms}
               onChangeText={(text) => handleInputChange("bedrooms", text)}
             />
             <TextInput
               placeholder="Bathrooms"
-              style={[styles.input, styles.halfWidth]}
+              style={[container.input, general.halfWidth]}
               value={form.bathrooms}
               onChangeText={(text) => handleInputChange("bathrooms", text)}
             />
           </View>
 
-          <Text style={styles.sectionHeader}>Upload Images</Text>
-          <TouchableOpacity style={styles.imageUploadButton} onPress={handleImageUpload}>
-            <Text style={styles.imageUploadText}>Select Images</Text>
+          <Text style={text.sectionHeader}>Upload Images</Text>
+          <TouchableOpacity style={button.imageUpload} onPress={handleImageUpload}>
+            <Text style={button.imageUploadText}>Select Images</Text>
           </TouchableOpacity>
 
           {images.length > 0 && (
-            <View style={styles.imagePreviewContainer}>
+            <View style={container.preview}>
               {images.map((image, index) => (
-                <Image key={index} source={{ uri: image.uri }} style={styles.previewImage} />
+                <Image key={index} source={{ uri: image.uri }} style={image.previewImage} />
               ))}
             </View>
           )}
@@ -194,14 +194,14 @@ export default function PropertyCreation() {
       </SafeAreaView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNavBar}>
-        <TouchableOpacity onPress={() => router.push("/matching")} style={styles.navBarItem}>
+      <View style={container.navBar}>
+        <TouchableOpacity onPress={() => router.push("/matching")} style={container.navBarItem}>
           <Ionicons name="search-outline" size={24} color="#4CAF50" />
-          <Text style={styles.navBarText}>Explore</Text>
+          <Text style={text.navBar}>Explore</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/matchingHistory")} style={styles.navBarItem}>
+        <TouchableOpacity onPress={() => router.push("/matchingHistory")} style={container.navBarItem}>
           <Ionicons name="heart-outline" size={24} color="#333" />
-          <Text style={styles.navBarText}>Matches</Text>
+          <Text style={text.navBar}>Matches</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaProvider>

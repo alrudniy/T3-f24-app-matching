@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { TextInput, TouchableOpacity, Alert, Modal, View, Text, Image } from "react-native"; // Added Image
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { styles } from "../styles";
+import { general, button, image, container, text } from "../styles";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons"; // Importing Ionicons for the toggle icon
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
@@ -55,23 +55,23 @@ export default function HomeView() {
 
   return (
     <SafeAreaProvider>
-      <ThemedView style={styles.container}>
-        <SafeAreaView style={styles.innerContainer}>
+      <ThemedView style={container.base}>
+        <SafeAreaView style={container.inner}>
           {/* Logo */}
-          <View style={styles.logoContainer}>
+          <View style={container.logo}>
             <Image 
               source={require("./assets/images/logo.png")} // Path to your logo image
-              style={styles.logoImage} // Add a style for the image
+              style={image.logo} // Add a style for the image
               resizeMode="contain" // Ensure the image fits well
             />
           </View>
 
           {/* Login Title */}
-          <Text style={styles.title}>Login</Text>
+          <Text style={text.title}>Login</Text>
 
           {/* Username Input */}
           <TextInput
-            style={styles.input}
+            style={container.input}
             placeholder="Username"
             value={email} // Use username as email
             onChangeText={setEmail}
@@ -80,9 +80,9 @@ export default function HomeView() {
           />
 
           {/* Password Input */}
-          <View style={styles.passwordContainer}>
+          <View style={container.password}>
             <TextInput
-              style={styles.input} // Ensure the input is styled similarly to username input
+              style={container.input} // Ensure the input is styled similarly to username input
               placeholder="Password"
               value={password}
               onChangeText={setPassword}
@@ -91,7 +91,7 @@ export default function HomeView() {
             {/* Toggle visibility button */}
             <TouchableOpacity
               onPress={() => setPasswordVisible(!passwordVisible)} // Toggle visibility
-              style={styles.toggleButton}
+              style={button.toggle}
             >
               <Ionicons
                 name={passwordVisible ? "eye-off" : "eye"} // Toggle icon for visibility
@@ -102,17 +102,17 @@ export default function HomeView() {
           </View>
 
           {/* Login Button */}
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <ThemedText style={styles.buttonText}>Login</ThemedText>
+          <TouchableOpacity style={button.base} onPress={handleLogin}>
+            <ThemedText style={button.baseText}>Login</ThemedText>
           </TouchableOpacity>
 
           {/* Forgot Password and Create Account Links */}
-          <Text style={styles.footerText}>Forgot your password?</Text>
-          <Text style={[styles.footerText, styles.link]}>
+          <Text style={text.footer}>Forgot your password?</Text>
+          <Text style={[text.footer, text.link]}>
             Do not have an account?{" "}
             <Text
               onPress={() => router.push("/accountSelection")} // Navigate to account selection page
-              style={styles.link}
+              style={text.link}
             >
               Create one
             </Text>
@@ -126,11 +126,11 @@ export default function HomeView() {
           animationType="fade"
           onRequestClose={() => setIsErrorVisible(false)}
         >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalText}>{errorMessage}</Text>
+          <View style={container.modal}>
+            <View style={container.modalContent}>
+              <Text style={text.modal}>{errorMessage}</Text>
               <TouchableOpacity onPress={() => setIsErrorVisible(false)}>
-                <ThemedText style={styles.modalText}>Close</ThemedText>
+                <ThemedText style={text.modal}>Close</ThemedText>
               </TouchableOpacity>
             </View>
           </View>

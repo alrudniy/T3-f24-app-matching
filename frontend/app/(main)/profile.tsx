@@ -3,7 +3,7 @@ import { View, Text, TextInput, Image, TouchableOpacity, Modal, Button, Alert } 
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useSegments } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { styles } from "./styles";
+import { general, button, image, container, text } from "./styles";
 import * as ImagePicker from "expo-image-picker";
 
 type UserProfile = {
@@ -171,104 +171,104 @@ const Profile = () => {
   return (
     <SafeAreaProvider>
       {/* Header */}
-      <View style={styles.LoggedInHeader}>
-        <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+      <View style={container.loggedInHeader}>
+        <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
         </TouchableOpacity>
 
         <Image
           source={require("./(home)/assets/images/icon_logo.png")}
-          style={styles.LoggedInLogo}
+          style={image.loggedInLogo}
           resizeMode="contain"
         />
 
-        <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
           <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
       </View>
 
       {/* Profile Content */}
-      <SafeAreaView style={styles.profileContainer}>
+      <SafeAreaView style={container.profile}>
         <View style={{ marginTop: 20 }} />
-        <View style={styles.imageContainer}>
+        <View style={container.image}>
           <TouchableOpacity onPress={editing ? pickImage : undefined} activeOpacity={editing ? 0.7 : 1}>
             <Image
               source={{ uri: selectedImage || user.profilePicture || "https://via.placeholder.com/150" }}
-              style={styles.profileImage}
+              style={image.profile}
             />
             {editing && (
-              <View style={styles.editOverlay}>
+              <View style={container.editOverlay}>
                 <Ionicons name="camera" size={30} color="white" />
               </View>
             )}
           </TouchableOpacity>
         </View>
         {editing ? (
-          <View style={styles.profileDetails}>
+          <View style={container.profileDetails}>
             {/* Editable Profile Fields */}
-            <Text style={styles.profileLabel}>First Name</Text>
+            <Text style={text.profileLabel}>First Name</Text>
             <TextInput
-              style={styles.input}
+              style={container.input}
               value={user.firstName}
               onChangeText={(text) => setUser({ ...user, firstName: text })}
             />
-            <Text style={styles.profileLabel}>Last Name</Text>
+            <Text style={text.profileLabel}>Last Name</Text>
             <TextInput
-              style={styles.input}
+              style={container.input}
               value={user.lastName}
               onChangeText={(text) => setUser({ ...user, lastName: text })}
             />
-            <Text style={styles.profileLabel}>Email</Text>
+            <Text style={text.profileLabel}>Email</Text>
             <TextInput
-              style={styles.input}
+              style={container.input}
               value={user.email}
               onChangeText={(text) => setUser({ ...user, email: text })}
             />
-            <Text style={styles.profileLabel}>Phone</Text>
+            <Text style={text.profileLabel}>Phone</Text>
             <TextInput
-              style={styles.input}
+              style={container.input}
               value={user.phone}
               onChangeText={(text) => setUser({ ...user, phone: text })}
               keyboardType="phone-pad"
             />
             {user.role === "landlord" && (
               <>
-                <Text style={styles.profileLabel}>Business Name</Text>
+                <Text style={text.profileLabel}>Business Name</Text>
                 <TextInput
-                  style={styles.input}
+                  style={container.input}
                   value={user.businessName}
                   onChangeText={(text) => setUser({ ...user, businessName: text })}
                 />
               </>
             )}
-            <View style={styles.profileActions}>
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>Save</Text>
+            <View style={container.profileActions}>
+              <TouchableOpacity style={button.save} onPress={handleSave}>
+                <Text style={button.saveText}>Save</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+              <TouchableOpacity style={button.cancel} onPress={handleCancel}>
+                <Text style={button.cancelText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
         ) : (
-          <View style={styles.profileDetails}>
+          <View style={container.profileDetails}>
             {/* Static Profile Details */}
-            <Text style={styles.profileLabel}>First Name</Text>
-            <Text style={styles.profileValue}>{user.firstName}</Text>
-            <Text style={styles.profileLabel}>Last Name</Text>
-            <Text style={styles.profileValue}>{user.lastName}</Text>
-            <Text style={styles.profileLabel}>Email</Text>
-            <Text style={styles.profileValue}>{user.email}</Text>
-            <Text style={styles.profileLabel}>Phone</Text>
-            <Text style={styles.profileValue}>{formatPhoneNumber(user.phone)}</Text>
+            <Text style={text.profileLabel}>First Name</Text>
+            <Text style={text.profileValue}>{user.firstName}</Text>
+            <Text style={text.profileLabel}>Last Name</Text>
+            <Text style={text.profileValue}>{user.lastName}</Text>
+            <Text style={text.profileLabel}>Email</Text>
+            <Text style={text.profileValue}>{user.email}</Text>
+            <Text style={text.profileLabel}>Phone</Text>
+            <Text style={text.profileValue}>{formatPhoneNumber(user.phone)}</Text>
             {user.role === "landlord" && (
               <>
-                <Text style={styles.profileLabel}>Business Name</Text>
-                <Text style={styles.profileValue}>{user.businessName}</Text>
+                <Text style={text.profileLabel}>Business Name</Text>
+                <Text style={text.profileValue}>{user.businessName}</Text>
               </>
             )}
-            <TouchableOpacity style={styles.button} onPress={() => setEditing(true)}>
-              <Text style={styles.buttonText}>Edit Profile</Text>
+            <TouchableOpacity style={button.base} onPress={() => setEditing(true)}>
+              <Text style={button.baseText}>Edit Profile</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -279,24 +279,24 @@ const Profile = () => {
           animationType="slide"
           onRequestClose={() => setModalVisible(false)}
         >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalText}>{modalMessage}</Text>
+          <View style={container.modal}>
+            <View style={container.modalContent}>
+              <Text style={text.modal}>{modalMessage}</Text>
               <Button title="Close" onPress={() => setModalVisible(false)} color="#6200ee" />
             </View>
           </View>
         </Modal>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Log Out</Text>
+        <TouchableOpacity style={button.logout} onPress={handleLogout}>
+          <Text style={button.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </SafeAreaView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNavBar}>
+      <View style={container.navBar}>
         <TouchableOpacity
-          style={[styles.navBarItem, segments[0] === "matching" && styles.activeNavBarItem]}
+          style={[container.navBarItem, segments[0] === "matching" && container.activeNavBarItem]}
           onPress={() => router.push("/matching")}
         >
           <Ionicons
@@ -304,12 +304,12 @@ const Profile = () => {
             size={24}
             color={segments[0] === "matching" ? "#007BFF" : "#666"}
           />
-          <Text style={[styles.navBarText, segments[0] === "matching" && styles.activeNavBarText]}>
+          <Text style={[text.navBar, segments[0] === "matching" && text.activeNavBar]}>
             Explore
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.navBarItem, segments[0] === "matchingHistory" && styles.activeNavBarItem]}
+          style={[container.navBarItem, segments[0] === "matchingHistory" && container.activeNavBarItem]}
           onPress={() => router.push("/matchingHistory")}
         >
           <Ionicons
@@ -318,7 +318,7 @@ const Profile = () => {
             color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
           />
           <Text
-            style={[styles.navBarText, segments[0] === "matchingHistory" && styles.activeNavBarText]}
+            style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}
           >
             Matches
           </Text>

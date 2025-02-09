@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { styles } from "../styles";
+import { general, button, image, container, text } from "../styles";
 import { Ionicons } from "@expo/vector-icons"; // Importing Ionicons for the toggle icon
 
 export default function AccountCreationView() {
@@ -163,11 +163,11 @@ export default function AccountCreationView() {
 
   return (
     <SafeAreaProvider>
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View style={container.base}>
+        <View style={container.header}>
           <Image
             source={require("./assets/images/logo.png")}
-            style={styles.logo}
+            style={image.logo}
             resizeMode="contain"
           />
         </View>
@@ -179,67 +179,67 @@ export default function AccountCreationView() {
             alignItems: "center",
           }}
         >
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Role: {role || "Not Selected"}</Text>
-          <View style={styles.formContainer}>
+          <Text style={text.title}>Create Account</Text>
+          <Text style={text.subtitle}>Role: {role || "Not Selected"}</Text>
+          <View style={container.form}>
             <TextInput
               placeholder="Username"
-              style={styles.input}
+              style={container.input}
               value={form.username}
               onChangeText={(text) => handleChange("username", text)}
             />
             {role === "landlord" && (
               <TextInput
                 placeholder="Business Name"
-                style={styles.input}
+                style={container.input}
                 value={form.businessName}
                 onChangeText={(text) => handleChange("businessName", text)}
               />
             )}
             <TextInput
               placeholder="First Name"
-              style={styles.input}
+              style={container.input}
               value={form.firstName}
               onChangeText={(text) => handleChange("firstName", text)}
             />
             <TextInput
               placeholder="Last Name"
-              style={styles.input}
+              style={container.input}
               value={form.lastName}
               onChangeText={(text) => handleChange("lastName", text)}
             />
             <TextInput
               placeholder="Email"
-              style={styles.input}
+              style={container.input}
               value={form.email}
               onChangeText={(text) => handleChange("email", text)}
               keyboardType="email-address"
             />
             <TextInput
               placeholder="Confirm Email"
-              style={styles.input}
+              style={container.input}
               value={form.confirmEmail}
               onChangeText={(text) => handleChange("confirmEmail", text)}
               keyboardType="email-address"
             />
             <TextInput
               placeholder="Phone Number"
-              style={styles.input}
+              style={container.input}
               value={form.phone}
               onChangeText={(text) => handleChange("phone", text)}
               keyboardType="phone-pad"
             />
-            <View style={styles.passwordContainer}>
+            <View style={container.password}>
               <TextInput
                 placeholder="Password"
-                style={styles.input}
+                style={container.input}
                 value={form.password}
                 onChangeText={(text) => handleChange("password", text)}
                 secureTextEntry={!passwordVisible}
               />
               <TouchableOpacity
                 onPress={() => setPasswordVisible(!passwordVisible)}
-                style={styles.toggleButton}
+                style={button.toggle}
               >
                 <Ionicons
                   name={passwordVisible ? "eye-off" : "eye"}
@@ -248,17 +248,17 @@ export default function AccountCreationView() {
                 />
               </TouchableOpacity>
             </View>
-            <View style={styles.passwordContainer}>
+            <View style={container.password}>
               <TextInput
                 placeholder="Confirm Password"
-                style={styles.input}
+                style={container.input}
                 value={form.confirmPassword}
                 onChangeText={(text) => handleChange("confirmPassword", text)}
                 secureTextEntry={!confirmPasswordVisible}
               />
               <TouchableOpacity
                 onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
-                style={styles.toggleButton}
+                style={button.toggle}
               >
                 <Ionicons
                   name={confirmPasswordVisible ? "eye-off" : "eye"}

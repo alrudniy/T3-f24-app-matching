@@ -4,7 +4,7 @@ import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons"; // Importing icons
 import { useRouter, useSegments } from "expo-router"; // Router for navigation
-import { styles } from "./styles"; // Importing the provided styles
+import { general, button, image, container, text } from "./styles"; // Importing the provided styles
 
 interface Property {
   id: number;
@@ -102,46 +102,46 @@ export default function Matching() {
 
   const renderCard = (property: Property) => {
     return (
-      <View style={styles.propertyCard}>
+      <View style={container.propertyCard}>
         <Image
           source={{ uri: property.image_url || "https://via.placeholder.com/400x300" }}
-          style={styles.propertyImage}
+          style={image.property}
         />
-        <View style={styles.titleBanner}>
-          <Text style={styles.cardTitle}>{property.name}</Text>
-          <Text style={styles.cardSubtitle}>{property.businessName}</Text>
+        <View style={container.titleBanner}>
+          <Text style={text.cardTitle}>{property.name}</Text>
+          <Text style={text.cardSubtitle}>{property.businessName}</Text>
         </View>
-        <View style={styles.propertyDetails}>
-          <View style={styles.propertyRow}>
+        <View style={container.propertyDetails}>
+          <View style={container.propertyRow}>
             <Ionicons name="location-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>
+            <Text style={text.property}>
               {property.street}, {property.city}
             </Text>
           </View>
-          <View style={styles.propertyRow}>
+          <View style={container.propertyRow}>
             <Ionicons name="resize-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>{property.size_sqft} sqft</Text>
+            <Text style={text.property}>{property.size_sqft} sqft</Text>
           </View>
-          <View style={styles.propertyRow}>
+          <View style={container.propertyRow}>
             <Ionicons name="cash-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>${property.price.toLocaleString()}</Text>
+            <Text style={text.property}>${property.price.toLocaleString()}</Text>
           </View>
-          <View style={styles.propertyRow}>
+          <View style={container.propertyRow}>
             <Ionicons name="bed-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>{property.bedrooms} Beds</Text>
+            <Text style={text.property}>{property.bedrooms} Beds</Text>
           </View>
-          <View style={styles.propertyRow}>
+          <View style={container.propertyRow}>
             <Ionicons name="water-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>{property.bathrooms} Baths</Text>
+            <Text style={text.property}>{property.bathrooms} Baths</Text>
           </View>
-          <View style={styles.cardButtonsContainer}>
-            <TouchableOpacity style={styles.circularButton} onPress={handleDislike}>
+          <View style={container.cardButtons}>
+            <TouchableOpacity style={button.circular} onPress={handleDislike}>
               <Ionicons name="close-outline" size={30} color="#FF3B30" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.circularButton} onPress={() => console.log("Info Button")}>
+            <TouchableOpacity style={button.circular} onPress={() => console.log("Info Button")}>
               <Ionicons name="information-circle-outline" size={30} color="#007BFF" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.circularButton} onPress={handleLike}>
+            <TouchableOpacity style={button.circular} onPress={handleLike}>
               <Ionicons name="heart-outline" size={30} color="#4CAF50" />
             </TouchableOpacity>
           </View>
@@ -153,23 +153,23 @@ export default function Matching() {
   return (
     <SafeAreaProvider>
       {/* Header */}
-      <View style={styles.LoggedInHeader}>
-        <TouchableOpacity onPress={() => router.push("/profile")} style={styles.LoggedInHeaderIcon}>
+      <View style={container.loggedInHeader}>
+        <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
         </TouchableOpacity>
 
         <Image
           source={require("./(home)/assets/images/icon_logo.png")}
-          style={styles.LoggedInLogo}
+          style={image.loggedInLogo}
           resizeMode="contain"
         />
 
-        <TouchableOpacity onPress={() => router.push("/voucher")} style={styles.LoggedInHeaderIcon}>
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
           <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
       </View>
 
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={container.base}>
         {properties.length > 0 ? (
           <Swiper
             ref={swiperRef}
@@ -182,16 +182,16 @@ export default function Matching() {
             backgroundColor="transparent"
           />
         ) : (
-          <View style={styles.noData}>
-            <Text style={styles.propertyText}>No properties available.</Text>
+          <View style={container.noData}>
+            <Text style={text.property}>No properties available.</Text>
           </View>
         )}
       </SafeAreaView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNavBar}>
+      <View style={container.navBar}>
         <TouchableOpacity
-          style={[styles.navBarItem, segments[0] === "matching" && styles.activeNavBarItem]}
+          style={[container.navBarItem, segments[0] === "matching" && container.activeNavBarItem]}
           onPress={() => router.push("/matching")}
         >
           <Ionicons
@@ -199,12 +199,12 @@ export default function Matching() {
             size={24}
             color={segments[0] === "matching" ? "#007BFF" : "#666"}
           />
-          <Text style={[styles.navBarText, segments[0] === "matching" && styles.activeNavBarText]}>
+          <Text style={[text.navBar, segments[0] === "matching" && text.activeNavBar]}>
             Explore
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.navBarItem, segments[0] === "matchingHistory" && styles.activeNavBarItem]}
+          style={[container.navBarItem, segments[0] === "matchingHistory" && container.activeNavBarItem]}
           onPress={() => router.push("/matchingHistory")}
         >
           <Ionicons
@@ -213,7 +213,7 @@ export default function Matching() {
             color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
           />
           <Text
-            style={[styles.navBarText, segments[0] === "matchingHistory" && styles.activeNavBarText]}
+            style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}
           >
             Matches
           </Text>
