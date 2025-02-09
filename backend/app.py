@@ -1,612 +1,79 @@
-from flask import Flask, jsonify, request, redirect
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy import create_engine, Column, String, Boolean, Integer, Float, ForeignKey, func
-from sqlalchemy.exc import SQLAlchemyError
+from flask import Flask
+from flask_login import LoginManager, current_user
 from flask_cors import CORS
-from flask import send_from_directory
-import os
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy import Table
 from datetime import timedelta
+from models import init_db, User, SessionLocal
+from routes.properties import properties_bp
+from routes.uploads import uploads_bp
+from routes.auth import auth_bp
+from routes.users import users_bp
+from routes.matches import matches_bp
+from flask import Flask
+from config import UPLOAD_FOLDER, DATABASE_CONFIG, SECRET_KEY, SESSION_COOKIE_NAME
+from sqlalchemy import create_engine
 
+# Initialize Flask app
 app = Flask(__name__)
 
+# Load configurations
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.secret_key = SECRET_KEY
+app.config["SESSION_COOKIE_NAME"] = SESSION_COOKIE_NAME
 
+# Use DATABASE_CONFIG for database setup
+db_config = DATABASE_CONFIG
+engine = create_engine(
+    f"mysql+pymysql://{db_config['username']}:{db_config['password']}@{db_config['db_host']}/{db_config['db_name']}",
+    connect_args={'ssl': {'disabled': True}}
+)
 
-# Configure the app for sessions
-app.secret_key = "your_secret_key"  # Change this to something secret
-app.config["SESSION_COOKIE_NAME"] = "session_id"
+# Initialize the database tables
+init_db()
 
-# File upload settings
-UPLOAD_FOLDER = './uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# Register all routes from the routes package
+app.register_blueprint(properties_bp)
+app.register_blueprint(uploads_bp)
+app.register_blueprint(auth_bp)
+app.register_blueprint(users_bp)
+app.register_blueprint(matches_bp)
 
 # Initialize CORS to allow credentials (cookies)
 CORS(app, supports_credentials=True)
 
-# Database configuration
-username = 't3'
-password = 'Hav0nBDwD4uyvcZt'
-db_host = '34.125.69.91'
-db_name = 'f24_housing_db'
-
-engine = create_engine(
-    f"mysql+pymysql://{username}:{password}@{db_host}/{db_name}",
-    connect_args={'ssl': {'disabled': True}}
-)
-
-Base = declarative_base()
-Session = sessionmaker(bind=engine)
-session = Session()
-
-# Models
-
-# Join table for property and accessibility
-property_accessibility_table = Table(
-    'property_accessibility',
-    Base.metadata,
-    Column('propertyID', Integer, ForeignKey('property.id', ondelete="CASCADE"), primary_key=True),
-    Column('accessibilityID', Integer, ForeignKey('accessibility.accessibilityID', ondelete="CASCADE"), primary_key=True)
-)
-
-class Accessibility(Base):
-    __tablename__ = 'accessibility'
-    accessibilityID = Column(Integer, primary_key=True, autoincrement=True)
-    accessibilityType = Column(String(255), nullable=False, unique=True)  # Unique ensures no duplicates
-    properties = relationship(
-        'Property',
-        secondary=property_accessibility_table,
-        back_populates='accessibilities'
-    )
-
-class User(UserMixin, Base):
-    __tablename__ = 'user'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(length=150), unique=True)
-    email = Column(String(length=150), unique=True, nullable=False)  # New email field
-    phone = Column(String(length=15), nullable=True)  # New phone field
-    password = Column(String(length=170))
-    firstname = Column(String(length=100))
-    lastname = Column(String(length=100))
-    active = Column(Boolean, default=True)
-    role = Column(String(length=50), default="tenant")  # Role: 'tenant' or 'landlord'
-    businessName = Column(String(length=200), nullable=True)  # Only for landlords
-    profile_picture = Column(String(length=255), nullable=True)  # Profile picture path
-    properties = relationship("Property", back_populates="user", cascade="all, delete-orphan")
-    
-
-class Property(Base):
-    __tablename__ = 'property'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(255), nullable=False)  # New column for property name
-    size_sqft = Column(Float)
-    price = Column(Float)
-    bedrooms = Column(Integer)
-    bathrooms = Column(Integer)
-    street_address  = Column(String, nullable=True)
-    city = Column(String, nullable=True)
-    user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship("User", back_populates="properties")
-    images = relationship("PropertyImage", back_populates="property", cascade="all, delete-orphan")
-    accessibilities = relationship(
-        'Accessibility',
-        secondary=property_accessibility_table,
-        back_populates='properties'
-    )
-
-class PropertyImage(Base):
-    __tablename__ = 'property_images'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    property_id = Column(Integer, ForeignKey('property.id', ondelete='CASCADE'))
-    image_url = Column(String, nullable=False)
-    property = relationship("Property", back_populates="images")
-
-
-class Match(Base):
-    __tablename__ = 'match'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey('user.id'))
-    property_id = Column(Integer, ForeignKey('property.id'))
-    timestamp = Column(String, default=func.now())
-
 # Flask-Login setup
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = "login"
+login_manager.login_view = "auth.login"
 
 @login_manager.user_loader
 def load_user(user_id):
-    user = session.get(User, user_id)
+    """ Load the user session when needed """
+    db = SessionLocal()  # Create a session instance
+    user = db.get(User, user_id)
+    db.close()  # Close session after use
     print(f"load_user called for user_id: {user_id}, Found: {user}")
     return user
 
 @app.before_request
 def check_user():
+    """ Logs if a user is not authenticated before processing a request """
     if not current_user.is_authenticated:
         print("User not authenticated")
 
-app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=4)
-
-# Helper function to check allowed file extensions
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Routes
-
-# Serve profile images from the uploads folder
-@app.route('/uploads/<filename>')
-def serve_image(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-# Register route
-@app.route('/register', methods=['POST'])
-def register():
-    try:
-        data = request.json
-        username = data.get('username')
-        email = data.get('email')
-        phone = data.get('phone')
-        password = data.get('password')
-        firstname = data.get('firstName')
-        lastname = data.get('lastName')
-        role = data.get('role')
-        business_name = data.get('businessName')
-
-        # Validate required fields
-        if not username or not email or not password or not firstname or not lastname or not role:
-            return jsonify({"success": False, "message": "All fields are required"})
-
-        if role == "landlord" and not business_name:
-            return jsonify({"success": False, "message": "Business name is required for landlords"})
-
-        # Check if email or username already exists
-        existing_user = session.query(User).filter((User.username == username) | (User.email == email)).first()
-        if existing_user:
-            return jsonify({"success": False, "message": "Username or email already exists"})
-
-        # Hash the password
-        hashed_password = generate_password_hash(password, method='scrypt')
-
-        # Create the new user
-        new_user = User(
-            username=username,
-            email=email,
-            phone=phone,
-            password=hashed_password,
-            firstname=firstname,
-            lastname=lastname,
-            role=role,
-            businessName=business_name if role == "landlord" else None
-        )
-
-        session.add(new_user)
-        session.commit()
-
-        return jsonify({"success": True, "message": "User registered successfully"}), 201
-    except SQLAlchemyError as e:
-        session.rollback()
-        print("Database error:", str(e))
-        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
-    except Exception as e:
-        print("Unexpected error:", str(e))
-        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
-    finally:
-        session.close()
-
-# Login route
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'GET':
-        # Return a clear unauthorized message for unauthenticated access
-        return jsonify({"success": False, "message": "Login required"}), 401
-
-    try:
-        # Handle POST request for login
-        if current_user.is_authenticated:
-            # If the user is already authenticated, log them out to refresh the session
-            logout_user()
-
-        data = request.json  # Parse incoming JSON data
-        username = data.get('username')
-        password = data.get('password')
-
-        if not username or not password:
-            return jsonify({"success": False, "message": "Username and password are required"}), 400
-
-        # Retrieve the user from the database
-        user = session.query(User).filter_by(username=username).first()
-
-        if user and check_password_hash(user.password, password):
-            login_user(user)  # Log the user in
-            session.permanent = True  # Keep the session alive
-            print(f"User {user.username} logged in successfully.")  # Debug log
-            return jsonify({"success": True, "message": "Login successful", "user": {
-                "id": user.id,
-                "username": user.username,
-                "email": user.email,
-                "role": user.role,
-            }}), 200
-
-        # If authentication fails
-        return jsonify({"success": False, "message": "Invalid username or password"}), 401
-
-    except Exception as e:
-        # Handle unexpected errors gracefully
-        print(f"Error during login: {str(e)}")
-        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
-
-# Logout route
-@app.route('/logout', methods=['GET'])
-@login_required
-def logout():
-    logout_user()
-    return jsonify({"success": True, "message": "User logged out successfully"})
-
-# Get user profile
-@app.route('/api/user/profile', methods=['GET'])
-@login_required
-def get_user_profile():
-    try:
-        user = {
-            "id": current_user.id,
-            "username": current_user.username,
-            "email": current_user.email,  # Include email
-            "phone": current_user.phone,  # Include phone
-            "firstname": current_user.firstname,
-            "lastname": current_user.lastname,
-            "role": current_user.role,
-            "businessName": current_user.businessName,
-            "profile_picture": f"http://localhost:5000/uploads/{current_user.profile_picture}" if current_user.profile_picture else "https://via.placeholder.com/150",
-        }
-        return jsonify({"success": True, "profile": user}), 200
-    except Exception as e:
-        print("Error fetching profile:", str(e))
-        return jsonify({"success": False, "message": "Failed to fetch profile", "error": str(e)}), 500
-
-# Update user profile
-@app.route('/api/user/update-profile', methods=['PUT'])
-@login_required
-def update_user_profile():
-    try:
-        data = request.form
-        firstname = data.get('firstname')
-        lastname = data.get('lastname')
-        email = data.get('email')
-        phone = data.get('phone')
-        businessName = data.get('businessName') if current_user.role == "landlord" else None
-        profile_picture = request.files.get('profile_picture')
-
-        user = session.query(User).filter_by(id=current_user.id).first()
-        if not user:
-            return jsonify({"success": False, "message": "User not found"}), 404
-
-        if firstname:
-            user.firstname = firstname
-        if lastname:
-            user.lastname = lastname
-        if email:
-            # Check if email already exists
-            existing_user = session.query(User).filter(User.email == email, User.id != current_user.id).first()
-            if existing_user:
-                return jsonify({"success": False, "message": "Email is already in use"}), 400
-            user.email = email
-        if phone:
-            user.phone = phone
-        if businessName:
-            user.businessName = businessName
-
-        # Handle profile picture upload
-        if profile_picture and allowed_file(profile_picture.filename):
-            filename = secure_filename(profile_picture.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], f"{current_user.id}_{filename}")
-            profile_picture.save(filepath)
-            user.profile_picture = f"{current_user.id}_{filename}"
-
-        session.commit()
-        return jsonify({"success": True, "message": "Profile updated successfully"}), 200
-    except SQLAlchemyError as e:
-        session.rollback()
-        print("Database error:", str(e))
-        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
-    except Exception as e:
-        print("Unexpected error:", str(e))
-        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
-
-# Property creation
-@app.route('/property/create', methods=['POST'])
-def create_property():
-    try:
-        print("Headers:", request.headers)  # Log headers
-        print("Raw data:", request.data)    # Log raw data
-        print("Request form data:", request.form)  # Log form data
-        # Parse form data
-        size_sqft = request.form.get('size_sqft')
-        price = request.form.get('price')
-        bedrooms = request.form.get('bedrooms')
-        bathrooms = request.form.get('bathrooms')
-        street_address = request.form.get('street_address')
-        city = request.form.get('city')
-        name = request.form.get('name')
-        user_id = request.form.get('user_id')  # Get user ID from the form data
-
-        # Validate all fields
-        if not all([size_sqft, price, bedrooms, bathrooms, street_address, city, name, user_id]):
-            return jsonify({"success": False, "message": "All property fields are required"}), 400
-
-        # Create the property
-        new_property = Property(
-            size_sqft=float(size_sqft),
-            price=float(price),
-            bedrooms=int(bedrooms),
-            bathrooms=int(bathrooms),
-            street_address=street_address,
-            city=city,
-            name=name,
-            user_id=int(user_id),
-        )
-
-        # Save the property
-        session.add(new_property)
-        session.commit()
-
-        return jsonify({"success": True, "message": "Property created successfully"}), 201
-    except SQLAlchemyError as e:
-        session.rollback()
-        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
-    except Exception as e:
-        print("Unexpected error:", str(e))  # Log the unexpected error
-        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
-    finally:
-        session.close()
-
-# Delete user
-@app.route('/user/delete/<int:user_id>', methods=['DELETE'])
-@login_required
-def delete_user(user_id):
-    try:
-        user = session.get(User, user_id)
-
-        if not user:
-            return jsonify({"success": False, "message": "User not found"})
-
-        session.delete(user)
-        session.commit()
-        return jsonify({"success": True, "message": "User deleted successfully"})
-    except SQLAlchemyError as e:
-        session.rollback()
-        return jsonify({"success": False, "message": "Database error", "error": str(e)})
-    finally:
-        session.close()
-
-# Get all users
-@app.route('/api/users', methods=['GET'])
-@login_required
-def get_users():
-    try:
-        users = session.query(User).all()
-        user_list = []
-        for user in users:
-            user_data = {
-                "id": user.id,
-                "firstname": user.firstname,
-                "lastname": user.lastname,
-            }
-            user_list.append(user_data)
-        return jsonify({"success": True, "users": user_list}), 200
-    except SQLAlchemyError as e:
-        print("Database error:", str(e))
-        session.rollback()
-        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
-    except Exception as e:
-        print("Unexpected error:", str(e))
-        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
-
-
-# Get all properties
-@app.route('/api/properties', methods=['GET'])
-def get_properties():
-    try:
-        properties = session.query(Property).all()
-        property_list = []
-
-        for property in properties:
-            # Retrieve the first image URL or use a placeholder
-            image_url = "https://via.placeholder.com/400x300"
-            if property.images and len(property.images) > 0:
-                image_url = f"http://localhost:5000/uploads/{property.images[0].image_url}"
-
-            accessibilities = [
-                accessibility.accessibilityType for accessibility in property.accessibilities
-            ]
-
-            property_data = {
-                "id": property.id,
-                "name": property.name,
-                "size_sqft": property.size_sqft,
-                "price": property.price,
-                "bedrooms": property.bedrooms,
-                "bathrooms": property.bathrooms,
-                "street": property.street_address,
-                "city": property.city,
-                "user_id": property.user_id,
-                "image_url": image_url,  # First image or placeholder
-                "accessibilities": accessibilities,
-                "businessName": property.user.businessName if property.user else None  # Owner's business name
-            }
-            property_list.append(property_data)
-
-        return jsonify({"success": True, "properties": property_list}), 200
-    except SQLAlchemyError as e:
-        print("Database error:", str(e))
-        session.rollback()
-        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
-    except Exception as e:
-        print("Unexpected error:", str(e))
-        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
-
-# Match a property
-@app.route('/api/match', methods=['POST'])
-@login_required
-def match_property():
-    if current_user.role != "tenant":
-        return jsonify({"success": False, "message": "Only tenants can match properties"}), 403
-
-    try:
-        data = request.json
-        property_id = data.get('property_id')
-
-        if not property_id:
-            return jsonify({"success": False, "message": "Property ID is required"}), 400
-
-        property = session.query(Property).filter_by(id=property_id).first()
-        if not property:
-            return jsonify({"success": False, "message": "Property not found"}), 404
-
-        existing_match = session.query(Match).filter_by(user_id=current_user.id, property_id=property_id).first()
-        if existing_match:
-            return jsonify({"success": False, "message": "You already matched with this property"}), 400
-
-        new_match = Match(user_id=current_user.id, property_id=property_id)
-        session.add(new_match)
-        session.commit()
-
-        return jsonify({"success": True, "message": "Property matched successfully"})
-    except SQLAlchemyError as e:
-        session.rollback()
-        return jsonify({"success": False, "message": "Database error", "error": str(e)})
-    finally:
-        session.close()
-
-# Upload Property Images
-@app.route('/property/<int:property_id>/upload-images', methods=['POST'])
-@login_required
-def upload_property_images(property_id):
-    if current_user.role != "landlord":
-        return jsonify({"success": False, "message": "Only landlords can upload property images"}), 403
-
-    try:
-        property = session.query(Property).filter_by(id=property_id, user_id=current_user.id).first()
-        if not property:
-            return jsonify({"success": False, "message": "Property not found"}), 404
-
-        if 'images' not in request.files:
-            return jsonify({"success": False, "message": "No images provided"}), 400
-
-        images = request.files.getlist('images')
-        if len(images) < 1 or len(images) > 5:
-            return jsonify({"success": False, "message": "You must upload between 1 and 5 images"}), 400
-
-        uploaded_images = []
-        for image in images:
-            if not allowed_file(image.filename):
-                return jsonify({"success": False, "message": f"Invalid file type: {image.filename}"}), 400
-
-            filename = secure_filename(f"{property_id}_{image.filename}")
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            image.save(filepath)
-
-            property_image = PropertyImage(property_id=property.id, image_url=filename)
-            session.add(property_image)
-            uploaded_images.append(f"http://localhost:5000/uploads/{filename}")
-
-        session.commit()
-        return jsonify({"success": True, "message": "Images uploaded successfully", "images": uploaded_images}), 200
-    except SQLAlchemyError as e:
-        session.rollback()
-        print("Database error:", str(e))
-        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
-    except Exception as e:
-        print("Unexpected error:", str(e))
-        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
-    
-# Add Accessbilities to Properties
-@app.route('/property/<int:property_id>/add-accessibility', methods=['POST'])
-@login_required
-def add_accessibility_to_property(property_id):
-    try:
-        if current_user.role != "landlord":
-            return jsonify({"success": False, "message": "Only landlords can modify property accessibility"}), 403
-
-        data = request.json
-        accessibility_ids = data.get('accessibility_ids')  # List of accessibility IDs
-
-        if not accessibility_ids:
-            return jsonify({"success": False, "message": "No accessibility IDs provided"}), 400
-
-        property = session.query(Property).filter_by(id=property_id, user_id=current_user.id).first()
-        if not property:
-            return jsonify({"success": False, "message": "Property not found"}), 404
-
-        for accessibility_id in accessibility_ids:
-            accessibility = session.query(Accessibility).filter_by(accessibilityID=accessibility_id).first()
-            if accessibility and accessibility not in property.accessibilities:
-                property.accessibilities.append(accessibility)
-
-        session.commit()
-        return jsonify({"success": True, "message": "Accessibility added to property successfully"}), 200
-    except SQLAlchemyError as e:
-        session.rollback()
-        print("Database error:", str(e))
-        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
-    except Exception as e:
-        print("Unexpected error:", str(e))
-        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
-
-# Get all matched properties
-@app.route('/api/user/matched-properties', methods=['GET'])
-@login_required
-def get_matched_properties():
-    try:
-        if current_user.role != "tenant":
-            return jsonify({"success": False, "message": "Only tenants can view matched properties"}), 403
-
-        matches = session.query(Match).filter_by(user_id=current_user.id).all()
-        matched_properties = []
-
-        for match in matches:
-            property = session.query(Property).filter_by(id=match.property_id).first()
-            if property:
-                # Retrieve the first image URL or use a placeholder
-                image_url = "https://via.placeholder.com/400x300"
-                if property.images and len(property.images) > 0:
-                    image_url = f"http://localhost:5000/uploads/{property.images[0].image_url}"
-
-                matched_properties.append({
-                    "id": property.id,
-                    "name": property.name,
-                    "size_sqft": property.size_sqft,
-                    "price": property.price,
-                    "bedrooms": property.bedrooms,
-                    "bathrooms": property.bathrooms,
-                    "street": property.street_address,
-                    "city": property.city,
-                    "image_url": image_url,
-                    "businessName": property.user.businessName if property.user else None
-                })
-
-        return jsonify({"success": True, "matched_properties": matched_properties}), 200
-    except SQLAlchemyError as e:
-        print("Database error:", str(e))
-        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
-    except Exception as e:
-        print("Unexpected error:", str(e))
-        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
-
-# Flask teardown to clean up sessions
 @app.teardown_appcontext
 def cleanup_session(exception=None):
-    if exception:
-        session.rollback()  # Rollback if there's an exception
-    session.close()  # Always close the session
+    """ Close the database session after each request """
+    db = SessionLocal()
+    try:
+        if exception:
+            db.rollback()
+        else:
+            db.commit()
+    except:
+        db.rollback()
+    finally:
+        db.close()
 
 # Main entry point
 if __name__ == '__main__':
-    # Ensure tables are created before the application runs
-    Base.metadata.create_all(engine)
     app.run(debug=True)
