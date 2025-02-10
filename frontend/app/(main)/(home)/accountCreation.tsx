@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { general, button, image, container, text } from "../styles";
+import { modal_error, button, image, container, text } from "../styles";
 import { Ionicons } from "@expo/vector-icons"; // Importing Ionicons for the toggle icon
 
 export default function AccountCreationView() {
@@ -277,6 +277,26 @@ export default function AccountCreationView() {
             />
           </View>
         </ScrollView>
+
+        {/* Error Modal */}
+        <Modal
+          visible={errorModalVisible}
+          animationType="fade"
+          transparent={true}
+          onRequestClose={() => setErrorModalVisible(false)}
+        >
+          <View style={modal_error.modalBackground}>
+            <View style={modal_error.modalContainer}>
+              <Text style={modal_error.modalTitle}>Error</Text>
+              <Text style={modal_error.modalMessage}>{errorMessage}</Text>
+              <Button
+                title="Close"
+                onPress={() => setErrorModalVisible(false)}
+                color="#FF0000"
+              />
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaProvider>
   );
