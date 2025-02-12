@@ -8,6 +8,7 @@ from routes.uploads import uploads_bp
 from routes.auth import auth_bp
 from routes.users import users_bp
 from routes.matches import matches_bp
+from routes.voucher import voucher_bp
 from flask import Flask
 from config import UPLOAD_FOLDER, DATABASE_CONFIG, SECRET_KEY, SESSION_COOKIE_NAME
 from sqlalchemy import create_engine
@@ -36,6 +37,7 @@ app.register_blueprint(uploads_bp)
 app.register_blueprint(auth_bp)
 app.register_blueprint(users_bp)
 app.register_blueprint(matches_bp)
+app.register_blueprint(voucher_bp)
 
 # Initialize CORS to allow credentials (cookies)
 CORS(app, supports_credentials=True)

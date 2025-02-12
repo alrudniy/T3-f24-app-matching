@@ -96,6 +96,18 @@ class Match(Base):
     property_id = Column(Integer, ForeignKey('property.id'))
     timestamp = Column(String, default=func.now())
 
+class Voucher(Base):
+    __tablename__ = 'voucher'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=True)
+    expiration_date = Column(String, nullable=True) 
+    price_limit = Column(Integer, nullable=True)
+    housing_type = Column(String(50), nullable=True)
+    family_members = Column(Integer, nullable=True)
+    user = relationship("User", backref="vouchers")  
+
+
 # Function to create database tables
 def init_db():
     Base.metadata.create_all(engine)

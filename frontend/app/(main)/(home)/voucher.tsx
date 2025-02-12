@@ -45,6 +45,7 @@ export default function VoucherView() {
 
     console.log("Form State at Submit:", form); // Debugging log to confirm field values
 
+    // Validate missing fields
     if (!expireDate || !priceLimit || !housingType || familyMembers <= 0) {
       const missingFields = [];
       if (!expireDate) missingFields.push("Expire Date");
@@ -56,6 +57,7 @@ export default function VoucherView() {
       return;
     }
 
+    // Validate format for Expiration Date and Price Limit
     if (!expireRegex.test(expireDate)) {
       setErrorMessage("Please enter a valid expiration date in YYYYMMDD format.");
       setErrorModalVisible(true);
@@ -68,28 +70,37 @@ export default function VoucherView() {
       return;
     }
 
+    // Set loading state
     setLoading(true);
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/register", {
+      // Send POST request to Flask backend with voucher data, include credentials for session handling
+      const response = await fetch("http://127.0.0.1:5000/voucher/create", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          // Add any necessary headers here (if needed)
+        },
         body: JSON.stringify({
-          ...form,
-          role,
+          expiration_date: expireDate,
+          price_limit: priceLimit,
+          housing_type: housingType,
+          family_members: familyMembers,
         }),
+        credentials: "include",  // Ensure the session cookie is sent with the request
       });
 
       const data = await response.json();
 
       if (data.success) {
-        router.push("/matching");
+        // On success, navigate to the matching screen or show a success message
+        router.push("/matching"); // Navigate to the matching page or adjust as needed
       } else {
-        setErrorMessage(data.message || "Registration failed.");
+        setErrorMessage(data.message || "Voucher creation failed.");
         setErrorModalVisible(true);
       }
     } catch (error) {
-      console.error("Error during registration:", error);
+      console.error("Error during voucher creation:", error);
       setErrorMessage("An error occurred. Please try again.");
       setErrorModalVisible(true);
     } finally {
