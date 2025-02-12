@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,9 +9,10 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
+import { useRouter, useSegments } from "expo-router";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { general, button, image, container, text } from "./styles";
@@ -25,11 +26,35 @@ export default function PropertyCreation() {
     value: "",
     bedrooms: "",
     bathrooms: "",
-    userId: "1", // Default to a specific user ID (e.g., hardcoded for testing)
+    userId: "1", // Default user ID (change dynamically if needed)
   });
+
   const [images, setImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [accessibilities, setAccessibilities] = useState<{ id: number; type: string }[]>([]);
+  const [selectedAccessibilities, setSelectedAccessibilities] = useState<number[]>([]);
+
   const router = useRouter();
+  const segments = useSegments(); // To track route changes
+
+  useEffect(() => {
+    fetchAccessibilities();
+  }, []);
+
+  const fetchAccessibilities = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/accessibilities");
+      const data = await response.json();
+
+      if (data.success) {
+        setAccessibilities(data.accessibilities);
+      } else {
+        console.error("Failed to fetch accessibilities:", data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching accessibilities:", error);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -48,12 +73,18 @@ export default function PropertyCreation() {
         const uri = result.assets[0].uri;
         const filename = uri.split("/").pop(); // Extract filename
         const type = `image/${uri.split(".").pop()}`; // Extract MIME type
-        setImages((prev) => [...prev, { uri, name: filename, type }]); // Add image to the state
+        setImages((prev) => [...prev, { uri, name: filename, type }]);
       }
     } catch (error) {
       console.error("Image upload error:", error);
-      alert("An error occurred while selecting the image.");
+      Alert.alert("Error", "An error occurred while selecting the image.");
     }
+  };
+
+  const handleToggleAccessibility = (id: number) => {
+    setSelectedAccessibilities((prev) =>
+      prev.includes(id) ? prev.filter((accId) => accId !== id) : [...prev, id]
+    );
   };
 
   const handleSubmit = async () => {
@@ -68,7 +99,11 @@ export default function PropertyCreation() {
       formData.append("price", form.value);
       formData.append("bedrooms", form.bedrooms);
       formData.append("bathrooms", form.bathrooms);
-      formData.append("user_id", form.userId); // Explicitly include user ID
+      formData.append("user_id", form.userId);
+
+      selectedAccessibilities.forEach((id) => {
+        formData.append("accessibilities", id.toString());
+      });
 
       images.forEach((image) => {
         formData.append("images", {
@@ -81,8 +116,8 @@ export default function PropertyCreation() {
       const response = await fetch("http://127.0.0.1:5000/property/create", {
         method: "POST",
         body: formData,
-        credentials: "include", // Include session cookies
-    });
+        credentials: "include",
+      });
 
       const data = await response.json();
 
@@ -103,107 +138,114 @@ export default function PropertyCreation() {
   return (
     <SafeAreaProvider>
       {/* Header */}
-      <View style={container.loggedInHeader}>
-        <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
-          <Ionicons name="person-circle-outline" size={40} color="#333" />
-        </TouchableOpacity>
-
-        <Image
-          source={require("./(home)/assets/images/icon_logo.png")}
-          style={image.loggedInLogo}
-          resizeMode="contain"
-        />
-
-        <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
-          <Ionicons name="newspaper-outline" size={30} color="#333" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Content */}
+                    <View style={container.loggedInHeader}>
+                      <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
+                        <Ionicons name="person-circle-outline" size={40} color="#333" />
+                      </TouchableOpacity>
+              
+                      <Image
+                        source={require("./(home)/assets/images/icon_logo.png")}
+                        style={image.loggedInLogo}
+                        resizeMode="contain"
+                      />
+              
+                      <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
+                        <Ionicons name="newspaper-outline" size={30} color="#333" />
+                      </TouchableOpacity>
+                    </View>
       <SafeAreaView style={container.base}>
         <ScrollView contentContainerStyle={{ padding: 20 }}>
-          <Text style={text.sectionHeader}>General Information</Text>
-          <TextInput
-            placeholder="Name"
-            style={container.input}
-            value={form.name}
-            onChangeText={(text) => handleInputChange("name", text)}
-          />
-          <TextInput
-            placeholder="Property Address"
-            style={container.input}
-            value={form.street}
-            onChangeText={(text) => handleInputChange("street", text)}
-          />
-          <TextInput
-            placeholder="City"
-            style={container.input}
-            value={form.city}
-            onChangeText={(text) => handleInputChange("city", text)}
-          />
+          <Text style={text.title}>Add a Property</Text>
 
+          {/* General Information */}
+          <Text style={text.sectionHeader}>General Information</Text>
+          <TextInput placeholder="Name" style={container.input} value={form.name} onChangeText={(text) => handleInputChange("name", text)} />
+          <TextInput placeholder="Property Address" style={container.input} value={form.street} onChangeText={(text) => handleInputChange("street", text)} />
+          <TextInput placeholder="City" style={container.input} value={form.city} onChangeText={(text) => handleInputChange("city", text)} />
+
+          {/* Property Details */}
           <Text style={text.sectionHeader}>Details</Text>
           <View style={container.row}>
-            <TextInput
-              placeholder="Size"
-              style={[container.input, general.halfWidth]}
-              value={form.size}
-              onChangeText={(text) => handleInputChange("size", text)}
-            />
-            <TextInput
-              placeholder="Value"
-              style={[container.input, general.halfWidth]}
-              value={form.value}
-              onChangeText={(text) => handleInputChange("value", text)}
-            />
+            <TextInput placeholder="Size" style={[container.input, general.halfWidth]} value={form.size} onChangeText={(text) => handleInputChange("size", text)} />
+            <TextInput placeholder="Value" style={[container.input, general.halfWidth]} value={form.value} onChangeText={(text) => handleInputChange("value", text)} />
           </View>
 
+          {/* Rooms Section */}
           <Text style={text.sectionHeader}>Rooms</Text>
           <View style={container.row}>
-            <TextInput
-              placeholder="Bedrooms"
-              style={[container.input, general.halfWidth]}
-              value={form.bedrooms}
-              onChangeText={(text) => handleInputChange("bedrooms", text)}
-            />
-            <TextInput
-              placeholder="Bathrooms"
-              style={[container.input, general.halfWidth]}
-              value={form.bathrooms}
-              onChangeText={(text) => handleInputChange("bathrooms", text)}
-            />
+            <TextInput placeholder="Bedrooms" style={[container.input, general.halfWidth]} value={form.bedrooms} onChangeText={(text) => handleInputChange("bedrooms", text)} />
+            <TextInput placeholder="Bathrooms" style={[container.input, general.halfWidth]} value={form.bathrooms} onChangeText={(text) => handleInputChange("bathrooms", text)} />
           </View>
 
+          {/* Accessibility Section */}
+          <Text style={text.sectionHeader}>Accessibilities</Text>
+          <View style={styles.accessibilityContainer}>
+            {accessibilities.map((acc) => (
+              <TouchableOpacity key={`accessibility-${acc.id}`} style={styles.checkboxRow} onPress={() => handleToggleAccessibility(acc.id)}>
+                <Ionicons name={selectedAccessibilities.includes(acc.id) ? "checkbox-outline" : "square-outline"} size={24} color={selectedAccessibilities.includes(acc.id) ? "#4CAF50" : "#666"} />
+                <Text style={styles.checkboxLabel}>{acc.type}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Image Upload */}
           <Text style={text.sectionHeader}>Upload Images</Text>
           <TouchableOpacity style={button.imageUpload} onPress={handleImageUpload}>
             <Text style={button.imageUploadText}>Select Images</Text>
           </TouchableOpacity>
 
-          {images.length > 0 && (
-            <View style={container.preview}>
-              {images.map((image, index) => (
-                <Image key={index} source={{ uri: image.uri }} style={image.previewImage} />
-              ))}
-            </View>
-          )}
-
           <Button title="Submit" onPress={handleSubmit} color="#4CAF50" />
+
+          {loading && <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />}
         </ScrollView>
-
-        {loading && <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />}
-      </SafeAreaView>
-
-      {/* Bottom Navigation */}
+{/* Bottom Navigation */}
       <View style={container.navBar}>
-        <TouchableOpacity onPress={() => router.push("/matching")} style={container.navBarItem}>
-          <Ionicons name="search-outline" size={24} color="#4CAF50" />
-          <Text style={text.navBar}>Explore</Text>
+        <TouchableOpacity
+          style={[container.navBarItem, segments[1] === "properties" && container.activeNavBarItem]}
+          onPress={() => router.push("/(main)/properties")}
+        >
+        <Ionicons
+          name="home" size={24} color={ segments[1] === "properties" ? "#007BFF" : "#666"}/>
+        <Text style={text.navBar}>Properties</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.push("/matchingHistory")} style={container.navBarItem}>
-          <Ionicons name="heart-outline" size={24} color="#333" />
-          <Text style={text.navBar}>Matches</Text>
+        <TouchableOpacity
+          style={[container.navBarItem, segments[0] === "matchingHistory" && container.activeNavBarItem]}
+          onPress={() => router.push("/matchingHistory")}
+        >
+          <Ionicons
+            name="heart-outline"
+            size={24}
+            color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
+          />
+          <Text
+            style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}
+          >
+            Matches
+          </Text>
         </TouchableOpacity>
       </View>
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  accessibilityContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    marginBottom: 20,
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "45%", // Ensures even layout
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  checkboxLabel: {
+    marginLeft: 8,
+    fontSize: 16,
+    flexShrink: 1,
+  },
+});

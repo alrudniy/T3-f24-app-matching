@@ -260,6 +260,11 @@ export const container = StyleSheet.create({
     padding: paddingSize.Large,
     backgroundColor: colors.Pale2,
   },
+  checkboxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
