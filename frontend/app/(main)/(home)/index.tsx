@@ -108,7 +108,7 @@ export default function HomeView() {
 
           {/* Forgot Password and Create Account Links */}
           <Text style={text.footer}>Forgot your password?</Text>
-          <Text style={[text.footer, text.link]}>
+          <Text style={[text.footer]}>
             Do not have an account?{" "}
             <Text
               onPress={() => router.push("/accountSelection")} // Navigate to account selection page
