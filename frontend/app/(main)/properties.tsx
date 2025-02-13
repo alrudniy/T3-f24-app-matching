@@ -136,8 +136,8 @@ export default function PropertiesView() {
         <Text style={text.navBar}>Properties</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[container.navBarItem, segments[0] === "matchingHistory" && container.activeNavBarItem]}
-          onPress={() => router.push("/matchingHistory")}
+          style={[container.navBarItem, segments[0] === "landlordMatchingHistory" && container.activeNavBarItem]}
+          onPress={() => router.push("/(main)/landlordMatchingHistory")}
         >
           <Ionicons
             name="heart-outline"

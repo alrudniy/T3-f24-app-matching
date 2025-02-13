@@ -12,7 +12,6 @@ properties_bp = Blueprint("properties", __name__)
 
 # Create a property
 @properties_bp.route('/property/create', methods=['POST'])
-@login_required
 def create_property():
     try:
         if current_user.role != "landlord":
@@ -53,7 +52,6 @@ def create_property():
 
 # Add Accessibilities to Properties (Landlord only)
 @properties_bp.route("/property/<int:property_id>/add-accessibility", methods=["POST"])
-@login_required
 def add_accessibility_to_property(property_id):
     try:
         if current_user.role != "landlord":

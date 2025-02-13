@@ -123,7 +123,7 @@ export default function PropertyCreation() {
 
       if (response.ok && data.success) {
         Alert.alert("Success", "Property created successfully!");
-        router.push("/matching");
+        router.push("/(main)/properties");
       } else {
         Alert.alert("Error", data.message || "Property creation failed.");
       }

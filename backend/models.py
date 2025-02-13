@@ -63,6 +63,9 @@ class User(UserMixin, Base):
     profile_picture = Column(String(255), nullable=True)
     properties = relationship("Property", back_populates="user", cascade="all, delete-orphan")
 
+    #Relationship back to Match
+    matches = relationship("Match", back_populates="user", cascade="all, delete-orphan")
+
 class Property(Base):
     __tablename__ = 'property'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -82,6 +85,9 @@ class Property(Base):
         back_populates='properties'
     )
 
+    # Relationship back to Match
+    matches = relationship("Match", back_populates="property", cascade="all, delete-orphan")
+
 class PropertyImage(Base):
     __tablename__ = 'property_images'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -95,6 +101,10 @@ class Match(Base):
     user_id = Column(Integer, ForeignKey('user.id'))
     property_id = Column(Integer, ForeignKey('property.id'))
     timestamp = Column(String, default=func.now())
+
+    #Relationship fields
+    user = relationship("User", back_populates="matches")
+    property = relationship("Property", back_populates="matches")
 
 # Function to create database tables
 def init_db():
