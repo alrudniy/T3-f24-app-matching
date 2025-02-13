@@ -110,6 +110,8 @@ def get_matched_tenants():
                     "tenantFirstName": tenant_user.firstname,
                     "tenantLastName": tenant_user.lastname,
                     "tenantProfileImageUrl": tenant_user.profile_picture or "https://via.placeholder.com/150",
+                    "propertyName": match.property.name,
+                    "propertyId": match.property.id,
                     # Add any extra tenant-related info as needed in the future
                 })
 
