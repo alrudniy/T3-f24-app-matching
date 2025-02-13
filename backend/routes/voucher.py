@@ -9,7 +9,7 @@ import os
 voucher_bp = Blueprint("voucher", __name__)
 
 # Create a new voucher (only logged-in users can create vouchers)
-@voucher_bp.route('/voucher/create', methods=['POST'])
+@voucher_bp.route('/api/voucher/create', methods=['POST'])
 @login_required
 def create_voucher():
     try:

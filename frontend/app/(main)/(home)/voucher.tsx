@@ -75,7 +75,7 @@ export default function VoucherView() {
 
     try {
       // Send POST request to Flask backend with voucher data, include credentials for session handling
-      const response = await fetch("http://127.0.0.1:5000/voucher/create", {
+      const response = await fetch("http://localhost:5000/api/voucher/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
