@@ -2,7 +2,7 @@ from flask import Flask
 from flask_login import LoginManager, current_user
 from flask_cors import CORS
 from datetime import timedelta
-from models import init_db, User, SessionLocal
+from models import init_db, User, SessionLocal, session
 from routes.properties import properties_bp
 from routes.uploads import uploads_bp
 from routes.auth import auth_bp
@@ -47,12 +47,7 @@ login_manager.login_view = "auth.login"
 
 @login_manager.user_loader
 def load_user(user_id):
-    """ Load the user session when needed """
-    db = SessionLocal()  # Create a session instance
-    user = db.get(User, user_id)
-    db.close()  # Close session after use
-    print(f"load_user called for user_id: {user_id}, Found: {user}")
-    return user
+    return session.query(User).get(int(user_id))
 
 @app.before_request
 def check_user():
