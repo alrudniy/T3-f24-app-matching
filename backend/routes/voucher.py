@@ -36,5 +36,33 @@ def create_voucher():
     finally:
         session.close()
 
+@voucher_bp.route('/api/voucher/user', methods=['GET'])
+@login_required
+def get_user_vouchers():
+    try:
+        print(f"Current user ID: {current_user.id}")  # Debugging log
+
+        vouchers = session.query(Voucher).filter_by(user_id=current_user.id).all()
+        print(f"Vouchers found: {vouchers}")  # Debugging log
+
+        voucher_list = [
+            {
+                "id": v.id,
+                "expiration_date": v.expiration_date,
+                "price_limit": v.price_limit,
+                "housing_type": v.housing_type,
+                "family_members": v.family_members,
+            }
+            for v in vouchers
+        ]
+        return jsonify({"success": True, "vouchers": voucher_list}), 200
+
+    except SQLAlchemyError as e:
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+
 
 
