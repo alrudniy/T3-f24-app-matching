@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
-from models import session, Match, Property
+from models import session, Match, Property, User
 import traceback
 
 # Create Blueprint for matches
@@ -40,7 +40,7 @@ def match_property():
     finally:
         session.close()
 
-# Get all matched properties for the current user
+# Get all matched properties for the current tenant user
 @matches_bp.route("/api/user/matched-properties", methods=["GET"])
 @login_required
 def get_matched_properties():
@@ -76,3 +76,50 @@ def get_matched_properties():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"success": False, "message": "An error occurred", "error": str(e)}), 500
+
+#Get all matched properties for the current landlord user
+@matches_bp.route("/api/landlord/matched-tenants", methods=["GET"])
+@login_required
+def get_matched_tenants():
+    """
+    Returns a list of tenants (users) who have matched with the properties owned by the current landlord.
+    """
+    try:
+        # 1. Check if current_user is a landlord
+        if current_user.role != "landlord":
+            return jsonify({"success": False, "message": "Only landlords can view matched tenants"}), 403
+
+        # 2. Query for all matches on the landlord's properties
+        #    - We join Match -> Property to ensure the property belongs to this landlord
+        #    - Then we join Match -> User to get tenant details
+        landlord_matches = (
+            session.query(Match)
+            .join(Property, Match.property_id == Property.id)
+            .join(User, Match.user_id == User.id)
+            .filter(Property.user_id == current_user.id)  # property.user_id is landlord's user_id
+            .all()
+        )
+
+        # 3. Build a list of tenant details from these matches
+        matched_tenants = []
+        for match in landlord_matches:
+            tenant_user = match.user  
+            if tenant_user:
+                matched_tenants.append({
+                    "id": tenant_user.id,
+                    "tenantFirstName": tenant_user.firstname,
+                    "tenantLastName": tenant_user.lastname,
+                    "tenantProfileImageUrl": tenant_user.profile_picture or "https://picsum.photos/150/150",
+                    "propertyName": match.property.name,
+                    "propertyId": match.property.id,
+                    # Add any extra tenant-related info as needed in the future
+                })
+
+        return jsonify({"success": True, "matched_tenants": matched_tenants}), 200
+
+    except Exception as e:
+        traceback.print_exc()
+        session.rollback()
+        return jsonify({"success": False, "message": "An error occurred", "error": str(e)}), 500
+    finally:
+        session.close()
