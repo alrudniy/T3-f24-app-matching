@@ -4,6 +4,7 @@ from models import session, Property, PropertyImage, Accessibility
 from werkzeug.utils import secure_filename
 import os
 import traceback
+from sqlalchemy.exc import SQLAlchemyError
 
 # Blueprint for properties
 properties_bp = Blueprint("properties", __name__)
@@ -135,3 +136,24 @@ def delete_property(property_id):
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
     finally:
         session.close()
+
+#Get all accessibilities  
+@properties_bp.route("/api/accessibilities", methods=["GET"])
+def get_accessibilities():
+    try:
+        accessibilities = session.query(Accessibility).all()
+        accessibilities_list = [
+            {"id": a.accessibilityID, "type": a.accessibilityType}
+            for a in accessibilities
+        ]
+
+        return jsonify({"success": True, "accessibilities": accessibilities_list}), 200
+
+    except SQLAlchemyError as e:
+        session.rollback()
+        print("Database error:", str(e))
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+    except Exception as e:
+        print("Unexpected error:", str(e))
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+

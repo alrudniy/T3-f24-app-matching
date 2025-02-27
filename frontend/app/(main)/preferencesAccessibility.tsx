@@ -17,11 +17,8 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { general, button, image, container, text } from "./styles";
 
-export default function PropertyCreation() {
+export default function UserAccessibility() {
   const [form, setForm] = useState({
-    name: "",
-    street: "",
-    city: "",
     size: "",
     value: "",
     bedrooms: "",
@@ -32,7 +29,7 @@ export default function PropertyCreation() {
   const [images, setImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [accessibilities, setAccessibilities] = useState<{ id: number; type: string }[]>([]);
-  const [selectedAccessibilities, setSelectedAccessibilities] = useState<number[]>([]);
+  const [accessibilitySelections, setAccessibilitySelections] = useState<{ [key: number]: string }>({});
 
   const router = useRouter();
   const segments = useSegments(); // To track route changes
@@ -60,6 +57,17 @@ export default function PropertyCreation() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const getIconName = (state: string) => {
+    switch (state) {
+      case "preferred":
+        return "checkmark-circle-outline"; 
+      case "mandatory":
+        return "checkbox-outline"; 
+      default:
+        return "square-outline"; 
+    }
+  };
+  
   const handleImageUpload = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -82,28 +90,32 @@ export default function PropertyCreation() {
   };
 
   const handleToggleAccessibility = (id: number) => {
-    setSelectedAccessibilities((prev) =>
-      prev.includes(id) ? prev.filter((accId) => accId !== id) : [...prev, id]
-    );
-  };
+  setAccessibilitySelections((prev) => {
+    const currentState = prev[id] || "none";
+    const nextState =
+      currentState === "none" ? "preferred" :
+      currentState === "preferred" ? "mandatory" :
+      "none"; 
+
+    return { ...prev, [id]: nextState };
+  });
+};
 
   const handleSubmit = async () => {
     setLoading(true);
 
     try {
       const formData = new FormData();
-      formData.append("name", form.name);
-      formData.append("street_address", form.street);
-      formData.append("city", form.city);
       formData.append("size_sqft", form.size);
       formData.append("price", form.value);
       formData.append("bedrooms", form.bedrooms);
       formData.append("bathrooms", form.bathrooms);
       formData.append("user_id", form.userId);
 
-      selectedAccessibilities.forEach((id) => {
-        formData.append("accessibilities", id.toString());
+      Object.entries(accessibilitySelections).forEach(([id, status]) => {
+        formData.append(`accessibilities[${id}]`, status);
       });
+      
 
       images.forEach((image) => {
         formData.append("images", {
@@ -113,7 +125,7 @@ export default function PropertyCreation() {
         } as any);
       });
 
-      const response = await fetch("http://127.0.0.1:5000/property/create", {
+      const response = await fetch("http://127.0.0.1:5000/user/accessibility", {
         method: "POST",
         body: formData,
         credentials: "include",
@@ -155,14 +167,7 @@ export default function PropertyCreation() {
                     </View>
       <SafeAreaView style={container.base}>
         <ScrollView contentContainerStyle={{ padding: 20 }}>
-          <Text style={text.title}>Add a Property</Text>
-
-          {/* General Information */}
-          <Text style={text.sectionHeader}>General Information</Text>
-          <TextInput placeholder="Name" style={container.input} value={form.name} onChangeText={(text) => handleInputChange("name", text)} />
-          <TextInput placeholder="Property Address" style={container.input} value={form.street} onChangeText={(text) => handleInputChange("street", text)} />
-          <TextInput placeholder="City" style={container.input} value={form.city} onChangeText={(text) => handleInputChange("city", text)} />
-
+          <Text style={text.title}>Preferences and Accessibility</Text>
           {/* Property Details */}
           <Text style={text.sectionHeader}>Details</Text>
           <View style={container.row}>
@@ -179,20 +184,42 @@ export default function PropertyCreation() {
 
           {/* Accessibility Section */}
           <Text style={text.sectionHeader}>Accessibilities</Text>
+          {/* <View style={styles.checkboxRow}>
+            <Ionicons name={getIconName("prefered")} size={24} color="#FFA500"/>
+            <Text style={styles.checkboxLabelKey}>Prefered</Text>
+            <Ionicons name={getIconName("mandatory")} size={24} color="#4CAF50"/>
+            <Text style={styles.checkboxLabelKey}>Mandatory</Text>
+            
+          </View> */}
+
           <View style={styles.accessibilityContainer}>
+          <View style={styles.checkboxRow}>
+            <Ionicons name={getIconName("prefered")} size={24} color="#FFA500"/>
+            <Text style={styles.checkboxLabelKey}>Prefered</Text>
+          </View>
+          <View style={styles.checkboxRow}>
+            <Ionicons name={getIconName("mandatory")} size={24} color="#4CAF50"/>
+            <Text style={styles.checkboxLabelKey}>Mandatory</Text>
+          </View>
             {accessibilities.map((acc) => (
-              <TouchableOpacity key={`accessibility-${acc.id}`} style={styles.checkboxRow} onPress={() => handleToggleAccessibility(acc.id)}>
-                <Ionicons name={selectedAccessibilities.includes(acc.id) ? "checkbox-outline" : "square-outline"} size={24} color={selectedAccessibilities.includes(acc.id) ? "#4CAF50" : "#666"} />
+              
+              <TouchableOpacity 
+                key={`accessibility-${acc.id}`} 
+                style={styles.checkboxRow} 
+                onPress={() => handleToggleAccessibility(acc.id)}>
+                
+                <Ionicons name={getIconName(accessibilitySelections[acc.id])} 
+                size = {24}
+                color = {
+                  accessibilitySelections[acc.id] === "mandatory" ? "#4CAF50" :
+                  accessibilitySelections[acc.id] === "preferred" ? "#FFA500" :
+                  "#666"
+                }/>
                 <Text style={styles.checkboxLabel}>{acc.type}</Text>
               </TouchableOpacity>
+
             ))}
           </View>
-
-          {/* Image Upload */}
-          <Text style={text.sectionHeader}>Upload Images</Text>
-          <TouchableOpacity style={button.imageUpload} onPress={handleImageUpload}>
-            <Text style={button.imageUploadText}>Select Images</Text>
-          </TouchableOpacity>
 
           <Button title="Submit" onPress={handleSubmit} color="#4CAF50" />
 
@@ -248,4 +275,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     flexShrink: 1,
   },
+  checkboxLabelKey: {
+    marginLeft: 8,
+    fontSize: 16,
+    flexShrink: 1,
+    paddingRight: 8
+  },
+  
+
 });
