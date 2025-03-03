@@ -1,16 +1,18 @@
 <h1 align="center">
 <h3 align="center">
-# Team 3 | Mobile Matching App
+# FamilyPromise Mobile Matching App
 
 A matching app designed to work on IOS and Android
 It is meant to be used for property owners, tenants and case handlers to ensure easier matches between possible tenants and housing for Section 8 housing vouchers
 
 ## Authors
+- [@Bredan](https://github.com/bmullany)
 - [@Jared](https://github.com/Cold-Change)
 - [@Jeffrey](https://github.com/WillNav22)
 - [@Kaan](https://github.com/TheKaanK)
-- [@Matthew](https://github.com/mcolucci40)
-- [@Phil](https://github.com/PhilPingPNG)
+- [@Matthew G](https://github.com/mgerman2727)
+- [@Matthew M.](https://github.com/mcolucci40)
+- [@Phil](https://github.com/PhilPNG)
 
 
 ## Screenshots
