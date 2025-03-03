@@ -252,7 +252,11 @@ export default function PropertyCreation() {
       </View>
 
       <SafeAreaView style={container.base}>
-        <ScrollView contentContainerStyle={{ padding: 20 }}>
+        <ScrollView contentContainerStyle={{
+        padding: 20,
+        paddingBottom: 100,
+      }}>
+          
           <Text style={text.title}>Add a Property</Text>
 
           {/* General Information */}
@@ -345,7 +349,7 @@ export default function PropertyCreation() {
           <Button title="Submit" onPress={handleSubmit} color="#4CAF50" />
 
           {loading && (
-            <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />
+            <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20}} />
           )}
         </ScrollView>
 
@@ -368,17 +372,17 @@ export default function PropertyCreation() {
           <TouchableOpacity
             style={[
               container.navBarItem,
-              segments[0] === "matchingHistory" && container.activeNavBarItem,
+              segments[0] === "landlordMatchingHistory" && container.activeNavBarItem,
             ]}
-            onPress={() => router.push("/matchingHistory")}
+            onPress={() => router.push("/(main)/landlordMatchingHistory")}
           >
             <Ionicons
               name="heart-outline"
               size={24}
-              color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
+              color={segments[0] === "landlordMatchingHistory" ? "#007BFF" : "#666"}
             />
             <Text
-              style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}
+              style={[text.navBar, segments[0] === "landlordMatchingHistory" && text.activeNavBar]}
             >
               Matches
             </Text>

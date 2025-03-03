@@ -12,6 +12,7 @@ properties_bp = Blueprint("properties", __name__)
 
 # Create a property
 @properties_bp.route('/property/create', methods=['POST'])
+@login_required
 def create_property():
     try:
         if current_user.role != "landlord":
