@@ -26,6 +26,7 @@ def create_property():
         street_address = data.get('street_address')
         city = data.get('city')
         name = data.get('name')
+        images = request.files.getlist("images")
 
         if not all([size_sqft, price, bedrooms, bathrooms, street_address, city, name]):
             return jsonify({"success": False, "message": "All property fields are required"}), 400

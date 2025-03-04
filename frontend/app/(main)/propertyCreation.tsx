@@ -111,7 +111,7 @@ export default function PropertyCreation() {
   // ------------------------------
   const fetchAccessibilities = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/accessibilities", {
+      const response = await fetch("http://localhost:5000/api/accessibilities", {
         credentials: "include",
       });
       const data = await response.json();
@@ -204,11 +204,8 @@ export default function PropertyCreation() {
         } as any);
       });
       // 3) Send the request to create the property
-      const response = await fetch("http://127.0.0.1:5000/property/create", {
+      const response = await fetch("http://localhost:5000/property/create", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: formData,
         credentials: "include",
       });
