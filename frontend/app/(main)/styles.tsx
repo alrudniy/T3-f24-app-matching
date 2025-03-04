@@ -53,6 +53,34 @@ export const general = StyleSheet.create({
   },
 });
 
+export const modal_error = StyleSheet.create( {
+  modalBackground: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark transparent background
+  },
+  modalContainer: {
+    width: 300,
+    padding: 20,
+    backgroundColor: "white",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalMessage: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+
+});
+
+
 export const button = StyleSheet.create({
   base: {
     backgroundColor: colors.Blue,
@@ -231,6 +259,11 @@ export const container = StyleSheet.create({
     alignItems: "center",
     padding: paddingSize.Large,
     backgroundColor: colors.Pale2,
+  },
+  checkboxRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
   },
   row: {
     flexDirection: "row",
