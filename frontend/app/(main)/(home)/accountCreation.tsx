@@ -167,6 +167,27 @@ export default function AccountCreationView() {
   return (
     <SafeAreaProvider>
       <View style={container.base}>
+        {/* Back Button */}
+        <TouchableOpacity
+          onPress={() => router.push("/accountSelection")} // Navigate back to the home page ("/")
+          style={{
+            position: "absolute",
+            top: 120, // Adjust the top position to place the button properly
+            left: 20,
+            padding: 10,
+            backgroundColor: "white",
+            borderRadius: 50,
+            zIndex: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 5, // Android shadow
+          }}
+        >
+          <Ionicons name="arrow-back" size={30} color="black" />
+        </TouchableOpacity>
+
         <View style={container.header}>
           <Image
             source={require("./assets/images/logo.png")}

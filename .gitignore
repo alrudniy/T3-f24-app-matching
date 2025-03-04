@@ -1,5 +1,4 @@
 node_modules
 .aider*
 .env
-__pycache__/
-backend/routes/__pycache__/
+__pycache__
