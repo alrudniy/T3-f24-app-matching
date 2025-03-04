@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons"; // Importing icons
-import { useRouter, useSegments } from "expo-router"; // Router for navigation
-import { general, button, image, container, text } from "./styles"; // Importing the provided styles
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, useSegments } from "expo-router";
+
+import { general, button, image, container, text } from "./styles"; // Shared styles
 
 interface Property {
   id: number;
@@ -15,15 +16,15 @@ interface Property {
   street: string;
   city: string;
   image_url: string;
-  name: string; // User's first name
-  businessName: string; // User's business name
+  name: string; 
+  businessName: string;
 }
 
 export default function Matching() {
   const [properties, setProperties] = useState<Property[]>([]);
-  const swiperRef = useRef<any>(null); // Use `any` because `react-native-deck-swiper` lacks proper TypeScript types
-  const router = useRouter(); // Expo router for navigation
-  const segments = useSegments(); // Use segments to get the current route
+  const swiperRef = useRef<any>(null);
+  const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     fetchProperties();
@@ -84,20 +85,27 @@ export default function Matching() {
   };
 
   const handleDislike = () => {
-    swiperRef.current?.swipeLeft(); // Trigger a swipe left animation
+    swiperRef.current?.swipeLeft();
   };
 
   const handleLike = () => {
-    const currentIndex = swiperRef.current?.state.cardIndex ?? 0; // Safely access cardIndex
-    swiperRef.current?.swipeRight(); // Trigger a swipe right animation
+    const currentIndex = swiperRef.current?.state.cardIndex ?? 0;
+    swiperRef.current?.swipeRight();
     handleSwipeRight(currentIndex);
   };
 
   const handleSwipeLeft = (index: number) => {
     const property = properties[index];
     if (!property) return;
-
     console.log(`Property ${property.id} discarded`);
+  };
+
+  // Updated Info button to navigate to propertyListing
+  const goToPropertyListing = (propertyId: number) => {
+    router.push({
+      pathname: "/(main)/propertyListing",
+      params: { id: propertyId.toString() },
+    });
   };
 
   const renderCard = (property: Property) => {
@@ -134,13 +142,21 @@ export default function Matching() {
             <Ionicons name="water-outline" size={20} color="#666" />
             <Text style={text.property}>{property.bathrooms} Baths</Text>
           </View>
+
+          {/* Card Buttons (Dislike, Info, Like) */}
           <View style={container.cardButtons}>
             <TouchableOpacity style={button.circular} onPress={handleDislike}>
               <Ionicons name="close-outline" size={30} color="#FF3B30" />
             </TouchableOpacity>
-            <TouchableOpacity style={button.circular} onPress={() => console.log("Info Button")}>
+
+            {/* Info Button => route to propertyListing.tsx */}
+            <TouchableOpacity
+              style={button.circular}
+              onPress={() => goToPropertyListing(property.id)}
+            >
               <Ionicons name="information-circle-outline" size={30} color="#007BFF" />
             </TouchableOpacity>
+
             <TouchableOpacity style={button.circular} onPress={handleLike}>
               <Ionicons name="heart-outline" size={30} color="#4CAF50" />
             </TouchableOpacity>
@@ -152,7 +168,7 @@ export default function Matching() {
 
   return (
     <SafeAreaProvider>
-      {/* Header */}
+      {/* ---------- Header Section ---------- */}
       <View style={container.loggedInHeader}>
         <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
@@ -169,6 +185,7 @@ export default function Matching() {
         </TouchableOpacity>
       </View>
 
+      {/* ---------- Main Content ---------- */}
       <SafeAreaView style={container.base}>
         {properties.length > 0 ? (
           <Swiper
@@ -188,7 +205,7 @@ export default function Matching() {
         )}
       </SafeAreaView>
 
-      {/* Bottom Navigation */}
+      {/* ---------- Bottom Navigation ---------- */}
       <View style={container.navBar}>
         <TouchableOpacity
           style={[container.navBarItem, segments[0] === "matching" && container.activeNavBarItem]}
@@ -203,8 +220,12 @@ export default function Matching() {
             Explore
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={[container.navBarItem, segments[0] === "matchingHistory" && container.activeNavBarItem]}
+          style={[
+            container.navBarItem,
+            segments[0] === "matchingHistory" && container.activeNavBarItem,
+          ]}
           onPress={() => router.push("/matchingHistory")}
         >
           <Ionicons
@@ -212,9 +233,7 @@ export default function Matching() {
             size={24}
             color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
           />
-          <Text
-            style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}
-          >
+          <Text style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}>
             Matches
           </Text>
         </TouchableOpacity>

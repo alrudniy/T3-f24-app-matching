@@ -9,14 +9,13 @@ import {
   Alert,
 } from "react-native";
 import { useRouter, useSegments } from "expo-router";
-import { Ionicons } from "@expo/vector-icons"; // For icons
+import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { general, button, image, container, text } from "./styles";
 
 // ------------------------------
 // Interface Definitions
 // ------------------------------
-
 interface Property {
   id: number;
   name: string;
@@ -27,30 +26,30 @@ interface Property {
   city: string;
   image_url: string;
   user_id: number;
-  businessName?: string; // Optional field for landlord's business
+  businessName?: string;
 }
 
 interface CurrentUser {
   id: number;
   name: string;
   email?: string;
-  // ... any other fields your backend returns for the user
+  // ... any other fields
 }
 
 // ------------------------------
-// Component
+// Main Component
 // ------------------------------
 export default function PropertiesView() {
   const router = useRouter();
-  const segments = useSegments(); // Ex: ["(main)", "properties"]
+  const segments = useSegments(); // e.g., ["(main)", "properties"]
 
-  // State to hold the current user
+  // State for current user
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-  // State to hold the list of properties
+  // State for properties
   const [properties, setProperties] = useState<Property[]>([]);
 
-  // Loading state (for properties)
+  // Loading state
   const [loading, setLoading] = useState(true);
 
   // ------------------------------
@@ -88,12 +87,13 @@ export default function PropertiesView() {
 
       if (data.success) {
         if (userId) {
+          // Show only that user's properties
           const landlordProperties = data.properties.filter(
             (property: Property) => property.user_id === userId
           );
           setProperties(landlordProperties);
         } else {
-          // Or show all properties if user ID is not set
+          // Show all properties
           setProperties(data.properties);
         }
       } else {
@@ -110,14 +110,13 @@ export default function PropertiesView() {
   // ------------------------------
   // useEffect Hooks
   // ------------------------------
-
-  // On first render, attempt to load the current user
   useEffect(() => {
+    // On mount, load current user
     fetchCurrentUser();
   }, []);
 
-  // Once the user is set, fetch that user's properties
   useEffect(() => {
+    // Once we have a current user, fetch their properties
     if (currentUser?.id) {
       fetchProperties(currentUser.id);
     }
@@ -127,7 +126,7 @@ export default function PropertiesView() {
   // Handle "Add Property"
   // ------------------------------
   const handleAddProperty = () => {
-    router.push("/propertyCreation"); // Navigate to the property creation page
+    router.push("/propertyCreation");
   };
 
   // ------------------------------
@@ -135,7 +134,16 @@ export default function PropertiesView() {
   // ------------------------------
   const renderCard = (property: Property) => {
     return (
-      <View key={property.id} style={styles.card}>
+      <TouchableOpacity
+        key={property.id}
+        style={styles.card}
+        onPress={() =>
+          router.push({
+            pathname: "/(main)/propertyListing",
+            params: { id: property.id.toString() },
+          })
+        }
+      >
         <Image
           source={{
             uri: property.image_url || "https://picsum.photos/400/300",
@@ -169,7 +177,7 @@ export default function PropertiesView() {
             <Text style={styles.propertyText}>{property.bathrooms} Baths</Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -209,7 +217,6 @@ export default function PropertiesView() {
           <Text>Loading...</Text>
         ) : (
           <ScrollView contentContainerStyle={styles.propertyList}>
-            {/* Render each property card */}
             {properties.map((property) => renderCard(property))}
 
             {/* Button to add a new property */}

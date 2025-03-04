@@ -119,6 +119,47 @@ def get_properties():
     except Exception as e:
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
 
+# Get a single property
+@properties_bp.route('/api/properties/<int:property_id>', methods=['GET'])
+def get_property(property_id):
+    try:
+        prop = session.query(Property).filter_by(id=property_id).first()
+        if not prop:
+            return jsonify({"success": False, "message": "Property not found"}), 404
+
+        # Decide on a default image if none exist
+        image_url = "https://via.placeholder.com/400x300"
+        if prop.images and len(prop.images) > 0:
+            image_url = f"http://localhost:5000/uploads/{prop.images[0].image_url}"
+
+        # Gather any accessibility data
+        accessibilities = [
+            accessibility.accessibilityType for accessibility in prop.accessibilities
+        ]
+
+        # Build a dict with relevant property info
+        property_data = {
+            "id": prop.id,
+            "name": prop.name,
+            "size_sqft": prop.size_sqft,
+            "price": prop.price,
+            "bedrooms": prop.bedrooms,
+            "bathrooms": prop.bathrooms,
+            "street_address": prop.street_address,  # or "street" if your front-end expects that
+            "city": prop.city,
+            "user_id": prop.user_id,
+            "image_url": image_url,
+            "accessibilities": accessibilities,
+            "businessName": prop.user.businessName if prop.user else None
+        }
+
+        return jsonify({"success": True, "property": property_data}), 200
+
+    except Exception as e:
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+    finally:
+        session.close()
+
 # Delete a property
 @properties_bp.route('/property/delete/<int:property_id>', methods=['DELETE'])
 @login_required
