@@ -15,21 +15,18 @@ import * as ImagePicker from "expo-image-picker";
 import { useRouter, useSegments } from "expo-router";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+
 import { general, button, image, container, text } from "./styles";
 
 // ------------------------------
 // Interfaces
 // ------------------------------
-
-// For the current user
 interface CurrentUser {
   id: number;
   username: string;
   email?: string;
-  // ... any other fields
 }
 
-// For accessibilities
 interface Accessibility {
   id: number;
   type: string;
@@ -42,14 +39,10 @@ export default function PropertyCreation() {
   const router = useRouter();
   const segments = useSegments();
 
-  // ------------------------------
-  // State for Current User
-  // ------------------------------
+  // Current User State
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-  // ------------------------------
   // Property Form State
-  // ------------------------------
   const [form, setForm] = useState({
     name: "",
     street: "",
@@ -60,15 +53,11 @@ export default function PropertyCreation() {
     bathrooms: "",
   });
 
-  // ------------------------------
   // Images
-  // ------------------------------
   const [images, setImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ------------------------------
   // Accessibilities
-  // ------------------------------
   const [accessibilities, setAccessibilities] = useState<Accessibility[]>([]);
   const [selectedAccessibilities, setSelectedAccessibilities] = useState<number[]>([]);
 
@@ -76,9 +65,7 @@ export default function PropertyCreation() {
   // useEffects
   // ------------------------------
   useEffect(() => {
-    // 1) Fetch the current user
     fetchCurrentUser();
-    // 2) Fetch accessibilities
     fetchAccessibilities();
   }, []);
 
@@ -89,9 +76,7 @@ export default function PropertyCreation() {
     try {
       const response = await fetch("http://localhost:5000/api/current-user", {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
       const data = await response.json();
@@ -178,6 +163,7 @@ export default function PropertyCreation() {
         return;
       }
 
+      // 2) Create formData for property creation
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("street_address", form.street);
@@ -187,13 +173,8 @@ export default function PropertyCreation() {
       formData.append("bedrooms", form.bedrooms);
       formData.append("bathrooms", form.bathrooms);
 
-      // 2) Use currentUser.id
+      // Include user_id for reference (the route checks current_user anyway, but it's fine)
       formData.append("user_id", String(currentUser.id));
-
-      // Accessibilities
-      selectedAccessibilities.forEach((id) => {
-        formData.append("accessibilities", id.toString());
-      });
 
       // Images
       images.forEach((image) => {
@@ -203,6 +184,7 @@ export default function PropertyCreation() {
           type: image.type,
         } as any);
       });
+
       // 3) Send the request to create the property
       const response = await fetch("http://localhost:5000/property/create", {
         method: "POST",
@@ -212,12 +194,41 @@ export default function PropertyCreation() {
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
-        Alert.alert("Success", "Property created successfully!");
-        router.push("/(main)/properties");
-      } else {
+      if (!response.ok || !data.success) {
         Alert.alert("Error", data.message || "Property creation failed.");
+        return;
       }
+
+      // The property was created successfully
+      const newPropId = data.property_id; // The newly created property's ID
+      console.log("New property created with ID:", newPropId);
+
+      // 4) If we have selected accessibility IDs, call /property/<id>/add-accessibility
+      if (selectedAccessibilities.length > 0) {
+        const addAccResp = await fetch(
+          `http://localhost:5000/property/${newPropId}/add-accessibility`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ accessibility_ids: selectedAccessibilities }),
+          }
+        );
+        const addAccData = await addAccResp.json();
+        if (!addAccResp.ok || !addAccData.success) {
+          Alert.alert(
+            "Warning",
+            addAccData.message ||
+              "Property created, but adding accessibilities failed."
+          );
+        }
+      }
+
+      // 5) Finally, let user know everything was successful, and navigate
+      Alert.alert("Success", "Property created successfully!");
+      router.push("/(main)/properties");
     } catch (error) {
       console.error("Error during property creation:", error);
       Alert.alert("Error", "An error occurred. Please try again.");
@@ -249,11 +260,7 @@ export default function PropertyCreation() {
       </View>
 
       <SafeAreaView style={container.base}>
-        <ScrollView contentContainerStyle={{
-        padding: 20,
-        paddingBottom: 100,
-      }}>
-          
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
           <Text style={text.title}>Add a Property</Text>
 
           {/* General Information */}
@@ -346,7 +353,7 @@ export default function PropertyCreation() {
           <Button title="Submit" onPress={handleSubmit} color="#4CAF50" />
 
           {loading && (
-            <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20}} />
+            <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />
           )}
         </ScrollView>
 
@@ -379,7 +386,10 @@ export default function PropertyCreation() {
               color={segments[0] === "landlordMatchingHistory" ? "#007BFF" : "#666"}
             />
             <Text
-              style={[text.navBar, segments[0] === "landlordMatchingHistory" && text.activeNavBar]}
+              style={[
+                text.navBar,
+                segments[0] === "landlordMatchingHistory" && text.activeNavBar,
+              ]}
             >
               Matches
             </Text>
@@ -403,7 +413,7 @@ const styles = StyleSheet.create({
   checkboxRow: {
     flexDirection: "row",
     alignItems: "center",
-    width: "45%", // Ensures even layout
+    width: "45%", 
     paddingVertical: 5,
     paddingHorizontal: 10,
   },
