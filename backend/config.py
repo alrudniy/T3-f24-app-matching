@@ -1,7 +1,7 @@
 import os
 
 UPLOAD_FOLDER = './uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png','HEIC', 'jpg', 'jpeg', 'gif'}
 
 DATABASE_CONFIG = {
     "username": "t3",

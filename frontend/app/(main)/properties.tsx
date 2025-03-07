@@ -82,7 +82,7 @@ export default function PropertiesView() {
   // ------------------------------
   const fetchProperties = async (userId?: number) => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/properties");
+      const response = await fetch("http://localhost:5000/api/properties");
       const data = await response.json();
 
       if (data.success) {

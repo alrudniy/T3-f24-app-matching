@@ -18,9 +18,6 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { general, button, image, container, text } from "./styles";
 
-// ------------------------------
-// Interfaces
-// ------------------------------
 interface CurrentUser {
   id: number;
   username: string;
@@ -32,17 +29,14 @@ interface Accessibility {
   type: string;
 }
 
-// ------------------------------
-// Component
-// ------------------------------
 export default function PropertyCreation() {
   const router = useRouter();
   const segments = useSegments();
 
-  // Current User State
+  // Current User
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-  // Property Form State
+  // Form Data
   const [form, setForm] = useState({
     name: "",
     street: "",
@@ -61,17 +55,12 @@ export default function PropertyCreation() {
   const [accessibilities, setAccessibilities] = useState<Accessibility[]>([]);
   const [selectedAccessibilities, setSelectedAccessibilities] = useState<number[]>([]);
 
-  // ------------------------------
-  // useEffects
-  // ------------------------------
   useEffect(() => {
     fetchCurrentUser();
     fetchAccessibilities();
   }, []);
 
-  // ------------------------------
-  // 1. Fetch Current User
-  // ------------------------------
+  // 1) Fetch current user
   const fetchCurrentUser = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/current-user", {
@@ -91,9 +80,7 @@ export default function PropertyCreation() {
     }
   };
 
-  // ------------------------------
-  // 2. Fetch Accessibilities
-  // ------------------------------
+  // 2) Fetch accessibilities
   const fetchAccessibilities = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/accessibilities", {
@@ -111,19 +98,16 @@ export default function PropertyCreation() {
     }
   };
 
-  // ------------------------------
-  // Handle Form Input
-  // ------------------------------
+  // Handle form inputs
   const handleInputChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  // ------------------------------
-  // Image Upload
-  // ------------------------------
+  // Use old MediaTypeOptions to avoid type errors
   const handleImageUpload = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
+        // Old approach: no type error, but may show deprecation warning at runtime
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
@@ -131,10 +115,17 @@ export default function PropertyCreation() {
       });
 
       if (!result.canceled) {
-        const uri = result.assets[0].uri;
-        const filename = uri.split("/").pop(); // Extract filename
-        const type = `image/${uri.split(".").pop()}`; // Extract MIME type
-        setImages((prev) => [...prev, { uri, name: filename, type }]);
+        const picked = result.assets[0];
+        console.log("Picked image:", picked.uri);
+
+        const filename = picked.uri.split("/").pop();
+        const extension = picked.uri.split(".").pop();
+        const type = `image/${extension}`;
+
+        setImages((prev) => [
+          ...prev,
+          { uri: picked.uri, name: filename, type },
+        ]);
       }
     } catch (error) {
       console.error("Image upload error:", error);
@@ -142,28 +133,22 @@ export default function PropertyCreation() {
     }
   };
 
-  // ------------------------------
-  // Toggle Accessibility
-  // ------------------------------
   const handleToggleAccessibility = (id: number) => {
     setSelectedAccessibilities((prev) =>
       prev.includes(id) ? prev.filter((accId) => accId !== id) : [...prev, id]
     );
   };
 
-  // ------------------------------
-  // Submit Property
-  // ------------------------------
-  const handleSubmit = async () => {
-    setLoading(true);
+  // Step One: Create property (no images)
+  const createProperty = async (): Promise<number | null> => {
     try {
-      // 1) Make sure user is loaded
       if (!currentUser?.id) {
         Alert.alert("Error", "No user ID found. Please log in.");
-        return;
+        return null;
       }
 
-      // 2) Create formData for property creation
+      setLoading(true);
+
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("street_address", form.street);
@@ -172,74 +157,129 @@ export default function PropertyCreation() {
       formData.append("price", form.value);
       formData.append("bedrooms", form.bedrooms);
       formData.append("bathrooms", form.bathrooms);
+      formData.append("user_id", String(currentUser.id)); // optional
 
-      // Include user_id for reference (the route checks current_user anyway, but it's fine)
-      formData.append("user_id", String(currentUser.id));
-
-      // Images
-      images.forEach((image) => {
-        formData.append("images", {
-          uri: image.uri,
-          name: image.name,
-          type: image.type,
-        } as any);
-      });
-
-      // 3) Send the request to create the property
       const response = await fetch("http://localhost:5000/property/create", {
         method: "POST",
         body: formData,
         credentials: "include",
       });
-
       const data = await response.json();
 
       if (!response.ok || !data.success) {
         Alert.alert("Error", data.message || "Property creation failed.");
-        return;
+        return null;
       }
 
-      // The property was created successfully
-      const newPropId = data.property_id; // The newly created property's ID
-      console.log("New property created with ID:", newPropId);
-
-      // 4) If we have selected accessibility IDs, call /property/<id>/add-accessibility
-      if (selectedAccessibilities.length > 0) {
-        const addAccResp = await fetch(
-          `http://localhost:5000/property/${newPropId}/add-accessibility`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({ accessibility_ids: selectedAccessibilities }),
-          }
-        );
-        const addAccData = await addAccResp.json();
-        if (!addAccResp.ok || !addAccData.success) {
-          Alert.alert(
-            "Warning",
-            addAccData.message ||
-              "Property created, but adding accessibilities failed."
-          );
-        }
-      }
-
-      // 5) Finally, let user know everything was successful, and navigate
-      Alert.alert("Success", "Property created successfully!");
-      router.push("/(main)/properties");
+      console.log("Property created with ID:", data.property_id);
+      return data.property_id;
     } catch (error) {
-      console.error("Error during property creation:", error);
+      console.error("Error creating property:", error);
       Alert.alert("Error", "An error occurred. Please try again.");
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  // ------------------------------
-  // Render
-  // ------------------------------
+  // Step Two: Upload images
+  const uploadImages = async (propertyId: number) => {
+    try {
+      if (images.length === 0) {
+        console.log("No images to upload.");
+        return;
+      }
+
+      console.log("Uploading images:", images.length);
+      images.forEach((img) =>
+        console.log("Name:", img.name, "Type:", img.type, "URI:", img.uri)
+      );
+
+      const formData = new FormData();
+      images.forEach((img) => {
+        formData.append("images", {
+          uri: img.uri,
+          name: img.name,
+          type: img.type,
+        } as any);
+      });
+
+      setLoading(true);
+
+      const response = await fetch(
+        `http://localhost:5000/property/${propertyId}/upload-images`,
+        {
+          method: "POST",
+          body: formData,
+          credentials: "include",
+        }
+      );
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        Alert.alert("Warning", data.message || "Images upload failed.");
+      } else {
+        console.log("Images uploaded successfully:", data.images);
+      }
+    } catch (error) {
+      console.error("Error uploading images:", error);
+      Alert.alert("Warning", "Property created, but images upload failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step Three: Add Accessibilities
+  const addAccessibilities = async (propertyId: number) => {
+    try {
+      if (selectedAccessibilities.length === 0) return;
+
+      setLoading(true);
+
+      const response = await fetch(
+        `http://localhost:5000/property/${propertyId}/add-accessibility`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            accessibility_ids: selectedAccessibilities,
+          }),
+        }
+      );
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        Alert.alert(
+          "Warning",
+          data.message || "Property created, but adding accessibilities failed."
+        );
+      } else {
+        console.log("Accessibilities added:", selectedAccessibilities);
+      }
+    } catch (error) {
+      console.error("Error adding accessibilities:", error);
+      Alert.alert(
+        "Warning",
+        "Property created, but adding accessibilities failed."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Combined flow
+  const handleSubmit = async () => {
+    const propertyId = await createProperty();
+    if (!propertyId) return;
+
+    await uploadImages(propertyId);
+    await addAccessibilities(propertyId);
+
+    Alert.alert("Success", "Property created successfully!");
+    router.push("/(main)/properties");
+  };
+
   return (
     <SafeAreaProvider>
       {/* Header */}
@@ -349,7 +389,7 @@ export default function PropertyCreation() {
             <Text style={button.imageUploadText}>Select Images</Text>
           </TouchableOpacity>
 
-          {/* Submit Button */}
+          {/* Submit */}
           <Button title="Submit" onPress={handleSubmit} color="#4CAF50" />
 
           {loading && (
@@ -373,6 +413,7 @@ export default function PropertyCreation() {
             />
             <Text style={text.navBar}>Properties</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={[
               container.navBarItem,
@@ -400,9 +441,6 @@ export default function PropertyCreation() {
   );
 }
 
-// ------------------------------
-// Local Styles
-// ------------------------------
 const styles = StyleSheet.create({
   accessibilityContainer: {
     flexDirection: "row",
@@ -413,7 +451,7 @@ const styles = StyleSheet.create({
   checkboxRow: {
     flexDirection: "row",
     alignItems: "center",
-    width: "45%", 
+    width: "45%",
     paddingVertical: 5,
     paddingHorizontal: 10,
   },

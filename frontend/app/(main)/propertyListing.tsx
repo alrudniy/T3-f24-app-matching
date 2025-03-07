@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useLocalSearchParams } from "expo-router"; 
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 // Import your shared styles
 import { container, image, text } from "./styles";
@@ -27,11 +27,12 @@ interface Property {
   price: number;
   street_address: string;
   city: string;
-  image_url: string;     // Single image
-  images?: string[];     // Optional array of multiple images
+  image_url: string; // Single image fallback
+  images?: string[]; // Optional array of multiple images
   user_id: number;
-  businessName?: string; 
-  description?: string;  // If your API includes a description
+  businessName?: string;
+  description?: string; 
+  accessibilities?: string[]; // If your backend sends an array of strings
 }
 
 interface ApiResponse {
@@ -45,10 +46,7 @@ interface ApiResponse {
 // ------------------------------
 export default function PropertyListing() {
   const router = useRouter();
-
-  // Pull the "id" route parameter (e.g., /propertyListing?id=123)
   const { id } = useLocalSearchParams();
-  // Force picking the first value if id is an array
   const propertyId = Array.isArray(id) ? id[0] : id;
 
   const [property, setProperty] = useState<Property | null>(null);
@@ -59,7 +57,7 @@ export default function PropertyListing() {
   // ------------------------------
   const fetchPropertyDetails = async (propId: string) => {
     try {
-      const response = await fetch(`http://127.0.0.1:5000/api/properties/${propId}`);
+      const response = await fetch(`http://localhost:5000/api/properties/${propId}`);
       const data: ApiResponse = await response.json();
       if (data.success && data.property) {
         setProperty(data.property);
@@ -87,11 +85,13 @@ export default function PropertyListing() {
   }, [propertyId]);
 
   // ------------------------------
-  // Render the image carousel
+  // Render the image carousel or single image
   // ------------------------------
   const renderImages = () => {
-    // If there's an array of multiple images, display them in a horizontal scroll
-    if (property?.images && property.images.length > 0) {
+    if (!property) return null;
+
+    // If multiple images exist
+    if (property.images && property.images.length > 1) {
       return (
         <ScrollView
           horizontal
@@ -111,12 +111,11 @@ export default function PropertyListing() {
       );
     }
 
-    // Otherwise, show the single image
+    // Otherwise, single image fallback
+    const fallbackUri = property.image_url || "https://picsum.photos/400/300";
     return (
       <Image
-        source={{
-          uri: property?.image_url || "https://picsum.photos/400/300",
-        }}
+        source={{ uri: fallbackUri }}
         style={styles.carouselImage}
         resizeMode="cover"
       />
@@ -157,38 +156,69 @@ export default function PropertyListing() {
           <Text>Loading...</Text>
         ) : property ? (
           <ScrollView contentContainerStyle={styles.scrollContent}>
-            {/* Image(s) */}
+            {/* Image Section */}
             {renderImages()}
 
-            {/* Property Info */}
+            {/* Title / Name */}
             <Text style={styles.title}>{property.name}</Text>
-            <View style={styles.infoRow}>
-              <Ionicons name="location-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>
-                {property.street_address}, {property.city}
-              </Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="bed-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{property.bedrooms} Beds</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="water-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>{property.bathrooms} Baths</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Ionicons name="cash-outline" size={20} color="#666" />
-              <Text style={styles.infoText}>
-                ${property.price?.toLocaleString()}
-              </Text>
+
+            {/* Two Columns: Left - property details, Right - accessibilities */}
+            <View style={styles.detailsContainer}>
+              {/* Left Column - Basic Details */}
+              <View style={styles.leftColumn}>
+                <View style={styles.infoRow}>
+                  <Ionicons name="location-outline" size={20} color="#666" />
+                  <Text style={styles.infoText}>
+                    {property.street_address}, {property.city}
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Ionicons name="bed-outline" size={20} color="#666" />
+                  <Text style={styles.infoText}>
+                    {property.bedrooms} Beds
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Ionicons name="water-outline" size={20} color="#666" />
+                  <Text style={styles.infoText}>
+                    {property.bathrooms} Baths
+                  </Text>
+                </View>
+
+                <View style={styles.infoRow}>
+                  <Ionicons name="cash-outline" size={20} color="#666" />
+                  <Text style={styles.infoText}>
+                    ${property.price?.toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Right Column - Accessibilities */}
+              <View style={styles.rightColumn}>
+                <Text style={styles.sectionHeader}>Accessibilities</Text>
+                {property.accessibilities && property.accessibilities.length > 0 ? (
+                  property.accessibilities.map((acc, index) => (
+                    <View style={styles.accessibilityRow} key={index}>
+                      <Ionicons name="arrow-forward-outline" size={18} color="#666" />
+                      <Text style={styles.accessibilityText}>{acc}</Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text style={styles.noAccessMsg}>
+                    No specific accessibilities listed.
+                  </Text>
+                )}
+              </View>
             </View>
 
-            {/* Optional description or extra fields */}
+            {/* Optional description */}
             {property.description && (
               <Text style={styles.description}>{property.description}</Text>
             )}
 
-            {/* Back button or any additional actions */}
+            {/* Back Button */}
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Text style={styles.backButtonText}>
                 <Ionicons name="arrow-back" size={16} color="#fff" /> Go Back
@@ -236,6 +266,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
+
+  // Carousel or Single Image
   carousel: {
     width: "100%",
     height: 250,
@@ -247,25 +279,68 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 5,
   },
+
+  // Titles / Headings
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 10,
+    marginBottom: 15,
+    marginTop: 5,
   },
+  sectionHeader: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+
+  // Two Column Layout
+  detailsContainer: {
+    flexDirection: "row",
+    marginBottom: 20,
+  },
+  leftColumn: {
+    flex: 1,
+    marginRight: 10,
+  },
+  rightColumn: {
+    flex: 1,
+    marginLeft: 10,
+  },
+
+  // Info Rows
   infoRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 5,
+    marginBottom: 8,
   },
   infoText: {
     marginLeft: 8,
     fontSize: 16,
   },
+
+  // Accessibilities
+  accessibilityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  accessibilityText: {
+    marginLeft: 8,
+    fontSize: 15,
+  },
+  noAccessMsg: {
+    fontSize: 15,
+    fontStyle: "italic",
+  },
+
+  // Description
   description: {
     marginTop: 15,
     fontSize: 16,
     lineHeight: 20,
   },
+
+  // Back button
   backButton: {
     backgroundColor: "#666",
     paddingVertical: 10,
