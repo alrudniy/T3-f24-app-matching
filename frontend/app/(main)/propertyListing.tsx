@@ -12,8 +12,6 @@ import {
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
-
-// Import your shared styles
 import { container, image, text } from "./styles";
 
 // ------------------------------
@@ -31,8 +29,8 @@ interface Property {
   images?: string[]; // Optional array of multiple images
   user_id: number;
   businessName?: string;
-  description?: string; 
-  accessibilities?: string[]; // If your backend sends an array of strings
+  description?: string;
+  accessibilities?: string[];
 }
 
 interface ApiResponse {
@@ -51,6 +49,9 @@ export default function PropertyListing() {
 
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Local state to track which image index we're on
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   // ------------------------------
   // Fetch property details by ID
@@ -85,40 +86,62 @@ export default function PropertyListing() {
   }, [propertyId]);
 
   // ------------------------------
-  // Render the image carousel or single image
+  // Arrow-based Carousel for Multiple Images
+  // ------------------------------
+  const handleNextImage = () => {
+    if (!property?.images) return;
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % property.images!.length);
+  };
+
+  const handlePrevImage = () => {
+    if (!property?.images) return;
+    setCurrentIndex((prevIndex) => {
+      return (prevIndex + property.images!.length - 1) % property.images!.length;
+    });
+  };
+
+  // ------------------------------
+  // Render the image or carousel
   // ------------------------------
   const renderImages = () => {
     if (!property) return null;
 
-    // If multiple images exist
-    if (property.images && property.images.length > 1) {
+    const { images, image_url } = property;
+    // If multiple images exist, show arrow-based carousel
+    if (images && images.length > 1) {
+      const currentImageUri = images[currentIndex];
+
       return (
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          style={styles.carousel}
-        >
-          {property.images.map((imgUrl, index) => (
-            <Image
-              key={index}
-              source={{ uri: imgUrl }}
-              style={styles.carouselImage}
-              resizeMode="cover"
-            />
-          ))}
-        </ScrollView>
+        <View style={styles.carouselContainer}>
+          <Image
+            source={{ uri: currentImageUri }}
+            style={styles.carouselImage}
+            resizeMode="cover"
+          />
+
+          {/* Left Arrow */}
+          <TouchableOpacity style={styles.arrowLeft} onPress={handlePrevImage}>
+            <Ionicons name="chevron-back-outline" size={28} color="#fff" />
+          </TouchableOpacity>
+
+          {/* Right Arrow */}
+          <TouchableOpacity style={styles.arrowRight} onPress={handleNextImage}>
+            <Ionicons name="chevron-forward-outline" size={28} color="#fff" />
+          </TouchableOpacity>
+        </View>
       );
     }
 
     // Otherwise, single image fallback
-    const fallbackUri = property.image_url || "https://picsum.photos/400/300";
+    const fallbackUri = image_url || "https://picsum.photos/400/300";
     return (
-      <Image
-        source={{ uri: fallbackUri }}
-        style={styles.carouselImage}
-        resizeMode="cover"
-      />
+      <View style={styles.carouselContainer}>
+        <Image
+          source={{ uri: fallbackUri }}
+          style={styles.carouselImage}
+          resizeMode="cover"
+        />
+      </View>
     );
   };
 
@@ -156,62 +179,57 @@ export default function PropertyListing() {
           <Text>Loading...</Text>
         ) : property ? (
           <ScrollView contentContainerStyle={styles.scrollContent}>
-            {/* Image Section */}
+            {/* Image or Carousel Section */}
             {renderImages()}
 
-            {/* Title / Name */}
-            <Text style={styles.title}>{property.name}</Text>
+            {/* Title / Address */}
+            <Text style={styles.propertyTitle}>{property.name}</Text>
+            <Text style={styles.propertyAddress}>
+              {property.street_address}, {property.city}
+            </Text>
 
-            {/* Two Columns: Left - property details, Right - accessibilities */}
-            <View style={styles.detailsContainer}>
-              {/* Left Column - Basic Details */}
-              <View style={styles.leftColumn}>
-                <View style={styles.infoRow}>
-                  <Ionicons name="location-outline" size={20} color="#666" />
-                  <Text style={styles.infoText}>
-                    {property.street_address}, {property.city}
-                  </Text>
-                </View>
-
-                <View style={styles.infoRow}>
-                  <Ionicons name="bed-outline" size={20} color="#666" />
-                  <Text style={styles.infoText}>
-                    {property.bedrooms} Beds
-                  </Text>
-                </View>
-
-                <View style={styles.infoRow}>
-                  <Ionicons name="water-outline" size={20} color="#666" />
-                  <Text style={styles.infoText}>
-                    {property.bathrooms} Baths
-                  </Text>
-                </View>
-
-                <View style={styles.infoRow}>
-                  <Ionicons name="cash-outline" size={20} color="#666" />
-                  <Text style={styles.infoText}>
-                    ${property.price?.toLocaleString()}
-                  </Text>
-                </View>
+            {/* Property Info Rows */}
+            <View style={styles.propertyInfoSection}>
+              {/* Bedrooms */}
+              <View style={styles.infoRowLarge}>
+                <Ionicons name="bed-outline" size={24} color="#007BFF" style={styles.infoIcon} />
+                <Text style={styles.infoRowText}>
+                  {property.bedrooms} Bedrooms
+                </Text>
               </View>
 
-              {/* Right Column - Accessibilities */}
-              <View style={styles.rightColumn}>
-                <Text style={styles.sectionHeader}>Accessibilities</Text>
-                {property.accessibilities && property.accessibilities.length > 0 ? (
-                  property.accessibilities.map((acc, index) => (
-                    <View style={styles.accessibilityRow} key={index}>
-                      <Ionicons name="arrow-forward-outline" size={18} color="#666" />
-                      <Text style={styles.accessibilityText}>{acc}</Text>
-                    </View>
-                  ))
-                ) : (
-                  <Text style={styles.noAccessMsg}>
-                    No specific accessibilities listed.
-                  </Text>
-                )}
+              {/* Bathrooms */}
+              <View style={styles.infoRowLarge}>
+                <Ionicons name="water-outline" size={24} color="#007BFF" style={styles.infoIcon} />
+                <Text style={styles.infoRowText}>
+                  {property.bathrooms} Bathrooms
+                </Text>
+              </View>
+
+              {/* Price */}
+              <View style={styles.infoRowLarge}>
+                <Ionicons name="cash-outline" size={24} color="#007BFF" style={styles.infoIcon} />
+                <Text style={styles.infoRowText}>
+                  ${property.price?.toLocaleString()}
+                </Text>
               </View>
             </View>
+
+            {/* Accessibilities Section */}
+            <Text style={styles.sectionHeader}>Accessibilities</Text>
+            {property.accessibilities && property.accessibilities.length > 0 ? (
+              <View style={styles.accessibilitySection}>
+                {property.accessibilities.map((acc, index) => (
+                  <View style={styles.accessibilityBox} key={index}>
+                    <Text style={styles.accessibilityBoxText}>{acc}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.noAccessMsg}>
+                No specific accessibilities listed.
+              </Text>
+            )}
 
             {/* Optional description */}
             {property.description && (
@@ -256,6 +274,7 @@ export default function PropertyListing() {
 // Local Styles
 // ------------------------------
 const { width } = Dimensions.get("window");
+const imageWidth = width - 40; // subtract horizontal padding
 
 const styles = StyleSheet.create({
   container: {
@@ -267,77 +286,109 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // Carousel or Single Image
-  carousel: {
+  // Carousel Container
+  carouselContainer: {
     width: "100%",
-    height: 250,
+    height: 280,
     marginBottom: 20,
+    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
   },
   carouselImage: {
-    width: width - 40, // subtract horizontal padding
-    height: 250,
+    width: imageWidth,
+    height: 280,
     borderRadius: 10,
-    marginRight: 5,
+  },
+
+  // Carousel Arrows
+  arrowLeft: {
+    position: "absolute",
+    left: 20,
+    top: "50%",
+    transform: [{ translateY: -14 }],
+    zIndex: 2,
+  },
+  arrowRight: {
+    position: "absolute",
+    right: 20,
+    top: "50%",
+    transform: [{ translateY: -14 }],
+    zIndex: 2,
   },
 
   // Titles / Headings
-  title: {
-    fontSize: 24,
+  propertyTitle: {
+    fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 15,
-    marginTop: 5,
+    marginBottom: 5,
   },
-  sectionHeader: {
-    fontSize: 16,
+  propertyAddress: {
+    fontSize: 20,
     fontWeight: "600",
-    marginBottom: 8,
-  },
-
-  // Two Column Layout
-  detailsContainer: {
-    flexDirection: "row",
+    color: "#555",
     marginBottom: 20,
   },
-  leftColumn: {
-    flex: 1,
-    marginRight: 10,
-  },
-  rightColumn: {
-    flex: 1,
-    marginLeft: 10,
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 10,
+    marginTop: 10,
   },
 
-  // Info Rows
-  infoRow: {
+  // Property Info
+  propertyInfoSection: {
+    marginBottom: 20,
+  },
+  infoRowLarge: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
+    backgroundColor: "#f7f7f7",
+    borderRadius: 8,
+    padding: 15,
   },
-  infoText: {
-    marginLeft: 8,
-    fontSize: 16,
+  infoIcon: {
+    marginRight: 10,
+  },
+  infoRowText: {
+    fontSize: 18,
+    fontWeight: "500",
+    color: "#333",
   },
 
   // Accessibilities
-  accessibilityRow: {
+  accessibilitySection: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 5,
+    flexWrap: "wrap",
+    marginBottom: 20,
   },
-  accessibilityText: {
-    marginLeft: 8,
-    fontSize: 15,
+  accessibilityBox: {
+    backgroundColor: "#007BFF22",
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  accessibilityBoxText: {
+    color: "#007BFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
   noAccessMsg: {
-    fontSize: 15,
+    fontSize: 16,
     fontStyle: "italic",
+    color: "#555",
+    marginBottom: 20,
   },
 
   // Description
   description: {
-    marginTop: 15,
+    marginTop: 10,
     fontSize: 16,
     lineHeight: 20,
+    marginBottom: 20,
   },
 
   // Back button
@@ -346,7 +397,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 15,
     borderRadius: 8,
-    marginTop: 20,
+    marginTop: 5,
     alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
