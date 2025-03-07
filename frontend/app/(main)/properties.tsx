@@ -22,11 +22,12 @@ interface Property {
   bedrooms: number;
   bathrooms: number;
   price: number;
-  street_address: string;
+  street: string; // <== The API uses "street"
   city: string;
   image_url: string;
   user_id: number;
   businessName?: string;
+  accessibilities?: string[]; // If the API includes this
 }
 
 interface CurrentUser {
@@ -133,6 +134,11 @@ export default function PropertiesView() {
   // Render a single property card
   // ------------------------------
   const renderCard = (property: Property) => {
+    // Pre-calculate the first two accessibilities plus "..."
+    const access = property.accessibilities || [];
+    const firstTwo = access.slice(0, 2);
+    const hasMore = access.length > 2;
+
     return (
       <TouchableOpacity
         key={property.id}
@@ -144,37 +150,64 @@ export default function PropertiesView() {
           })
         }
       >
+        {/* Property Image */}
         <Image
           source={{
             uri: property.image_url || "https://picsum.photos/400/300",
           }}
           style={styles.propertyImage}
         />
-        <View style={styles.propertyDetails}>
-          <Text style={styles.propertyName}>{property.name}</Text>
 
-          <View style={styles.propertyRow}>
-            <Ionicons name="location-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>
-              {property.street_address}, {property.city}
-            </Text>
+        {/* Main content container (two columns) */}
+        <View style={styles.cardContent}>
+          {/* Left Column: Basic Property Info */}
+          <View style={styles.leftColumn}>
+            <Text style={styles.propertyName}>{property.name}</Text>
+
+            {/* Address */}
+            <View style={styles.propertyRow}>
+              <Ionicons name="location-outline" size={20} color="#666" />
+              <Text style={styles.propertyText}>
+                {property.street}, {property.city}
+              </Text>
+            </View>
+
+            {/* Price */}
+            <View style={styles.propertyRow}>
+              <Ionicons name="cash-outline" size={20} color="#666" />
+              <Text style={styles.propertyText}>
+                ${property.price.toLocaleString()}
+              </Text>
+            </View>
+
+            {/* Bedrooms */}
+            <View style={styles.propertyRow}>
+              <Ionicons name="bed-outline" size={20} color="#666" />
+              <Text style={styles.propertyText}>
+                {property.bedrooms} Beds
+              </Text>
+            </View>
+
+            {/* Bathrooms */}
+            <View style={styles.propertyRow}>
+              <Ionicons name="water-outline" size={20} color="#666" />
+              <Text style={styles.propertyText}>
+                {property.bathrooms} Baths
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.propertyRow}>
-            <Ionicons name="resize-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>
-              {property.price.toLocaleString()}
-            </Text>
-          </View>
-
-          <View style={styles.propertyRow}>
-            <Ionicons name="bed-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>{property.bedrooms} Beds</Text>
-          </View>
-
-          <View style={styles.propertyRow}>
-            <Ionicons name="water-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>{property.bathrooms} Baths</Text>
+          {/* Right Column: First 2 Accessibilities & "..." (left-aligned) */}
+          <View style={styles.rightColumn}>
+            {firstTwo.map((acc, idx) => (
+              <View style={styles.accessibilityRow} key={idx}>
+                <Ionicons name="arrow-forward-outline" size={18} color="#666" />
+                <Text style={styles.accessibilityText}>{acc}</Text>
+              </View>
+            ))}
+            {hasMore && (
+              <Text style={styles.moreAccess}>...</Text>
+            )}
           </View>
         </View>
       </TouchableOpacity>
@@ -287,6 +320,7 @@ const styles = StyleSheet.create({
   propertyList: {
     marginBottom: 20,
   },
+
   card: {
     backgroundColor: "white",
     borderRadius: 10,
@@ -306,9 +340,24 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
   },
-  propertyDetails: {
-    padding: 5,
+
+  // Two columns for details + access
+  cardContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
+  leftColumn: {
+    flex: 2,
+    paddingRight: 10,
+  },
+  rightColumn: {
+    flex: 1,
+    // Align text to the left
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
+
+  // Basic property info
   propertyName: {
     fontSize: 18,
     fontWeight: "bold",
@@ -323,6 +372,26 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontSize: 16,
   },
+
+  // Accessibilities
+  accessibilityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 2,
+  },
+  accessibilityText: {
+    marginLeft: 5,
+    fontSize: 14,
+    color: "#333",
+  },
+  moreAccess: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#666",
+    marginTop: 2,
+  },
+
+  // Add button
   addButton: {
     backgroundColor: "#4CAF50",
     paddingVertical: 10,
