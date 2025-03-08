@@ -52,30 +52,42 @@ def get_matched_properties():
         matched_properties = []
 
         for match in matches:
-            property = session.query(Property).filter_by(id=match.property_id).first()
-            if property:
+            prop = session.query(Property).filter_by(id=match.property_id).first()
+            if prop:
                 # Retrieve the first image URL or use a placeholder
                 image_url = "https://via.placeholder.com/400x300"
-                if property.images and len(property.images) > 0:
-                    image_url = f"http://localhost:5000/uploads/{property.images[0].image_url}"
+                if prop.images and len(prop.images) > 0:
+                    image_url = f"http://localhost:5000/uploads/{prop.images[0].image_url}"
+
+                # Gather accessibilities if your `Property` model has a relationship like `prop.accessibilities`
+                # that references a list of `Accessibility` objects.
+                accessibilities = []
+                if prop.accessibilities:
+                    accessibilities = [
+                        acc.accessibilityType for acc in prop.accessibilities
+                    ]
 
                 matched_properties.append({
-                    "id": property.id,
-                    "name": property.name,
-                    "size_sqft": property.size_sqft,
-                    "price": property.price,
-                    "bedrooms": property.bedrooms,
-                    "bathrooms": property.bathrooms,
-                    "street": property.street_address,
-                    "city": property.city,
+                    "id": prop.id,
+                    "name": prop.name,
+                    "size_sqft": prop.size_sqft,
+                    "price": prop.price,
+                    "bedrooms": prop.bedrooms,
+                    "bathrooms": prop.bathrooms,
+                    "street": prop.street_address,
+                    "city": prop.city,
                     "image_url": image_url,
-                    "businessName": property.user.businessName if property.user else None
+                    "businessName": prop.user.businessName if prop.user else None,
+                    "accessibilities": accessibilities,   # <--- include accessibilities
                 })
 
         return jsonify({"success": True, "matched_properties": matched_properties}), 200
     except Exception as e:
         traceback.print_exc()
         return jsonify({"success": False, "message": "An error occurred", "error": str(e)}), 500
+    finally:
+        session.close()
+
 
 #Get all matched properties for the current landlord user
 @matches_bp.route("/api/landlord/matched-tenants", methods=["GET"])
