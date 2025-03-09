@@ -36,11 +36,12 @@ export default function PropertyCreation() {
   // Current User
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-  // Form Data
+  // Form Data (added "description")
   const [form, setForm] = useState({
     name: "",
     street: "",
     city: "",
+    description: "", // ← NEW field for description
     size: "",
     value: "",
     bedrooms: "",
@@ -107,7 +108,6 @@ export default function PropertyCreation() {
   const handleImageUpload = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        // Old approach: no type error, but may show deprecation warning at runtime
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
@@ -153,11 +153,12 @@ export default function PropertyCreation() {
       formData.append("name", form.name);
       formData.append("street_address", form.street);
       formData.append("city", form.city);
+      formData.append("description", form.description);
       formData.append("size_sqft", form.size);
       formData.append("price", form.value);
       formData.append("bedrooms", form.bedrooms);
       formData.append("bathrooms", form.bathrooms);
-      formData.append("user_id", String(currentUser.id)); // optional
+      formData.append("user_id", String(currentUser.id));
 
       const response = await fetch("http://localhost:5000/property/create", {
         method: "POST",
@@ -259,10 +260,7 @@ export default function PropertyCreation() {
       }
     } catch (error) {
       console.error("Error adding accessibilities:", error);
-      Alert.alert(
-        "Warning",
-        "Property created, but adding accessibilities failed."
-      );
+      Alert.alert("Warning", "Property created, but adding accessibilities failed.");
     } finally {
       setLoading(false);
     }
@@ -324,6 +322,16 @@ export default function PropertyCreation() {
             onChangeText={(txt) => handleInputChange("city", txt)}
           />
 
+          {/*Description Input */}
+          <TextInput
+            placeholder="Description"
+            style={[container.input, styles.multilineInput]}
+            value={form.description}
+            onChangeText={(txt) => handleInputChange("description", txt)}
+            multiline
+            numberOfLines={4}
+          />
+
           {/* Property Details */}
           <Text style={text.sectionHeader}>Details</Text>
           <View style={container.row}>
@@ -334,7 +342,7 @@ export default function PropertyCreation() {
               onChangeText={(txt) => handleInputChange("size", txt)}
             />
             <TextInput
-              placeholder="Value"
+              placeholder="Price"
               style={[container.input, general.halfWidth]}
               value={form.value}
               onChangeText={(txt) => handleInputChange("value", txt)}
@@ -374,9 +382,7 @@ export default function PropertyCreation() {
                       : "square-outline"
                   }
                   size={24}
-                  color={
-                    selectedAccessibilities.includes(acc.id) ? "#4CAF50" : "#666"
-                  }
+                  color={selectedAccessibilities.includes(acc.id) ? "#4CAF50" : "#666"}
                 />
                 <Text style={styles.checkboxLabel}>{acc.type}</Text>
               </TouchableOpacity>
@@ -400,10 +406,7 @@ export default function PropertyCreation() {
         {/* Bottom Navigation */}
         <View style={container.navBar}>
           <TouchableOpacity
-            style={[
-              container.navBarItem,
-              segments[1] === "properties" && container.activeNavBarItem,
-            ]}
+            style={[container.navBarItem, segments[1] === "properties" && container.activeNavBarItem]}
             onPress={() => router.push("/(main)/properties")}
           >
             <Ionicons
@@ -413,12 +416,8 @@ export default function PropertyCreation() {
             />
             <Text style={text.navBar}>Properties</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
-            style={[
-              container.navBarItem,
-              segments[0] === "landlordMatchingHistory" && container.activeNavBarItem,
-            ]}
+            style={[container.navBarItem, segments[0] === "landlordMatchingHistory" && container.activeNavBarItem]}
             onPress={() => router.push("/(main)/landlordMatchingHistory")}
           >
             <Ionicons
@@ -426,12 +425,7 @@ export default function PropertyCreation() {
               size={24}
               color={segments[0] === "landlordMatchingHistory" ? "#007BFF" : "#666"}
             />
-            <Text
-              style={[
-                text.navBar,
-                segments[0] === "landlordMatchingHistory" && text.activeNavBar,
-              ]}
-            >
+            <Text style={[text.navBar, segments[0] === "landlordMatchingHistory" && text.activeNavBar]}>
               Matches
             </Text>
           </TouchableOpacity>
@@ -442,6 +436,11 @@ export default function PropertyCreation() {
 }
 
 const styles = StyleSheet.create({
+  multilineInput: {
+    height: 100,
+    textAlignVertical: "top",
+    padding: 10,
+  },
   accessibilityContainer: {
     flexDirection: "row",
     flexWrap: "wrap",

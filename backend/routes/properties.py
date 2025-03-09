@@ -27,15 +27,12 @@ def create_property():
         street_address = data.get('street_address')
         city = data.get('city')
         name = data.get('name')
-
-        # The route doesn't actually handle images in this file
-        # images = request.files.getlist("images")  # (Handled elsewhere or in your uploads.py)
+        description = data.get('description', "")
 
         # Validate required fields
         if not all([size_sqft, price, bedrooms, bathrooms, street_address, city, name]):
             return jsonify({"success": False, "message": "All property fields are required"}), 400
 
-        # Create the property
         new_property = Property(
             size_sqft=float(size_sqft),
             price=float(price),
@@ -44,7 +41,8 @@ def create_property():
             street_address=street_address,
             city=city,
             name=name,
-            user_id=current_user.id
+            user_id=current_user.id,
+            description=description
         )
 
         session.add(new_property)
@@ -106,7 +104,7 @@ def get_properties():
         property_list = []
 
         for prop in properties:
-            # Build an array of all image URLs
+            # Build array of all image URLs
             images = []
             if prop.images and len(prop.images) > 0:
                 images = [
@@ -117,7 +115,7 @@ def get_properties():
             # Fallback single-image field
             image_url = images[0] if images else "https://via.placeholder.com/400x300"
 
-            # Gather any accessibility data
+            # Gather any accessibilities
             accessibilities = [
                 accessibility.accessibilityType
                 for accessibility in prop.accessibilities
@@ -133,12 +131,12 @@ def get_properties():
                 "street": prop.street_address,
                 "city": prop.city,
                 "user_id": prop.user_id,
-                "image_url": image_url,      # Single fallback
-                "images": images,           # Array of all images
+                "image_url": image_url,
+                "images": images,
                 "accessibilities": accessibilities,
-                "businessName": prop.user.businessName if prop.user else None
+                "businessName": prop.user.businessName if prop.user else None,
+                "description": prop.description 
             }
-
             property_list.append(property_data)
 
         return jsonify({"success": True, "properties": property_list}), 200
@@ -156,7 +154,6 @@ def get_property(property_id):
         if not prop:
             return jsonify({"success": False, "message": "Property not found"}), 404
 
-        # Build an array of all image URLs
         images = []
         if prop.images and len(prop.images) > 0:
             images = [
@@ -164,12 +161,10 @@ def get_property(property_id):
                 for img in prop.images
             ]
 
-        # Fallback single-image field
         image_url = images[0] if images else "https://via.placeholder.com/400x300"
 
-        # Gather any accessibility data
         accessibilities = [
-            accessibility.accessibilityType for accessibility in prop.accessibilities
+            acc.accessibilityType for acc in prop.accessibilities
         ]
 
         property_data = {
@@ -182,10 +177,11 @@ def get_property(property_id):
             "street_address": prop.street_address,
             "city": prop.city,
             "user_id": prop.user_id,
-            "image_url": image_url,   # Single fallback
-            "images": images,        # All images
+            "image_url": image_url,
+            "images": images,
             "accessibilities": accessibilities,
-            "businessName": prop.user.businessName if prop.user else None
+            "businessName": prop.user.businessName if prop.user else None,
+            "description": prop.description  
         }
 
         return jsonify({"success": True, "property": property_data}), 200

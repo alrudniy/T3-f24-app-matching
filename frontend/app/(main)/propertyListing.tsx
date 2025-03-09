@@ -49,7 +49,6 @@ export default function PropertyListing() {
 
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
-
   // Local state to track which image index we're on
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -95,9 +94,7 @@ export default function PropertyListing() {
 
   const handlePrevImage = () => {
     if (!property?.images) return;
-    setCurrentIndex((prevIndex) => {
-      return (prevIndex + property.images!.length - 1) % property.images!.length;
-    });
+    setCurrentIndex((prevIndex) => (prevIndex + property.images!.length - 1) % property.images!.length);
   };
 
   // ------------------------------
@@ -105,12 +102,9 @@ export default function PropertyListing() {
   // ------------------------------
   const renderImages = () => {
     if (!property) return null;
-
     const { images, image_url } = property;
-    // If multiple images exist, show arrow-based carousel
     if (images && images.length > 1) {
       const currentImageUri = images[currentIndex];
-
       return (
         <View style={styles.carouselContainer}>
           <Image
@@ -118,21 +112,15 @@ export default function PropertyListing() {
             style={styles.carouselImage}
             resizeMode="cover"
           />
-
-          {/* Left Arrow */}
           <TouchableOpacity style={styles.arrowLeft} onPress={handlePrevImage}>
             <Ionicons name="chevron-back-outline" size={28} color="#fff" />
           </TouchableOpacity>
-
-          {/* Right Arrow */}
           <TouchableOpacity style={styles.arrowRight} onPress={handleNextImage}>
             <Ionicons name="chevron-forward-outline" size={28} color="#fff" />
           </TouchableOpacity>
         </View>
       );
     }
-
-    // Otherwise, single image fallback
     const fallbackUri = image_url || "https://picsum.photos/400/300";
     return (
       <View style={styles.carouselContainer}>
@@ -152,23 +140,15 @@ export default function PropertyListing() {
     <SafeAreaProvider>
       {/* ---------- Header Section ---------- */}
       <View style={container.loggedInHeader}>
-        <TouchableOpacity
-          onPress={() => router.push("/profile")}
-          style={image.loggedInHeaderIcon}
-        >
+        <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
         </TouchableOpacity>
-
         <Image
           source={require("./(home)/assets/images/icon_logo.png")}
           style={image.loggedInLogo}
           resizeMode="contain"
         />
-
-        <TouchableOpacity
-          onPress={() => router.push("/voucher")}
-          style={image.loggedInHeaderIcon}
-        >
+        <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
           <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
       </View>
@@ -179,39 +159,35 @@ export default function PropertyListing() {
           <Text>Loading...</Text>
         ) : property ? (
           <ScrollView contentContainerStyle={styles.scrollContent}>
-            {/* Image or Carousel Section */}
             {renderImages()}
 
-            {/* Title / Address */}
+            {/* Title & Address */}
             <Text style={styles.propertyTitle}>{property.name}</Text>
             <Text style={styles.propertyAddress}>
               {property.street_address}, {property.city}
             </Text>
 
+            {/* Description Section */}
+            {property.description ? (
+              <View style={styles.descriptionBox}>
+                <Text style={styles.sectionHeader}>Description</Text>
+                <Text style={styles.descriptionText}>{property.description}</Text>
+              </View>
+            ) : null}
+
             {/* Property Info Rows */}
             <View style={styles.propertyInfoSection}>
-              {/* Bedrooms */}
               <View style={styles.infoRowLarge}>
                 <Ionicons name="bed-outline" size={24} color="#007BFF" style={styles.infoIcon} />
-                <Text style={styles.infoRowText}>
-                  {property.bedrooms} Bedrooms
-                </Text>
+                <Text style={styles.infoRowText}>{property.bedrooms} Bedrooms</Text>
               </View>
-
-              {/* Bathrooms */}
               <View style={styles.infoRowLarge}>
                 <Ionicons name="water-outline" size={24} color="#007BFF" style={styles.infoIcon} />
-                <Text style={styles.infoRowText}>
-                  {property.bathrooms} Bathrooms
-                </Text>
+                <Text style={styles.infoRowText}>{property.bathrooms} Bathrooms</Text>
               </View>
-
-              {/* Price */}
               <View style={styles.infoRowLarge}>
                 <Ionicons name="cash-outline" size={24} color="#007BFF" style={styles.infoIcon} />
-                <Text style={styles.infoRowText}>
-                  ${property.price?.toLocaleString()}
-                </Text>
+                <Text style={styles.infoRowText}>${property.price?.toLocaleString()}</Text>
               </View>
             </View>
 
@@ -225,18 +201,8 @@ export default function PropertyListing() {
                   </View>
                 ))}
               </View>
-            ) : (
-              <Text style={styles.noAccessMsg}>
-                No specific accessibilities listed.
-              </Text>
-            )}
+            ) : null}
 
-            {/* Optional description */}
-            {property.description && (
-              <Text style={styles.description}>{property.description}</Text>
-            )}
-
-            {/* Back Button */}
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Text style={styles.backButtonText}>
                 <Ionicons name="arrow-back" size={16} color="#fff" /> Go Back
@@ -257,7 +223,6 @@ export default function PropertyListing() {
           <Ionicons name="home" size={24} color="#666" />
           <Text style={text.navBar}>Properties</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={[container.navBarItem]}
           onPress={() => router.push("/(main)/landlordMatchingHistory")}
@@ -274,7 +239,7 @@ export default function PropertyListing() {
 // Local Styles
 // ------------------------------
 const { width } = Dimensions.get("window");
-const imageWidth = width - 40; // subtract horizontal padding
+const imageWidth = width - 40;
 
 const styles = StyleSheet.create({
   container: {
@@ -285,8 +250,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 40,
   },
-
-  // Carousel Container
   carouselContainer: {
     width: "100%",
     height: 280,
@@ -300,8 +263,6 @@ const styles = StyleSheet.create({
     height: 280,
     borderRadius: 10,
   },
-
-  // Carousel Arrows
   arrowLeft: {
     position: "absolute",
     left: 20,
@@ -316,8 +277,6 @@ const styles = StyleSheet.create({
     transform: [{ translateY: -14 }],
     zIndex: 2,
   },
-
-  // Titles / Headings
   propertyTitle: {
     fontSize: 28,
     fontWeight: "bold",
@@ -329,14 +288,17 @@ const styles = StyleSheet.create({
     color: "#555",
     marginBottom: 20,
   },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 10,
-    marginTop: 10,
+  descriptionBox: {
+    backgroundColor: "#f7f7f7",
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
   },
-
-  // Property Info
+  descriptionText: {
+    fontSize: 16,
+    lineHeight: 22,
+    color: "#333",
+  },
   propertyInfoSection: {
     marginBottom: 20,
   },
@@ -356,8 +318,12 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#333",
   },
-
-  // Accessibilities
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 10,
+    marginTop: 10,
+  },
   accessibilitySection: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -376,22 +342,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
-  noAccessMsg: {
-    fontSize: 16,
-    fontStyle: "italic",
-    color: "#555",
-    marginBottom: 20,
-  },
-
-  // Description
-  description: {
-    marginTop: 10,
-    fontSize: 16,
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-
-  // Back button
   backButton: {
     backgroundColor: "#666",
     paddingVertical: 10,
