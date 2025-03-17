@@ -30,7 +30,7 @@ interface Property {
   user_id: number;
   businessName?: string;
   description?: string;
-  accessibilities?: string[];
+  accessibilities?: string[]; // For example: ["Balcony", "Multiple floors", "Large lot"]
 }
 
 interface ApiResponse {
@@ -39,9 +39,26 @@ interface ApiResponse {
   message?: string;
 }
 
-// ------------------------------
-// Main Component
-// ------------------------------
+// Mapping from accessibility label to an Ionicons name.
+// Update these as needed.
+const accessibilityIconMapping: { [key: string]: string } = {
+  "Balcony": "sunny-outline",
+  "Multiple floors": "layers-outline",
+  "wheelchair access": "accessibility-outline",
+  "Pet friendly": "paw-outline",
+  "Large Lot": "expand-outline",
+  "Low cost": "wallet-outline",
+  "Close to shopping": "pricetag-outline",
+  "Close to police station": "shield-outline",
+  "Close to hospital": "medkit-outline",
+  "Close to fire station": "flame-outline",
+  "Close to park": "map-outline",
+  "Close to school": "book-outline",
+  "Close to public transportation": "train-outline",
+  "Neighboorhood safety": "ribbon-outline",
+  "Storage space": "cube-outline",
+};
+
 export default function PropertyListing() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -49,7 +66,7 @@ export default function PropertyListing() {
 
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
-  // Local state to track which image index we're on
+  // Local state to track which image index we're on (for carousel)
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // ------------------------------
@@ -133,9 +150,6 @@ export default function PropertyListing() {
     );
   };
 
-  // ------------------------------
-  // Main render
-  // ------------------------------
   return (
     <SafeAreaProvider>
       {/* ---------- Header Section ---------- */}
@@ -175,8 +189,12 @@ export default function PropertyListing() {
               </View>
             ) : null}
 
-            {/* Property Info Rows */}
+            {/* Property Info Section (Price first, then others) */}
             <View style={styles.propertyInfoSection}>
+              <View style={styles.infoRowLarge}>
+                <Ionicons name="cash-outline" size={24} color="#007BFF" style={styles.infoIcon} />
+                <Text style={styles.infoRowText}>${property.price?.toLocaleString()}</Text>
+              </View>
               <View style={styles.infoRowLarge}>
                 <Ionicons name="bed-outline" size={24} color="#007BFF" style={styles.infoIcon} />
                 <Text style={styles.infoRowText}>{property.bedrooms} Bedrooms</Text>
@@ -185,21 +203,26 @@ export default function PropertyListing() {
                 <Ionicons name="water-outline" size={24} color="#007BFF" style={styles.infoIcon} />
                 <Text style={styles.infoRowText}>{property.bathrooms} Bathrooms</Text>
               </View>
-              <View style={styles.infoRowLarge}>
-                <Ionicons name="cash-outline" size={24} color="#007BFF" style={styles.infoIcon} />
-                <Text style={styles.infoRowText}>${property.price?.toLocaleString()}</Text>
-              </View>
             </View>
 
             {/* Accessibilities Section */}
             <Text style={styles.sectionHeader}>Accessibilities</Text>
             {property.accessibilities && property.accessibilities.length > 0 ? (
               <View style={styles.accessibilitySection}>
-                {property.accessibilities.map((acc, index) => (
-                  <View style={styles.accessibilityBox} key={index}>
-                    <Text style={styles.accessibilityBoxText}>{acc}</Text>
-                  </View>
-                ))}
+                {property.accessibilities.map((acc, index) => {
+                  // Use the returned accessibility text to look up an icon.
+                  const iconName = accessibilityIconMapping[acc as any] || "information-circle-outline";
+                  return (
+                    <View style={styles.accessibilityBox} key={index}>
+                      <View style={styles.accessibilityIconContainer}>
+                        <Ionicons name={iconName as any} size={24} color="#007BFF" />
+                      </View>
+                      <View style={styles.accessibilityLabelContainer}>
+                        <Text style={styles.accessibilityBoxText}>{acc}</Text>
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
             ) : null}
 
@@ -214,7 +237,7 @@ export default function PropertyListing() {
         )}
       </View>
 
-      {/* ---------- Bottom Navigation ---------- */}
+      {/* ---------- Bottom Navigation (unchanged) ---------- */}
       <View style={container.navBar}>
         <TouchableOpacity
           style={[container.navBarItem]}
@@ -248,7 +271,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 80, // Increased padding to avoid nav bar overlap
   },
   carouselContainer: {
     width: "100%",
@@ -327,19 +350,31 @@ const styles = StyleSheet.create({
   accessibilitySection: {
     flexDirection: "row",
     flexWrap: "wrap",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
   accessibilityBox: {
+    flexBasis: "48%",
     backgroundColor: "#007BFF22",
     borderRadius: 8,
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 12,
-    marginRight: 8,
-    marginBottom: 8,
+    marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  accessibilityIconContainer: {
+    width: 30,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  accessibilityLabelContainer: {
+    flex: 1,
+    justifyContent: "center",
   },
   accessibilityBoxText: {
     color: "#007BFF",
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
   },
   backButton: {
@@ -356,5 +391,15 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     marginLeft: 5,
+  },
+  titleBox: {
+    marginTop: 10,
+    marginLeft: 15,
+    marginBottom: 10,
+  },
+  businessSubtitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#555",
   },
 });
