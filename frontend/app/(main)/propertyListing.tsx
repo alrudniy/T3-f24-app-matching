@@ -15,6 +15,27 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { container, image, text } from "./styles";
 
 // ------------------------------
+// Mapping from accessibility label to an Ionicons name.
+// Update these as needed.
+const accessibilityIconMapping: { [key: string]: string } = {
+  "Balcony": "sunny-outline",
+  "Multiple floors": "layers-outline",
+  "Wheelchair access": "accessibility-outline",
+  "Pet friendly": "paw-outline",
+  "Large lot": "expand-outline",
+  "Low cost": "wallet-outline",
+  "Close to shopping": "pricetag-outline",
+  "Close to police station": "shield-outline",
+  "Close to hospital": "medkit-outline",
+  "Close to fire station": "flame-outline",
+  "Close to park": "map-outline",
+  "Close to school": "book-outline",
+  "Close to public transportation": "train-outline",
+  "Neighborhood safety": "ribbon-outline",
+  "Storage space": "cube-outline",
+};
+
+// ------------------------------
 // Interface Definitions
 // ------------------------------
 interface Property {
@@ -30,7 +51,7 @@ interface Property {
   user_id: number;
   businessName?: string;
   description?: string;
-  accessibilities?: string[]; // For example: ["Balcony", "Multiple floors", "Large lot"]
+  accessibilities?: string[]; // For example: ["Balcony", "Multiple floors", "Large Lot"]
 }
 
 interface ApiResponse {
@@ -39,26 +60,6 @@ interface ApiResponse {
   message?: string;
 }
 
-// Mapping from accessibility label to an Ionicons name.
-// Update these as needed.
-const accessibilityIconMapping: { [key: string]: string } = {
-  "Balcony": "sunny-outline",
-  "Multiple floors": "layers-outline",
-  "wheelchair access": "accessibility-outline",
-  "Pet friendly": "paw-outline",
-  "Large Lot": "expand-outline",
-  "Low cost": "wallet-outline",
-  "Close to shopping": "pricetag-outline",
-  "Close to police station": "shield-outline",
-  "Close to hospital": "medkit-outline",
-  "Close to fire station": "flame-outline",
-  "Close to park": "map-outline",
-  "Close to school": "book-outline",
-  "Close to public transportation": "train-outline",
-  "Neighboorhood safety": "ribbon-outline",
-  "Storage space": "cube-outline",
-};
-
 export default function PropertyListing() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -66,7 +67,6 @@ export default function PropertyListing() {
 
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
-  // Local state to track which image index we're on (for carousel)
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // ------------------------------
@@ -89,9 +89,6 @@ export default function PropertyListing() {
     }
   };
 
-  // ------------------------------
-  // useEffect to load property
-  // ------------------------------
   useEffect(() => {
     if (propertyId) {
       fetchPropertyDetails(propertyId);
@@ -115,7 +112,7 @@ export default function PropertyListing() {
   };
 
   // ------------------------------
-  // Render the image or carousel
+  // Render the image or carousel within an image container
   // ------------------------------
   const renderImages = () => {
     if (!property) return null;
@@ -123,7 +120,7 @@ export default function PropertyListing() {
     if (images && images.length > 1) {
       const currentImageUri = images[currentIndex];
       return (
-        <View style={styles.carouselContainer}>
+        <View style={styles.imageContainer}>
           <Image
             source={{ uri: currentImageUri }}
             style={styles.carouselImage}
@@ -140,7 +137,7 @@ export default function PropertyListing() {
     }
     const fallbackUri = image_url || "https://picsum.photos/400/300";
     return (
-      <View style={styles.carouselContainer}>
+      <View style={styles.imageContainer}>
         <Image
           source={{ uri: fallbackUri }}
           style={styles.carouselImage}
@@ -183,46 +180,52 @@ export default function PropertyListing() {
 
             {/* Description Section */}
             {property.description ? (
-              <View style={styles.descriptionBox}>
-                <Text style={styles.sectionHeader}>Description</Text>
-                <Text style={styles.descriptionText}>{property.description}</Text>
-              </View>
+              <>
+                <Text style={styles.descriptionTitle}>Description</Text>
+                <View style={styles.descriptionBox}>
+                  <Text style={styles.descriptionText}>{property.description}</Text>
+                </View>
+              </>
             ) : null}
 
-            {/* Property Info Section (Price first, then others) */}
-            <View style={styles.propertyInfoSection}>
-              <View style={styles.infoRowLarge}>
+            {/* Details Title */}
+            <Text style={styles.descriptionTitle}>Details</Text>
+
+            {/* Property Info Section */}
+            <View style={styles.infoContainer}>
+              <View style={styles.infoRow}>
                 <Ionicons name="cash-outline" size={24} color="#007BFF" style={styles.infoIcon} />
                 <Text style={styles.infoRowText}>${property.price?.toLocaleString()}</Text>
               </View>
-              <View style={styles.infoRowLarge}>
+              <View style={styles.infoRow}>
                 <Ionicons name="bed-outline" size={24} color="#007BFF" style={styles.infoIcon} />
                 <Text style={styles.infoRowText}>{property.bedrooms} Bedrooms</Text>
               </View>
-              <View style={styles.infoRowLarge}>
+              <View style={styles.infoRow}>
                 <Ionicons name="water-outline" size={24} color="#007BFF" style={styles.infoIcon} />
                 <Text style={styles.infoRowText}>{property.bathrooms} Bathrooms</Text>
               </View>
             </View>
 
             {/* Accessibilities Section */}
-            <Text style={styles.sectionHeader}>Accessibilities</Text>
+            <Text style={styles.descriptionTitle}>Accessibilities</Text>
             {property.accessibilities && property.accessibilities.length > 0 ? (
-              <View style={styles.accessibilitySection}>
-                {property.accessibilities.map((acc, index) => {
-                  // Use the returned accessibility text to look up an icon.
-                  const iconName = accessibilityIconMapping[acc as any] || "information-circle-outline";
-                  return (
-                    <View style={styles.accessibilityBox} key={index}>
-                      <View style={styles.accessibilityIconContainer}>
-                        <Ionicons name={iconName as any} size={24} color="#007BFF" />
+              <View style={styles.accessibilityContainer}>
+                <View style={styles.accessibilitySection}>
+                  {property.accessibilities.map((acc, index) => {
+                    const iconName = accessibilityIconMapping[acc] || "information-circle-outline";
+                    return (
+                      <View style={styles.accessibilityBox} key={index}>
+                        <View style={styles.accessibilityIconContainer}>
+                          <Ionicons name={iconName as any} size={24} color="#007BFF" />
+                        </View>
+                        <View style={styles.accessibilityLabelContainer}>
+                          <Text style={styles.accessibilityBoxText}>{acc}</Text>
+                        </View>
                       </View>
-                      <View style={styles.accessibilityLabelContainer}>
-                        <Text style={styles.accessibilityBoxText}>{acc}</Text>
-                      </View>
-                    </View>
-                  );
-                })}
+                    );
+                  })}
+                </View>
               </View>
             ) : null}
 
@@ -281,6 +284,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  imageContainer: {
+    backgroundColor: "#f7f7f7",
+    borderRadius: 10,
+    padding: 5,
+    marginBottom: 20,
+  },
   carouselImage: {
     width: imageWidth,
     height: 280,
@@ -292,6 +301,9 @@ const styles = StyleSheet.create({
     top: "50%",
     transform: [{ translateY: -14 }],
     zIndex: 2,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 8,
+    borderRadius: 20,
   },
   arrowRight: {
     position: "absolute",
@@ -299,6 +311,9 @@ const styles = StyleSheet.create({
     top: "50%",
     transform: [{ translateY: -14 }],
     zIndex: 2,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 8,
+    borderRadius: 20,
   },
   propertyTitle: {
     fontSize: 28,
@@ -311,6 +326,13 @@ const styles = StyleSheet.create({
     color: "#555",
     marginBottom: 20,
   },
+  descriptionTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginTop: 10,
+    marginBottom: 5,
+    color: "#333",
+  },
   descriptionBox: {
     backgroundColor: "#f7f7f7",
     borderRadius: 8,
@@ -322,16 +344,16 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: "#333",
   },
-  propertyInfoSection: {
-    marginBottom: 20,
-  },
-  infoRowLarge: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
+  infoContainer: {
     backgroundColor: "#f7f7f7",
     borderRadius: 8,
     padding: 15,
+    marginBottom: 20,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
   },
   infoIcon: {
     marginRight: 10,
@@ -347,11 +369,16 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 10,
   },
+  accessibilityContainer: {
+    backgroundColor: "#f7f7f7",
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+  },
   accessibilitySection: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    marginBottom: 20,
   },
   accessibilityBox: {
     flexBasis: "48%",
