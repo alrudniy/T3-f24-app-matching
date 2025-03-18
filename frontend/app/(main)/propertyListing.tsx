@@ -67,6 +67,19 @@ interface UserProfile {
   profile_picture?: string;
 }
 
+// ------------------------------
+// Helper function to format phone numbers as (xxx) xxx-xxxx
+// ------------------------------
+function formatPhoneNumber(phone: string): string {
+  // Remove non-digit characters.
+  const cleaned = phone.replace(/\D/g, "");
+  const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+  if (match) {
+    return `(${match[1]}) ${match[2]}-${match[3]}`;
+  }
+  return phone;
+}
+
 export default function PropertyListing() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -98,18 +111,18 @@ export default function PropertyListing() {
   };
 
   // ------------------------------
-  // Fetch user profile from API
+  // Fetch user profile by user ID using new API route
   // ------------------------------
-  const fetchUserProfile = async () => {
+  const fetchUserProfileById = async (userId: number) => {
     try {
-      const response = await fetch("http://localhost:5000/api/user/profile", {
+      const response = await fetch(`http://localhost:5000/api/user/${userId}`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
       const data = await response.json();
       if (data.success) {
-        setUserProfile(data.user);
+        setUserProfile(data.profile);
       }
     } catch (error) {
       console.error("Error fetching user profile:", error);
@@ -126,8 +139,10 @@ export default function PropertyListing() {
   }, [propertyId]);
 
   useEffect(() => {
-    fetchUserProfile();
-  }, []);
+    if (property && property.user_id) {
+      fetchUserProfileById(property.user_id);
+    }
+  }, [property]);
 
   // ------------------------------
   // Arrow-based Carousel for Multiple Images
@@ -275,7 +290,9 @@ export default function PropertyListing() {
                 </View>
                 <View style={styles.listedByRight}>
                   <Text style={styles.listedByBusinessName}>{userProfile.businessName}</Text>
-                  <Text style={styles.listedByUserPhone}>{userProfile.phone}</Text>
+                  <Text style={styles.listedByUserPhone}>
+                    {userProfile.phone ? formatPhoneNumber(userProfile.phone) : ""}
+                  </Text>
                 </View>
               </View>
             ) : null}
@@ -455,7 +472,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  // Listed By Section
+  // Listed By Section Styles
   listedByCard: {
     backgroundColor: "#f7f7f7",
     borderRadius: 8,
