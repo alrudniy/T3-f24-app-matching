@@ -20,9 +20,9 @@ import { container, image, text } from "./styles";
 const accessibilityIconMapping: { [key: string]: string } = {
   "Balcony": "sunny-outline",
   "Multiple floors": "layers-outline",
-  "Wheelchair access": "accessibility-outline",
+  "wheelchair access": "accessibility-outline",
   "Pet friendly": "paw-outline",
-  "Large lot": "expand-outline",
+  "Large Lot": "expand-outline",
   "Low cost": "wallet-outline",
   "Close to shopping": "pricetag-outline",
   "Close to police station": "shield-outline",
@@ -31,7 +31,7 @@ const accessibilityIconMapping: { [key: string]: string } = {
   "Close to park": "map-outline",
   "Close to school": "book-outline",
   "Close to public transportation": "train-outline",
-  "Neighborhood safety": "ribbon-outline",
+  "Neighboorhood safety": "ribbon-outline",
   "Storage space": "cube-outline",
 };
 
@@ -46,18 +46,25 @@ interface Property {
   price: number;
   street_address: string;
   city: string;
-  image_url: string; // Single image fallback
-  images?: string[]; // Optional array of multiple images
+  image_url: string;
+  images?: string[];
   user_id: number;
   businessName?: string;
   description?: string;
-  accessibilities?: string[]; // For example: ["Balcony", "Multiple floors", "Large Lot"]
+  accessibilities?: string[]; // e.g., ["Balcony", "Multiple floors", "Large Lot"]
 }
 
 interface ApiResponse {
   success: boolean;
   property?: Property;
   message?: string;
+}
+
+interface UserProfile {
+  id: number;
+  businessName?: string;
+  phone?: string;
+  profile_picture?: string;
 }
 
 export default function PropertyListing() {
@@ -68,6 +75,7 @@ export default function PropertyListing() {
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   // ------------------------------
   // Fetch property details by ID
@@ -89,6 +97,25 @@ export default function PropertyListing() {
     }
   };
 
+  // ------------------------------
+  // Fetch user profile from API
+  // ------------------------------
+  const fetchUserProfile = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/user/profile", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (data.success) {
+        setUserProfile(data.user);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
+
   useEffect(() => {
     if (propertyId) {
       fetchPropertyDetails(propertyId);
@@ -97,6 +124,10 @@ export default function PropertyListing() {
       Alert.alert("Error", "No property ID was provided.");
     }
   }, [propertyId]);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
 
   // ------------------------------
   // Arrow-based Carousel for Multiple Images
@@ -188,10 +219,8 @@ export default function PropertyListing() {
               </>
             ) : null}
 
-            {/* Details Title */}
+            {/* Details Section */}
             <Text style={styles.descriptionTitle}>Details</Text>
-
-            {/* Property Info Section */}
             <View style={styles.infoContainer}>
               <View style={styles.infoRow}>
                 <Ionicons name="cash-outline" size={24} color="#007BFF" style={styles.infoIcon} />
@@ -225,6 +254,28 @@ export default function PropertyListing() {
                       </View>
                     );
                   })}
+                </View>
+              </View>
+            ) : null}
+
+            {/* Listed By Section */}
+            <Text style={styles.descriptionTitle}>Listed By</Text>
+            {userProfile ? (
+              <View style={styles.listedByCard}>
+                <View style={styles.listedByLeft}>
+                  {userProfile.profile_picture ? (
+                    <Image
+                      source={{ uri: userProfile.profile_picture }}
+                      style={styles.profileImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Ionicons name="person-circle-outline" size={40} color="#007BFF" />
+                  )}
+                </View>
+                <View style={styles.listedByRight}>
+                  <Text style={styles.listedByBusinessName}>{userProfile.businessName}</Text>
+                  <Text style={styles.listedByUserPhone}>{userProfile.phone}</Text>
                 </View>
               </View>
             ) : null}
@@ -403,6 +454,44 @@ const styles = StyleSheet.create({
     color: "#007BFF",
     fontSize: 16,
     fontWeight: "600",
+  },
+  // Listed By Section
+  listedByCard: {
+    backgroundColor: "#f7f7f7",
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  listedByLeft: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    overflow: "hidden",
+    marginRight: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  listedByRight: {
+    flex: 1,
+  },
+  listedByBusinessName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 4,
+  },
+  listedByUserPhone: {
+    fontSize: 16,
+    color: "#333",
   },
   backButton: {
     backgroundColor: "#666",
