@@ -5,9 +5,73 @@ from werkzeug.utils import secure_filename
 import os
 import traceback
 from sqlalchemy.exc import SQLAlchemyError
+import config
 
 # Blueprint for properties
 properties_bp = Blueprint("properties", __name__)
+
+# ------------------------------
+# Helper function to check file extension
+# ------------------------------
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in config.ALLOWED_EXTENSIONS
+
+# ------------------------------
+# Edit a Property (Update/Delete Images)
+# ------------------------------
+@properties_bp.route("/property/edit/<int:property_id>", methods=["PUT"])
+@login_required
+def edit_property(property_id):
+    try:
+        prop = session.query(Property).filter_by(id=property_id, user_id=current_user.id).first()
+        if not prop:
+            return jsonify({"success": False, "message": "Property not found or unauthorized"}), 403
+
+        data = request.form
+
+        # Update property details if provided
+        prop.size_sqft = float(data.get("size_sqft", prop.size_sqft))
+        prop.price = float(data.get("price", prop.price))
+        prop.bedrooms = int(data.get("bedrooms", prop.bedrooms))
+        prop.bathrooms = int(data.get("bathrooms", prop.bathrooms))
+        prop.street_address = data.get("street_address", prop.street_address)
+        prop.city = data.get("city", prop.city)
+        prop.name = data.get("name", prop.name)
+        prop.description = data.get("description", prop.description)
+
+        # Handle deleting images if requested
+        delete_image_ids = request.form.getlist("delete_image_ids")
+        if delete_image_ids:
+            for image_id in delete_image_ids:
+                image = session.query(PropertyImage).filter_by(id=image_id, property_id=property_id).first()
+                if image:
+                    image_path = os.path.join(config.UPLOAD_FOLDER, image.image_url)
+                    if os.path.exists(image_path):
+                        os.remove(image_path)
+                    session.delete(image)
+
+        # Handle uploading new images
+        if "new_images" in request.files:
+            files = request.files.getlist("new_images")
+            for file in files:
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file_path = os.path.join(config.UPLOAD_FOLDER, filename)
+                    file.save(file_path)
+
+                    new_image = PropertyImage(property_id=property_id, image_url=filename)
+                    session.add(new_image)
+
+        session.commit()
+
+        return jsonify({"success": True, "message": "Property updated successfully"}), 200
+
+    except Exception as e:
+        session.rollback()
+        traceback.print_exc()
+        return jsonify({"success": False, "message": "An error occurred", "error": str(e)}), 500
+    finally:
+        session.close()
 
 # ------------------------------
 # Create a property
