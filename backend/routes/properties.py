@@ -23,9 +23,18 @@ def allowed_file(filename):
 @login_required
 def edit_property(property_id):
     try:
-        prop = session.query(Property).filter_by(id=property_id, user_id=current_user.id).first()
+        print(f"🔹 Current User ID: {current_user.id}")
+        print(f"🔹 Checking Property Ownership for ID: {property_id}")
+
+        prop = session.query(Property).filter_by(id=property_id).first()
+
         if not prop:
-            return jsonify({"success": False, "message": "Property not found or unauthorized"}), 403
+            return jsonify({"success": False, "message": "Property not found"}), 404
+
+        print(f"🔹 Property Owner ID: {prop.user_id}")
+
+        if int(prop.user_id) != int(current_user.id):  # Ensure matching types
+            return jsonify({"success": False, "message": "Unauthorized access"}), 403
 
         data = request.form
 
@@ -72,6 +81,7 @@ def edit_property(property_id):
         return jsonify({"success": False, "message": "An error occurred", "error": str(e)}), 500
     finally:
         session.close()
+
 
 # ------------------------------
 # Create a property

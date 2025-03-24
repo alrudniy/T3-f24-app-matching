@@ -147,9 +147,7 @@ export default function PropertyListing() {
     try {
       const response = await fetch("http://localhost:5000/api/current-user", {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
       const data = await response.json();
@@ -226,14 +224,19 @@ export default function PropertyListing() {
     });
 
     if (!result.canceled) {
-      setNewImages([...newImages, result.assets[0].uri]);
+      const uri = result.assets[0].uri;
+      console.log("Picked image:", uri);
+      setNewImages([...newImages, uri]);
     }
   };
 
   const handleDeleteImage = (imageUri: string) => {
     if (property?.images?.includes(imageUri)) {
+      // Flag for deletion without removing from the original list,
+      // so the backend receives the deletion instruction.
       setDeletedImages([...deletedImages, imageUri]);
     } else {
+      // For new images, remove them directly.
       setNewImages(newImages.filter((img) => img !== imageUri));
     }
   };
@@ -252,26 +255,32 @@ export default function PropertyListing() {
     formData.append("city", updatedProperty.city);
     formData.append("description", updatedProperty.description || "");
 
+    // Append deleted images as before.
     deletedImages.forEach((img) => formData.append("delete_image_ids", img));
 
-    newImages.forEach((uri, index) => {
-      formData.append("new_images", {
-        uri,
-        type: "image/jpeg",
-        name: `new_image_${index}.jpg`,
-      } as any);
-    });
+    // For each new image, convert the URI to a blob (similar to profile.tsx).
+    for (let i = 0; i < newImages.length; i++) {
+      const uri = newImages[i];
+      try {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        formData.append("new_images", blob, `new_image_${i}.jpg`);
+      } catch (err) {
+        console.error("Error converting image to blob:", err);
+      }
+    }
+
+    console.log("Sending update request with formData...");
 
     try {
       const response = await fetch(`http://localhost:5000/property/edit/${propertyId}`, {
         method: "PUT",
         body: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { Accept: "application/json" },
         credentials: "include",
       });
       const data = await response.json();
+      console.log("Server response:", data);
       if (data.success) {
         Alert.alert("Success", "Property updated successfully.");
         fetchPropertyDetails(propertyId);
@@ -282,9 +291,16 @@ export default function PropertyListing() {
         Alert.alert("Error", data.message || "Failed to update property.");
       }
     } catch (error) {
+      console.error("Update error:", error);
       Alert.alert("Error", "Something went wrong.");
     }
   };
+
+  // Combine existing images (minus those flagged for deletion) with new images.
+  const displayedImages: string[] = [
+    ...(updatedProperty?.images || []).filter((img) => !deletedImages.includes(img)),
+    ...newImages,
+  ];
 
   return (
     <SafeAreaProvider>
@@ -374,10 +390,10 @@ export default function PropertyListing() {
 
                 {/* Image Management */}
                 <FlatList
-                  data={[...(updatedProperty?.images || []), ...newImages]}
+                  data={displayedImages}
                   horizontal
                   keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item }) => (
+                  renderItem={({ item }: { item: string }) => (
                     <View style={styles.imagePreview}>
                       <Image source={{ uri: item }} style={styles.image} />
                       <TouchableOpacity onPress={() => handleDeleteImage(item)}>
@@ -523,9 +539,8 @@ export default function PropertyListing() {
   );
 }
 
-// ------------------------------
-// Local Styles
-// ------------------------------
+
+
 const { width } = Dimensions.get("window");
 const imageWidth = width - 40;
 
