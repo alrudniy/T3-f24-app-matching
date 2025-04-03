@@ -116,7 +116,20 @@ class Voucher(Base):
     price_limit = Column(Integer, nullable=True)
     housing_type = Column(String(50), nullable=True)
     family_members = Column(Integer, nullable=True)
-    user = relationship("User", backref="vouchers")  
+    user = relationship("User", backref="vouchers")
+
+
+class Preferences(Base):
+    __tablename__ = 'preferences'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
+    size_sqft = Column(Integer, nullable=True)
+    price = Column(Float(10, 2), nullable=True)
+    bedrooms = Column(Integer, nullable=True)
+    bathrooms = Column(Float(3, 1), nullable=True)
+    user = relationship("User", backref="preferences")
+
 
 
 # Function to create database tables
