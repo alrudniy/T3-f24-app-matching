@@ -4,7 +4,6 @@ import {
   ScrollView,
   TextInput,
   Button,
-  Modal,
   View,
   Text,
   ActivityIndicator,
@@ -30,7 +29,7 @@ export default function Voucher() {
     familyMembers: 0,
   });
 
-  const [vouchers, setVouchers] = useState([]); // State for fetched vouchers
+  const [vouchers, setVouchers] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -42,7 +41,6 @@ export default function Voucher() {
     setForm({ ...form, [name]: value });
   };
 
-  // Fetch vouchers when the component mounts
   const fetchVouchers = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/voucher/user", {
@@ -61,6 +59,29 @@ export default function Voucher() {
       }
     } catch (error) {
       console.error("Error fetching vouchers:", error);
+    }
+  };
+
+  const handleDelete = async (voucherId: number) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/voucher/delete/${voucherId}`, {
+        method: "DELETE",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
+      const data = await response.json();
+      if (data.success) {
+        Alert.alert("Success", "Voucher deleted successfully");
+        fetchVouchers(); 
+      } else {
+        Alert.alert("Error", data.message || "Failed to delete voucher");
+      }
+    } catch (error) {
+      console.error("Error deleting voucher:", error);
+      Alert.alert("Error", "An error occurred while deleting the voucher.");
     }
   };
 
@@ -114,7 +135,7 @@ export default function Voucher() {
       const data = await response.json();
 
       if (data.success) {
-        fetchVouchers(); // Refresh the voucher list after successful creation
+        fetchVouchers(); 
         setForm({ expireDate: "", priceLimit: "", housingType: "", familyMembers: 0 });
       } else {
         setErrorMessage(data.message || "Voucher creation failed.");
@@ -127,6 +148,16 @@ export default function Voucher() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Populate the form with voucher details for editing
+  const handleEdit = (voucher: any) => {
+    setForm({
+      expireDate: voucher.expiration_date,
+      priceLimit: voucher.price_limit,
+      housingType: voucher.housing_type,
+      familyMembers: voucher.family_members,
+    });
   };
 
   return (
@@ -183,7 +214,7 @@ export default function Voucher() {
             {loading && <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />}
 
             <View style={{ marginTop: 20 }}>
-            <Text style={{ fontSize: 24, marginBottom: 20, textAlign: "center" }}>Your Vouchers</Text>
+              <Text style={{ fontSize: 24, marginBottom: 20, textAlign: "center" }}>Your Vouchers</Text>
               {vouchers.length === 0 ? (
                 <Text>No vouchers found.</Text>
               ) : (
@@ -193,44 +224,19 @@ export default function Voucher() {
                     <Text>Price Limit: {voucher.price_limit}</Text>
                     <Text>Housing Type: {voucher.housing_type}</Text>
                     <Text>Family Members: {voucher.family_members}</Text>
+                    <TouchableOpacity onPress={() => handleDelete(voucher.id)} style={{ backgroundColor: 'red', padding: 10, borderRadius: 5 }}>
+                      <Text style={{ color: 'white' }}>Delete</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => handleEdit(voucher)} style={{ backgroundColor: 'blue', padding: 10, borderRadius: 5, marginTop: 5 }}>
+                      <Text style={{ color: 'white' }}>Edit</Text>
+                    </TouchableOpacity>
                   </View>
                 ))
               )}
-            <View style={{height: "50px"}}></View>
             </View>
           </ScrollView>
         </SafeAreaView>
       </ThemedView>
-      <View style={container.navBar}>
-                  <TouchableOpacity
-                    style={[container.navBarItem, segments[0] === "matching" && container.activeNavBarItem]}
-                    onPress={() => router.push("/matching")}
-                  >
-                    <Ionicons
-                      name="compass-outline"
-                      size={24}
-                      color={segments[0] === "matching" ? "#007BFF" : "#666"}
-                    />
-                    <Text style={[text.navBar, segments[0] === "matching" && text.activeNavBar]}>
-                      Explore
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[container.navBarItem, segments[0] === "matchingHistory" && container.activeNavBarItem]}
-                    onPress={() => router.push("/matchingHistory")}
-                  >
-                    <Ionicons
-                      name="heart-outline"
-                      size={24}
-                      color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
-                    />
-                    <Text
-                      style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}
-                    >
-                      Matches
-                    </Text>
-                  </TouchableOpacity>
-                </View>
     </SafeAreaProvider>
   );
 }

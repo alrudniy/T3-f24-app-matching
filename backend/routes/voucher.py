@@ -64,5 +64,63 @@ def get_user_vouchers():
         traceback.print_exc()
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
 
+@voucher_bp.route('/api/voucher/delete/<int:voucher_id>', methods=['DELETE'])
+@login_required
+def delete_voucher(voucher_id):
+    try:
+        voucher = session.query(Voucher).filter_by(id=voucher_id, user_id=current_user.id).first()
+
+        if not voucher:
+            return jsonify({"success": False, "message": "Voucher not found"}), 404
+
+        session.delete(voucher)
+        session.commit()
+        return jsonify({"success": True, "message": "Voucher deleted successfully"}), 200
+
+    except SQLAlchemyError as e:
+        session.rollback()
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+
+    finally:
+        session.close()
+
+@voucher_bp.route('/api/voucher/update/<int:voucher_id>', methods=['PUT'])
+@login_required
+def update_voucher(voucher_id):
+    try:
+        data = request.get_json()
+        voucher = session.query(Voucher).filter_by(id=voucher_id, user_id=current_user.id).first()
+
+        if not voucher:
+            return jsonify({"success": False, "message": "Voucher not found"}), 404
+
+        # Update fields if provided
+        if "expiration_date" in data:
+            voucher.expiration_date = data["expiration_date"]
+        if "price_limit" in data:
+            voucher.price_limit = data["price_limit"]
+        if "housing_type" in data:
+            voucher.housing_type = data["housing_type"]
+        if "family_members" in data:
+            voucher.family_members = data["family_members"]
+
+        session.commit()
+        return jsonify({"success": True, "message": "Voucher updated successfully"}), 200
+
+    except SQLAlchemyError as e:
+        session.rollback()
+        return jsonify({"success": False, "message": "Database error", "error": str(e)}), 500
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
+
+
+
+
 
 
