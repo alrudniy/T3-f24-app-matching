@@ -9,48 +9,48 @@ import {
   Alert,
 } from "react-native";
 import { useRouter, useSegments } from "expo-router";
-import { Ionicons } from "@expo/vector-icons"; // For icons
+import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { general, button, image, container, text } from "./styles";
 
 // ------------------------------
 // Interface Definitions
 // ------------------------------
-
 interface Property {
   id: number;
   name: string;
   bedrooms: number;
   bathrooms: number;
   price: number;
-  street_address: string;
+  street: string; // <== The API uses "street"
   city: string;
   image_url: string;
   user_id: number;
-  businessName?: string; // Optional field for landlord's business
+  businessName?: string;
+  accessibilities?: string[]; // If the API includes this
 }
 
 interface CurrentUser {
   id: number;
   name: string;
   email?: string;
-  // ... any other fields your backend returns for the user
+  // ... any other fields
 }
 
 // ------------------------------
-// Component
+// Main Component
 // ------------------------------
 export default function PropertiesView() {
   const router = useRouter();
-  const segments = useSegments(); // Ex: ["(main)", "properties"]
+  const segments = useSegments(); // e.g., ["(main)", "properties"]
 
-  // State to hold the current user
+  // State for current user
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-  // State to hold the list of properties
+  // State for properties
   const [properties, setProperties] = useState<Property[]>([]);
 
-  // Loading state (for properties)
+  // Loading state
   const [loading, setLoading] = useState(true);
 
   // ------------------------------
@@ -83,17 +83,18 @@ export default function PropertiesView() {
   // ------------------------------
   const fetchProperties = async (userId?: number) => {
     try {
-      const response = await fetch("http://127.0.0.1:5000/api/properties");
+      const response = await fetch("http://localhost:5000/api/properties");
       const data = await response.json();
 
       if (data.success) {
         if (userId) {
+          // Show only that user's properties
           const landlordProperties = data.properties.filter(
             (property: Property) => property.user_id === userId
           );
           setProperties(landlordProperties);
         } else {
-          // Or show all properties if user ID is not set
+          // Show all properties
           setProperties(data.properties);
         }
       } else {
@@ -110,14 +111,13 @@ export default function PropertiesView() {
   // ------------------------------
   // useEffect Hooks
   // ------------------------------
-
-  // On first render, attempt to load the current user
   useEffect(() => {
+    // On mount, load current user
     fetchCurrentUser();
   }, []);
 
-  // Once the user is set, fetch that user's properties
   useEffect(() => {
+    // Once we have a current user, fetch their properties
     if (currentUser?.id) {
       fetchProperties(currentUser.id);
     }
@@ -127,49 +127,90 @@ export default function PropertiesView() {
   // Handle "Add Property"
   // ------------------------------
   const handleAddProperty = () => {
-    router.push("/propertyCreation"); // Navigate to the property creation page
+    router.push("/propertyCreation");
   };
 
   // ------------------------------
   // Render a single property card
   // ------------------------------
   const renderCard = (property: Property) => {
+    // Pre-calculate the first two accessibilities plus "..."
+    const access = property.accessibilities || [];
+    const firstTwo = access.slice(0, 2);
+    const hasMore = access.length > 2;
+
     return (
-      <View key={property.id} style={styles.card}>
+      <TouchableOpacity
+        key={property.id}
+        style={styles.card}
+        onPress={() =>
+          router.push({
+            pathname: "/(main)/propertyListing",
+            params: { id: property.id.toString() },
+          })
+        }
+      >
+        {/* Property Image */}
         <Image
           source={{
             uri: property.image_url || "https://picsum.photos/400/300",
           }}
           style={styles.propertyImage}
         />
-        <View style={styles.propertyDetails}>
-          <Text style={styles.propertyName}>{property.name}</Text>
 
-          <View style={styles.propertyRow}>
-            <Ionicons name="location-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>
-              {property.street_address}, {property.city}
-            </Text>
+        {/* Main content container (two columns) */}
+        <View style={styles.cardContent}>
+          {/* Left Column: Basic Property Info */}
+          <View style={styles.leftColumn}>
+            <Text style={styles.propertyName}>{property.name}</Text>
+
+            {/* Address */}
+            <View style={styles.propertyRow}>
+              <Ionicons name="location-outline" size={20} color="#666" />
+              <Text style={styles.propertyText}>
+                {property.street}, {property.city}
+              </Text>
+            </View>
+
+            {/* Price */}
+            <View style={styles.propertyRow}>
+              <Ionicons name="cash-outline" size={20} color="#666" />
+              <Text style={styles.propertyText}>
+                ${property.price.toLocaleString()}
+              </Text>
+            </View>
+
+            {/* Bedrooms */}
+            <View style={styles.propertyRow}>
+              <Ionicons name="bed-outline" size={20} color="#666" />
+              <Text style={styles.propertyText}>
+                {property.bedrooms} Beds
+              </Text>
+            </View>
+
+            {/* Bathrooms */}
+            <View style={styles.propertyRow}>
+              <Ionicons name="water-outline" size={20} color="#666" />
+              <Text style={styles.propertyText}>
+                {property.bathrooms} Baths
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.propertyRow}>
-            <Ionicons name="resize-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>
-              {property.price.toLocaleString()}
-            </Text>
-          </View>
-
-          <View style={styles.propertyRow}>
-            <Ionicons name="bed-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>{property.bedrooms} Beds</Text>
-          </View>
-
-          <View style={styles.propertyRow}>
-            <Ionicons name="water-outline" size={20} color="#666" />
-            <Text style={styles.propertyText}>{property.bathrooms} Baths</Text>
+          {/* Right Column: First 2 Accessibilities & "..." (left-aligned) */}
+          <View style={styles.rightColumn}>
+            {firstTwo.map((acc, idx) => (
+              <View style={styles.accessibilityRow} key={idx}>
+                <Ionicons name="arrow-forward-outline" size={18} color="#666" />
+                <Text style={styles.accessibilityText}>{acc}</Text>
+              </View>
+            ))}
+            {hasMore && (
+              <Text style={styles.moreAccess}>...</Text>
+            )}
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -209,7 +250,6 @@ export default function PropertiesView() {
           <Text>Loading...</Text>
         ) : (
           <ScrollView contentContainerStyle={styles.propertyList}>
-            {/* Render each property card */}
             {properties.map((property) => renderCard(property))}
 
             {/* Button to add a new property */}
@@ -280,6 +320,7 @@ const styles = StyleSheet.create({
   propertyList: {
     marginBottom: 20,
   },
+
   card: {
     backgroundColor: "white",
     borderRadius: 10,
@@ -299,9 +340,24 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
   },
-  propertyDetails: {
-    padding: 5,
+
+  // Two columns for details + access
+  cardContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
+  leftColumn: {
+    flex: 2,
+    paddingRight: 10,
+  },
+  rightColumn: {
+    flex: 1,
+    // Align text to the left
+    alignItems: "flex-start",
+    justifyContent: "center",
+  },
+
+  // Basic property info
   propertyName: {
     fontSize: 18,
     fontWeight: "bold",
@@ -316,6 +372,26 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontSize: 16,
   },
+
+  // Accessibilities
+  accessibilityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 2,
+  },
+  accessibilityText: {
+    marginLeft: 5,
+    fontSize: 14,
+    color: "#333",
+  },
+  moreAccess: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#666",
+    marginTop: 2,
+  },
+
+  // Add button
   addButton: {
     backgroundColor: "#4CAF50",
     paddingVertical: 10,

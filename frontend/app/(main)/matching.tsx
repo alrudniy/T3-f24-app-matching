@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
+import { View, Text, Image, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import Swiper from "react-native-deck-swiper";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons"; // Importing icons
-import { useRouter, useSegments } from "expo-router"; // Router for navigation
-import { general, button, image, container, text } from "./styles"; // Importing the provided styles
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, useSegments } from "expo-router";
+
+import { general, button, image, container, text } from "./styles"; // Shared styles
 
 interface Property {
   id: number;
@@ -15,15 +16,16 @@ interface Property {
   street: string;
   city: string;
   image_url: string;
-  name: string; // User's first name
-  businessName: string; // User's business name
+  name: string;
+  businessName: string;
+  accessibilities?: string[];
 }
 
 export default function Matching() {
   const [properties, setProperties] = useState<Property[]>([]);
-  const swiperRef = useRef<any>(null); // Use `any` because `react-native-deck-swiper` lacks proper TypeScript types
-  const router = useRouter(); // Expo router for navigation
-  const segments = useSegments(); // Use segments to get the current route
+  const swiperRef = useRef<any>(null);
+  const router = useRouter();
+  const segments = useSegments();
 
   useEffect(() => {
     fetchProperties();
@@ -33,9 +35,7 @@ export default function Matching() {
     try {
       const response = await fetch("http://localhost:5000/api/properties", {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
 
@@ -84,67 +84,112 @@ export default function Matching() {
   };
 
   const handleDislike = () => {
-    swiperRef.current?.swipeLeft(); // Trigger a swipe left animation
+    swiperRef.current?.swipeLeft();
   };
 
   const handleLike = () => {
-    const currentIndex = swiperRef.current?.state.cardIndex ?? 0; // Safely access cardIndex
-    swiperRef.current?.swipeRight(); // Trigger a swipe right animation
+    const currentIndex = swiperRef.current?.state.cardIndex ?? 0;
+    swiperRef.current?.swipeRight();
     handleSwipeRight(currentIndex);
   };
 
   const handleSwipeLeft = (index: number) => {
     const property = properties[index];
     if (!property) return;
-
     console.log(`Property ${property.id} discarded`);
   };
 
+  // Navigate to propertyListing.tsx
+  const goToPropertyListing = (propertyId: number) => {
+    router.push({
+      pathname: "/(main)/propertyListing",
+      params: { id: propertyId.toString() },
+    });
+  };
+
+  // Updated renderCard with Accessbility title & "..."
   const renderCard = (property: Property) => {
+    const access = property.accessibilities || [];
+    const firstThree = access.slice(0, 3);
+    const hasMore = access.length > 3;
+
     return (
       <View style={container.propertyCard}>
         <Image
           source={{ uri: property.image_url || "https://via.placeholder.com/400x300" }}
           style={image.property}
         />
+
         <View style={container.titleBanner}>
           <Text style={text.cardTitle}>{property.name}</Text>
           <Text style={text.cardSubtitle}>{property.businessName}</Text>
         </View>
-        <View style={container.propertyDetails}>
-          <View style={container.propertyRow}>
-            <Ionicons name="location-outline" size={20} color="#666" />
-            <Text style={text.property}>
-              {property.street}, {property.city}
-            </Text>
+
+        {/* Two columns: Left info, Right access */}
+        <View style={styles.cardContent}>
+          {/* Left Column - property info */}
+          <View style={styles.leftColumn}>
+            <View style={container.propertyRow}>
+              <Ionicons name="location-outline" size={20} color="#666" />
+              <Text style={text.property}>
+                {property.street}, {property.city}
+              </Text>
+            </View>
+            <View style={container.propertyRow}>
+              <Ionicons name="resize-outline" size={20} color="#666" />
+              <Text style={text.property}>{property.size_sqft} sqft</Text>
+            </View>
+            <View style={container.propertyRow}>
+              <Ionicons name="cash-outline" size={20} color="#666" />
+              <Text style={text.property}>${property.price.toLocaleString()}</Text>
+            </View>
+            <View style={container.propertyRow}>
+              <Ionicons name="bed-outline" size={20} color="#666" />
+              <Text style={text.property}>{property.bedrooms} Beds</Text>
+            </View>
+            <View style={container.propertyRow}>
+              <Ionicons name="water-outline" size={20} color="#666" />
+              <Text style={text.property}>{property.bathrooms} Baths</Text>
+            </View>
           </View>
-          <View style={container.propertyRow}>
-            <Ionicons name="resize-outline" size={20} color="#666" />
-            <Text style={text.property}>{property.size_sqft} sqft</Text>
+
+          {/* Right Column */}
+          <View style={styles.rightColumn}>
+            {/* Only show if there's at least one accessibility */}
+            {access.length > 0 && (
+              <>
+                <Text style={styles.accHeader}>Accessibility</Text>
+                {firstThree.map((accItem, index) => (
+                  <View style={styles.accessibilityRow} key={index}>
+                    <Ionicons name="arrow-forward-outline" size={18} color="#666" />
+                    <Text style={styles.accessibilityText}>{accItem}</Text>
+                  </View>
+                ))}
+                {hasMore && (
+                  <Text style={styles.moreAccess}>...</Text>
+                )}
+              </>
+            )}
           </View>
-          <View style={container.propertyRow}>
-            <Ionicons name="cash-outline" size={20} color="#666" />
-            <Text style={text.property}>${property.price.toLocaleString()}</Text>
-          </View>
-          <View style={container.propertyRow}>
-            <Ionicons name="bed-outline" size={20} color="#666" />
-            <Text style={text.property}>{property.bedrooms} Beds</Text>
-          </View>
-          <View style={container.propertyRow}>
-            <Ionicons name="water-outline" size={20} color="#666" />
-            <Text style={text.property}>{property.bathrooms} Baths</Text>
-          </View>
-          <View style={container.cardButtons}>
-            <TouchableOpacity style={button.circular} onPress={handleDislike}>
-              <Ionicons name="close-outline" size={30} color="#FF3B30" />
-            </TouchableOpacity>
-            <TouchableOpacity style={button.circular} onPress={() => console.log("Info Button")}>
-              <Ionicons name="information-circle-outline" size={30} color="#007BFF" />
-            </TouchableOpacity>
-            <TouchableOpacity style={button.circular} onPress={handleLike}>
-              <Ionicons name="heart-outline" size={30} color="#4CAF50" />
-            </TouchableOpacity>
-          </View>
+        </View>
+
+        {/* Card Buttons (Dislike, Info, Like) */}
+        <View style={container.cardButtons}>
+          <TouchableOpacity style={button.circular} onPress={handleDislike}>
+            <Ionicons name="close-outline" size={30} color="#FF3B30" />
+          </TouchableOpacity>
+
+          {/* Info Button => route to propertyListing.tsx */}
+          <TouchableOpacity
+            style={button.circular}
+            onPress={() => goToPropertyListing(property.id)}
+          >
+            <Ionicons name="information-circle-outline" size={30} color="#007BFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={button.circular} onPress={handleLike}>
+            <Ionicons name="heart-outline" size={30} color="#4CAF50" />
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -152,7 +197,7 @@ export default function Matching() {
 
   return (
     <SafeAreaProvider>
-      {/* Header */}
+      {/* ---------- Header Section ---------- */}
       <View style={container.loggedInHeader}>
         <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
@@ -169,6 +214,7 @@ export default function Matching() {
         </TouchableOpacity>
       </View>
 
+      {/* ---------- Main Content ---------- */}
       <SafeAreaView style={container.base}>
         {properties.length > 0 ? (
           <Swiper
@@ -188,7 +234,7 @@ export default function Matching() {
         )}
       </SafeAreaView>
 
-      {/* Bottom Navigation */}
+      {/* ---------- Bottom Navigation ---------- */}
       <View style={container.navBar}>
         <TouchableOpacity
           style={[container.navBarItem, segments[0] === "matching" && container.activeNavBarItem]}
@@ -203,8 +249,12 @@ export default function Matching() {
             Explore
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={[container.navBarItem, segments[0] === "matchingHistory" && container.activeNavBarItem]}
+          style={[
+            container.navBarItem,
+            segments[0] === "matchingHistory" && container.activeNavBarItem,
+          ]}
           onPress={() => router.push("/matchingHistory")}
         >
           <Ionicons
@@ -212,9 +262,7 @@ export default function Matching() {
             size={24}
             color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
           />
-          <Text
-            style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}
-          >
+          <Text style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}>
             Matches
           </Text>
         </TouchableOpacity>
@@ -222,3 +270,44 @@ export default function Matching() {
     </SafeAreaProvider>
   );
 }
+
+// Matching-specific styles
+const styles = StyleSheet.create({
+  cardContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  leftColumn: {
+    flex: 2,
+    paddingRight: 10,
+  },
+  rightColumn: {
+    flex: 1,
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+  },
+  accHeader: {
+    fontWeight: "600",
+    fontSize: 15,
+    marginBottom: 5,
+  },
+  accessibilityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 2,
+  },
+  accessibilityText: {
+    marginLeft: 5,
+    fontSize: 14,
+    color: "#333",
+  },
+  moreAccess: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#666",
+    marginTop: 2,
+  },
+});

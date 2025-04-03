@@ -142,3 +142,31 @@ def get_current_user():
             "message": "Failed to fetch user",
             "error": str(e)
         }), 500
+@users_bp.route("/api/user/<int:user_id>", methods=["GET"])
+@login_required
+def get_user_by_id(user_id):
+    try:
+        user = session.query(User).filter_by(id=user_id).first()
+        if not user:
+            return jsonify({"success": False, "message": "User not found"}), 404
+
+        profile = {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "phone": user.phone,
+            "firstname": user.firstname,
+            "lastname": user.lastname,
+            "role": user.role,
+            "businessName": user.businessName,
+            "profile_picture": (
+                f"http://localhost:5000/uploads/{user.profile_picture}"
+                if user.profile_picture
+                else "https://via.placeholder.com/150"
+            ),
+        }
+
+        return jsonify({"success": True, "profile": profile}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"success": False, "message": "Failed to fetch user", "error": str(e)}), 500

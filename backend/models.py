@@ -76,6 +76,7 @@ class Property(Base):
     bathrooms = Column(Integer)
     street_address = Column(String, nullable=True)
     city = Column(String, nullable=True)
+    description = Column(String, nullable=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship("User", back_populates="properties")
     images = relationship("PropertyImage", back_populates="property", cascade="all, delete-orphan")

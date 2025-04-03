@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Dimensions,
+} from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useSegments } from "expo-router";
@@ -13,8 +22,8 @@ interface RawMatchedTenant {
   tenantFirstName: string;
   tenantLastName: string;
   tenantProfileImageUrl: string;
-  propertyId?: number;              
-  propertyName?: string;            
+  propertyId?: number;
+  propertyName?: string;
 }
 
 /**
@@ -46,9 +55,7 @@ export default function LandlordMatchingHistoryView() {
     try {
       const response = await fetch("http://localhost:5000/api/landlord/matched-tenants", {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
 
@@ -74,7 +81,7 @@ export default function LandlordMatchingHistoryView() {
             };
           }
 
-          // returns property info, push it into the array
+          // If there's property info, push it into the array
           if (item.propertyId && item.propertyName) {
             groupedMap[item.id].properties.push({
               propertyId: item.propertyId,
@@ -91,28 +98,70 @@ export default function LandlordMatchingHistoryView() {
       }
     } catch (error) {
       console.error("Error fetching matched tenants:", error);
+      Alert.alert("Error", "Could not load matched tenants. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Render a single tenant in a wide horizontal card
+  const renderTenantCard = (tenant: GroupedTenant) => {
+    return (
+      <View key={tenant.id} style={styles.tenantCard}>
+        {/* Left Column: profile pic & name */}
+        <View style={styles.leftColumn}>
+          <Image
+            source={{
+              uri: tenant.tenantProfileImageUrl || "https://via.placeholder.com/150",
+            }}
+            style={styles.profileImage}
+          />
+          <Text style={styles.tenantName}>
+            {tenant.tenantFirstName} {tenant.tenantLastName}
+          </Text>
+        </View>
+
+        {/* Right Column: matched properties */}
+        <View style={styles.rightColumn}>
+          {tenant.properties.length > 0 && (
+            <>
+              <Text style={styles.propertiesHeader}>Matched Properties:</Text>
+              {tenant.properties.map((prop) => (
+                <TouchableOpacity
+                  key={prop.propertyId}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(main)/propertyListing",
+                      params: { id: prop.propertyId.toString() },
+                    })
+                  }
+                  style={styles.propertyLink}
+                >
+                  <Ionicons name="arrow-forward-outline" size={18} color="#666" />
+                  <Text style={styles.propertyLinkText}>{prop.propertyName}</Text>
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
+        </View>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaProvider>
-      {/* LoggedInHeader */}
+      {/* Header */}
       <View style={container.loggedInHeader}>
-        {/* Profile Icon */}
         <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
         </TouchableOpacity>
 
-        {/* Logo */}
         <Image
           source={require("./(home)/assets/images/icon_logo.png")}
           style={image.loggedInLogo}
           resizeMode="contain"
         />
 
-        {/* Paper/Info Icon */}
         <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
           <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
@@ -123,58 +172,8 @@ export default function LandlordMatchingHistoryView() {
         {loading ? (
           <Text style={text.loading}>Loading matched tenants...</Text>
         ) : matchedTenants.length > 0 ? (
-          <ScrollView contentContainerStyle={container.inner}>
-            {matchedTenants.map((tenant) => (
-              <View
-                key={tenant.id}
-                // Existing style + inline overrides for modern card look
-                style={[
-                  container.propertyCard,
-                  {
-                    marginVertical: 10,
-                    marginHorizontal: 15,
-                    padding: 15,
-                    borderRadius: 10,
-                    backgroundColor: "#fff",
-                    // iOS shadow
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.2,
-                    shadowRadius: 3,
-                    // Android elevation
-                    elevation: 2,
-                  },
-                ]}
-              >
-                {/* Tenant Profile Picture */}
-                <Image
-                  source={{
-                    uri: tenant.tenantProfileImageUrl || "https://via.placeholder.com/150",
-                  }}
-                  style={image.profile}
-                />
-
-                {/* Tenant Details */}
-                <View style={container.cardText}>
-                  <Text style={[text.cardTitle, { marginBottom: 6 }]}>
-                    {tenant.tenantFirstName} {tenant.tenantLastName}
-                  </Text>
-
-                  {tenant.properties.length > 0 && (
-                    <View style={{ marginTop: 4 }}>
-                      <Text style={[text.property, { fontWeight: "600", marginBottom: 2 }]}>
-                        Matched Properties:
-                      </Text>
-                      {tenant.properties.map((prop) => (
-                        <Text key={prop.propertyId} style={text.property}>
-                          • {prop.propertyName}
-                        </Text>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              </View>
-            ))}
+          <ScrollView contentContainerStyle={{ paddingVertical: 15 }}>
+            {matchedTenants.map((tenant) => renderTenantCard(tenant))}
           </ScrollView>
         ) : (
           <Text style={container.noData}>No matched tenants found.</Text>
@@ -195,7 +194,9 @@ export default function LandlordMatchingHistoryView() {
             size={24}
             color={segments[0] === "properties" ? "#007BFF" : "#666"}
           />
-          <Text style={[text.navBar, segments[0] === "properties" && text.activeNavBar]}>
+          <Text
+            style={[text.navBar, segments[0] === "properties" && text.activeNavBar]}
+          >
             Properties
           </Text>
         </TouchableOpacity>
@@ -212,7 +213,10 @@ export default function LandlordMatchingHistoryView() {
             color={segments[0] === "landlordMatchingHistory" ? "#007BFF" : "#666"}
           />
           <Text
-            style={[text.navBar, segments[0] === "landlordMatchingHistory" && text.activeNavBar]}
+            style={[
+              text.navBar,
+              segments[0] === "landlordMatchingHistory" && text.activeNavBar,
+            ]}
           >
             Matches
           </Text>
@@ -221,3 +225,67 @@ export default function LandlordMatchingHistoryView() {
     </SafeAreaProvider>
   );
 }
+
+// ------------------------------
+// Styles
+// ------------------------------
+const { width } = Dimensions.get("window");
+
+const styles = StyleSheet.create({
+  tenantCard: {
+    // Full width
+    width: width * 0.95,
+    alignSelf: "center",
+
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+
+    // Shadow for iOS
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+
+    // Elevation for Android
+    elevation: 3,
+  },
+  leftColumn: {
+    width: 100, // fixed width for profile image & name
+    alignItems: "center",
+    justifyContent: "flex-start",
+    marginRight: 15,
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 10, // slight rounding for a modern look
+    marginBottom: 8,
+  },
+  tenantName: {
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  rightColumn: {
+    flex: 1,
+    justifyContent: "flex-start",
+  },
+  propertiesHeader: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  propertyLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  propertyLinkText: {
+    marginLeft: 5,
+    fontSize: 14,
+    color: "#007BFF", // Link color
+  },
+});
