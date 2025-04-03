@@ -41,6 +41,11 @@ const accessibilityIconMapping: { [key: string]: string } = {
 // ------------------------------
 // Interface Definitions
 // ------------------------------
+interface PropertyImage {
+  id: number;
+  image_url: string;
+}
+
 interface Property {
   id: number;
   name: string;
@@ -50,7 +55,8 @@ interface Property {
   street_address: string;
   city: string;
   image_url: string;
-  images?: string[];
+  // Existing images come as objects; new images are strings.
+  images?: (PropertyImage | string)[];
   user_id: number;
   businessName?: string;
   description?: string;
@@ -71,7 +77,7 @@ interface UserProfile {
 }
 
 // ------------------------------
-// Helper function to format phone numbers as (xxx) xxx-xxxx
+// Helper: Format phone numbers as (xxx) xxx-xxxx
 // ------------------------------
 function formatPhoneNumber(phone: string): string {
   const cleaned = phone.replace(/\D/g, "");
@@ -91,12 +97,12 @@ export default function PropertyListing() {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  // New states for edit mode
+  // States for edit mode:
   const [editMode, setEditMode] = useState(false);
   const [updatedProperty, setUpdatedProperty] = useState<Property | null>(null);
-  const [newImages, setNewImages] = useState<string[]>([]);
-  const [deletedImages, setDeletedImages] = useState<string[]>([]);
-  // State to hold current user id (for checking property ownership)
+  const [newImages, setNewImages] = useState<string[]>([]); // new images as URIs
+  const [deletedImageIds, setDeletedImageIds] = useState<number[]>([]); // IDs for existing images to delete
+  // For ownership check:
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
   // ------------------------------
@@ -108,7 +114,6 @@ export default function PropertyListing() {
       const data: ApiResponse = await response.json();
       if (data.success && data.property) {
         setProperty(data.property);
-        // Also set the editable copy
         setUpdatedProperty(data.property);
       } else {
         Alert.alert("Error", data.message || "Failed to load property data.");
@@ -176,32 +181,41 @@ export default function PropertyListing() {
   }, [property]);
 
   // ------------------------------
-  // Arrow-based Carousel for Multiple Images (view mode)
+  // Carousel for View Mode
   // ------------------------------
   const handleNextImage = () => {
-    if (!property?.images) return;
+    if (!property?.images || property.images.length === 0) return;
     setCurrentIndex((prevIndex) => (prevIndex + 1) % property.images!.length);
   };
 
   const handlePrevImage = () => {
-    if (!property?.images) return;
+    if (!property?.images || property.images.length === 0) return;
     setCurrentIndex((prevIndex) => (prevIndex + property.images!.length - 1) % property.images!.length);
   };
 
   const renderImages = () => {
     if (!property) return null;
     const { images, image_url } = property;
-    if (images && images.length > 1) {
-      const currentImageUri = images[currentIndex];
+    if (images && images.length > 0) {
+      let uri: string;
+      if (typeof images[currentIndex] === "string") {
+        uri = images[currentIndex] as string;
+      } else {
+        uri = (images[currentIndex] as PropertyImage).image_url;
+      }
       return (
         <View style={styles.imageContainer}>
-          <Image source={{ uri: currentImageUri }} style={styles.carouselImage} resizeMode="cover" />
-          <TouchableOpacity style={styles.arrowLeft} onPress={handlePrevImage}>
-            <Ionicons name="chevron-back-outline" size={28} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.arrowRight} onPress={handleNextImage}>
-            <Ionicons name="chevron-forward-outline" size={28} color="#fff" />
-          </TouchableOpacity>
+          <Image source={{ uri }} style={styles.carouselImage} resizeMode="cover" />
+          {images.length > 1 && (
+            <>
+              <TouchableOpacity style={styles.arrowLeft} onPress={handlePrevImage}>
+                <Ionicons name="chevron-back-outline" size={28} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.arrowRight} onPress={handleNextImage}>
+                <Ionicons name="chevron-forward-outline" size={28} color="#fff" />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       );
     }
@@ -222,7 +236,6 @@ export default function PropertyListing() {
       allowsEditing: true,
       quality: 1,
     });
-
     if (!result.canceled) {
       const uri = result.assets[0].uri;
       console.log("Picked image:", uri);
@@ -230,14 +243,26 @@ export default function PropertyListing() {
     }
   };
 
-  const handleDeleteImage = (imageUri: string) => {
-    if (property?.images?.includes(imageUri)) {
-      // Flag for deletion without removing from the original list,
-      // so the backend receives the deletion instruction.
-      setDeletedImages([...deletedImages, imageUri]);
+  // When deleting an image:
+  // - For new images (strings), remove them from newImages.
+  // - For existing images (objects), add their id to deletedImageIds and update the editable copy.
+  const handleDeleteImage = (item: PropertyImage | string) => {
+    console.log("Delete pressed for:", item);
+    if (typeof item === "string") {
+      // New image: remove it.
+      setNewImages(newImages.filter((img) => img !== item));
     } else {
-      // For new images, remove them directly.
-      setNewImages(newImages.filter((img) => img !== imageUri));
+      // Existing image: add its id to deletion list.
+      setDeletedImageIds([...deletedImageIds, item.id]);
+      // Also update the editable property so that the image disappears from UI.
+      if (updatedProperty && updatedProperty.images && Array.isArray(updatedProperty.images)) {
+        setUpdatedProperty({
+          ...updatedProperty,
+          images: updatedProperty.images.filter((img) =>
+            typeof img === "string" ? true : (img as PropertyImage).id !== item.id
+          ),
+        });
+      }
     }
   };
 
@@ -255,10 +280,10 @@ export default function PropertyListing() {
     formData.append("city", updatedProperty.city);
     formData.append("description", updatedProperty.description || "");
 
-    // Append deleted images as before.
-    deletedImages.forEach((img) => formData.append("delete_image_ids", img));
+    // Append deleted image IDs as strings.
+    deletedImageIds.forEach((id) => formData.append("delete_image_ids", id.toString()));
 
-    // For each new image, convert the URI to a blob (similar to profile.tsx).
+    // Append new images as blobs.
     for (let i = 0; i < newImages.length; i++) {
       const uri = newImages[i];
       try {
@@ -271,7 +296,6 @@ export default function PropertyListing() {
     }
 
     console.log("Sending update request with formData...");
-
     try {
       const response = await fetch(`http://localhost:5000/property/edit/${propertyId}`, {
         method: "PUT",
@@ -286,7 +310,7 @@ export default function PropertyListing() {
         fetchPropertyDetails(propertyId);
         setEditMode(false);
         setNewImages([]);
-        setDeletedImages([]);
+        setDeletedImageIds([]);
       } else {
         Alert.alert("Error", data.message || "Failed to update property.");
       }
@@ -296,9 +320,12 @@ export default function PropertyListing() {
     }
   };
 
-  // Combine existing images (minus those flagged for deletion) with new images.
-  const displayedImages: string[] = [
-    ...(updatedProperty?.images || []).filter((img) => !deletedImages.includes(img)),
+  // Build displayed images for edit mode:
+  // For existing images, filter out those flagged for deletion.
+  const displayedImages: (PropertyImage | string)[] = [
+    ...((updatedProperty?.images || []).filter((img) =>
+      typeof img === "string" ? true : !deletedImageIds.includes((img as PropertyImage).id)
+    ) as PropertyImage[]),
     ...newImages,
   ];
 
@@ -317,7 +344,7 @@ export default function PropertyListing() {
 
       {/* ---------- Main Container ---------- */}
       <View style={styles.container}>
-        {/* Edit/Save Button placed at the top right of the main container */}
+        {/* Edit/Save Button at top right */}
         <View style={styles.editButtonContainer}>
           {currentUserId === property?.user_id && (
             <TouchableOpacity
@@ -392,15 +419,20 @@ export default function PropertyListing() {
                 <FlatList
                   data={displayedImages}
                   horizontal
-                  keyExtractor={(item, index) => index.toString()}
-                  renderItem={({ item }: { item: string }) => (
-                    <View style={styles.imagePreview}>
-                      <Image source={{ uri: item }} style={styles.image} />
-                      <TouchableOpacity onPress={() => handleDeleteImage(item)}>
-                        <Ionicons name="trash-outline" size={24} color="red" />
-                      </TouchableOpacity>
-                    </View>
-                  )}
+                  keyExtractor={(item, index) =>
+                    typeof item === "string" ? `new-${index}` : `existing-${(item as PropertyImage).id}`
+                  }
+                  renderItem={({ item }: { item: PropertyImage | string }) => {
+                    const uri = typeof item === "string" ? item : item.image_url;
+                    return (
+                      <View style={styles.imagePreview}>
+                        <Image source={{ uri }} style={styles.image} />
+                        <TouchableOpacity onPress={() => handleDeleteImage(item)}>
+                          <Ionicons name="trash-outline" size={24} color="red" />
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  }}
                 />
                 <TouchableOpacity onPress={handleAddImage}>
                   <Text>Add Image</Text>
@@ -538,7 +570,6 @@ export default function PropertyListing() {
     </SafeAreaProvider>
   );
 }
-
 
 
 const { width } = Dimensions.get("window");
@@ -782,7 +813,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  // New style for the edit/save button container in the main section
+  // Edit/Save button container in the main section.
   editButtonContainer: {
     flexDirection: "row",
     justifyContent: "flex-end",
