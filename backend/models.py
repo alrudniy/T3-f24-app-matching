@@ -61,6 +61,7 @@ class User(UserMixin, Base):
     role = Column(String(50), default="tenant")  # Role: 'tenant' or 'landlord'
     businessName = Column(String(200), nullable=True)  # Only for landlords
     profile_picture = Column(String(255), nullable=True)
+    zipcode = Column(String(20), nullable=True)
     properties = relationship("Property", back_populates="user", cascade="all, delete-orphan")
 
     #Relationship back to Match
