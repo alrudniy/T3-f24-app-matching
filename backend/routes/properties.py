@@ -47,6 +47,7 @@ def edit_property(property_id):
         prop.city = data.get("city", prop.city)
         prop.name = data.get("name", prop.name)
         prop.description = data.get("description", prop.description)
+        prop.zipcode = data.get("zipcode", prop.zipcode)  # New field update
 
         # Handle deleting images if requested
         delete_image_ids = request.form.getlist("delete_image_ids")
@@ -102,6 +103,7 @@ def create_property():
         city = data.get('city')
         name = data.get('name')
         description = data.get('description', "")
+        zipcode = data.get('zipcode')  # New field
 
         # Validate required fields
         if not all([size_sqft, price, bedrooms, bathrooms, street_address, city, name]):
@@ -115,8 +117,9 @@ def create_property():
             street_address=street_address,
             city=city,
             name=name,
-            user_id=current_user.id,
-            description=description
+            description=description,
+            zipcode=zipcode,  # Set the zipcode if provided
+            user_id=current_user.id
         )
 
         session.add(new_property)
@@ -204,6 +207,7 @@ def get_properties():
                 "bathrooms": prop.bathrooms,
                 "street": prop.street_address,
                 "city": prop.city,
+                "zipcode": prop.zipcode,  # Include zipcode in the output
                 "user_id": prop.user_id,
                 "image_url": image_url,
                 "images": images,
@@ -250,6 +254,7 @@ def get_property(property_id):
             "bathrooms": prop.bathrooms,
             "street_address": prop.street_address,
             "city": prop.city,
+            "zipcode": prop.zipcode,  # Include zipcode in the output
             "user_id": prop.user_id,
             "image_url": image_url,
             "images": images,
