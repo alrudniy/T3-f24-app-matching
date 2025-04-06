@@ -25,12 +25,14 @@ export default function Matching() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [zipcode, setZipcode] = useState<string>("");
+  const [city, setCity] = useState<string>(""); // New state for town/city name
   const swiperRef = useRef<any>(null);
   const router = useRouter();
   const segments = useSegments();
 
   useEffect(() => {
     fetchProperties();
+    fetchUserZipcode();
   }, []);
 
   const fetchProperties = async () => {
@@ -57,6 +59,46 @@ export default function Matching() {
     }
   };
 
+  // New function to look up the town/city using an external API (e.g., Zippopotam.us)
+  const lookupLocation = async (zip: string) => {
+    try {
+      const response = await fetch(`http://api.zippopotam.us/us/${zip}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.places && data.places.length > 0) {
+          const town = data.places[0]["place name"];
+          setCity(town);
+        } else {
+          setCity("");
+        }
+      } else {
+        console.error("Location lookup failed.");
+        setCity("");
+      }
+    } catch (error) {
+      console.error("Error during location lookup", error);
+      setCity("");
+    }
+  };
+
+  // New function to fetch the user's zipcode if already set
+  const fetchUserZipcode = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/user/zipcode", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      const result = await response.json();
+      if (response.ok && result.zipcode) {
+        setZipcode(result.zipcode);
+        lookupLocation(result.zipcode); // Lookup location after fetching zipcode
+      }
+    } catch (error) {
+      console.error("Error fetching zipcode:", error);
+    }
+  };
+
   const saveZipcode = async () => {
     try {
       const response = await fetch("http://localhost:5000/api/user/zipcode", {
@@ -69,6 +111,8 @@ export default function Matching() {
       if (response.ok && result.success) {
         setModalVisible(false);
         Alert.alert("Success", "Zip code updated.");
+        // After updating the zipcode, update the displayed location as well.
+        lookupLocation(zipcode);
         fetchProperties();
       } else {
         Alert.alert("Error", result.message || "Failed to update zip code.");
@@ -228,7 +272,10 @@ export default function Matching() {
       <View style={styles.filterContainer}>
         <TouchableOpacity style={styles.filterButton} onPress={() => setModalVisible(true)}>
           <Ionicons name="location-outline" size={18} color="#333" style={{ marginRight: 6 }} />
-          <Text style={styles.filterText}>{zipcode || "Set Zip Code"}</Text>
+          {/* If the town is available, display it; otherwise show the zipcode or default text */}
+          <Text style={styles.filterText}>
+            {city ? city : (zipcode ? zipcode : "Set Zip Code")}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.filterButton}
@@ -323,69 +370,69 @@ export default function Matching() {
 
 const styles = StyleSheet.create({
   filterContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
   filterButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 9,
     paddingHorizontal: 12,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 2,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
   },
   filterText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    width: '80%',
-    backgroundColor: '#fff',
+    width: "80%",
+    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 15,
   },
   modalInput: {
-    width: '100%',
+    width: "100%",
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 5,
     padding: 10,
     marginBottom: 20,
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
   },
   modalButton: {
     flex: 1,
     paddingVertical: 10,
-    backgroundColor: '#007BFF',
+    backgroundColor: "#007BFF",
     borderRadius: 5,
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: 5,
   },
   modalCancel: {
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
   },
   modalButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
   },
   cardContent: {

@@ -194,3 +194,20 @@ def update_user_zipcode():
         session.rollback()
         traceback.print_exc()
         return jsonify({"success": False, "message": "An error occurred while updating zipcode", "error": str(e)}), 500
+# Get user zipcode (GET endpoint)
+@users_bp.route("/api/user/zipcode", methods=["GET"])
+@login_required
+def get_user_zipcode():
+    try:
+        user = session.query(User).get(current_user.id)
+        if not user:
+            return jsonify({"success": False, "message": "User not found"}), 404
+
+        return jsonify({"success": True, "zipcode": user.zipcode}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "message": "An error occurred while fetching zipcode",
+            "error": str(e)
+        }), 500
