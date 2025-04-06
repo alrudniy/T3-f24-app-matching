@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   StyleSheet,
+  FlatList,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter, useSegments } from "expo-router";
@@ -29,6 +30,13 @@ interface Accessibility {
   type: string;
 }
 
+// Define an interface for the image file objects.
+interface ImageFile {
+  uri: string;
+  name: string;
+  type: string;
+}
+
 export default function PropertyCreation() {
   const router = useRouter();
   const segments = useSegments();
@@ -36,20 +44,20 @@ export default function PropertyCreation() {
   // Current User
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-  // Form Data (added "description")
+  // Form Data (including "description")
   const [form, setForm] = useState({
     name: "",
     street: "",
     city: "",
-    description: "", // ← NEW field for description
+    description: "",
     size: "",
     value: "",
     bedrooms: "",
     bathrooms: "",
   });
 
-  // Images
-  const [images, setImages] = useState<any[]>([]);
+  // Images – store each selected image as an ImageFile.
+  const [images, setImages] = useState<ImageFile[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Accessibilities
@@ -88,7 +96,6 @@ export default function PropertyCreation() {
         credentials: "include",
       });
       const data = await response.json();
-
       if (data.success) {
         setAccessibilities(data.accessibilities);
       } else {
@@ -104,7 +111,7 @@ export default function PropertyCreation() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Use old MediaTypeOptions to avoid type errors
+  // Image Picker: select image and generate a valid filename.
   const handleImageUpload = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -117,11 +124,10 @@ export default function PropertyCreation() {
       if (!result.canceled) {
         const picked = result.assets[0];
         console.log("Picked image:", picked.uri);
-
-        const filename = picked.uri.split("/").pop();
-        const extension = picked.uri.split(".").pop();
-        const type = `image/${extension}`;
-
+        // Generate a valid filename using timestamp.
+        const timestamp = Date.now();
+        const filename = `property_image_${timestamp}.jpg`;
+        const type = "image/jpeg"; // Force JPEG
         setImages((prev) => [
           ...prev,
           { uri: picked.uri, name: filename, type },
@@ -139,16 +145,14 @@ export default function PropertyCreation() {
     );
   };
 
-  // Step One: Create property (no images)
+  // Step One: Create property (without images)
   const createProperty = async (): Promise<number | null> => {
     try {
       if (!currentUser?.id) {
         Alert.alert("Error", "No user ID found. Please log in.");
         return null;
       }
-
       setLoading(true);
-
       const formData = new FormData();
       formData.append("name", form.name);
       formData.append("street_address", form.street);
@@ -166,12 +170,10 @@ export default function PropertyCreation() {
         credentials: "include",
       });
       const data = await response.json();
-
       if (!response.ok || !data.success) {
         Alert.alert("Error", data.message || "Property creation failed.");
         return null;
       }
-
       console.log("Property created with ID:", data.property_id);
       return data.property_id;
     } catch (error) {
@@ -183,40 +185,36 @@ export default function PropertyCreation() {
     }
   };
 
-  // Step Two: Upload images
+  // Step Two: Upload images using blob conversion.
   const uploadImages = async (propertyId: number) => {
     try {
       if (images.length === 0) {
         console.log("No images to upload.");
         return;
       }
-
       console.log("Uploading images:", images.length);
-      images.forEach((img) =>
-        console.log("Name:", img.name, "Type:", img.type, "URI:", img.uri)
-      );
-
       const formData = new FormData();
-      images.forEach((img) => {
-        formData.append("images", {
-          uri: img.uri,
-          name: img.name,
-          type: img.type,
-        } as any);
-      });
-
+      for (let i = 0; i < images.length; i++) {
+        const { uri, name } = images[i];
+        try {
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          formData.append("images", blob, name);
+        } catch (err) {
+          console.error("Error converting image to blob:", err);
+        }
+      }
       setLoading(true);
-
       const response = await fetch(
         `http://localhost:5000/property/${propertyId}/upload-images`,
         {
           method: "POST",
           body: formData,
           credentials: "include",
+          headers: { Accept: "application/json" },
         }
       );
       const data = await response.json();
-
       if (!response.ok || !data.success) {
         Alert.alert("Warning", data.message || "Images upload failed.");
       } else {
@@ -234,22 +232,17 @@ export default function PropertyCreation() {
   const addAccessibilities = async (propertyId: number) => {
     try {
       if (selectedAccessibilities.length === 0) return;
-
       setLoading(true);
-
       const response = await fetch(
         `http://localhost:5000/property/${propertyId}/add-accessibility`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({
-            accessibility_ids: selectedAccessibilities,
-          }),
+          body: JSON.stringify({ accessibility_ids: selectedAccessibilities }),
         }
       );
       const data = await response.json();
-
       if (!response.ok || !data.success) {
         Alert.alert(
           "Warning",
@@ -266,14 +259,12 @@ export default function PropertyCreation() {
     }
   };
 
-  // Combined flow
+  // Combined flow: create property, then upload images, then add accessibilities.
   const handleSubmit = async () => {
     const propertyId = await createProperty();
     if (!propertyId) return;
-
     await uploadImages(propertyId);
     await addAccessibilities(propertyId);
-
     Alert.alert("Success", "Property created successfully!");
     router.push("/(main)/properties");
   };
@@ -285,13 +276,11 @@ export default function PropertyCreation() {
         <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
         </TouchableOpacity>
-
         <Image
           source={require("./(home)/assets/images/icon_logo.png")}
           style={image.loggedInLogo}
           resizeMode="contain"
         />
-
         <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
           <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
@@ -322,7 +311,7 @@ export default function PropertyCreation() {
             onChangeText={(txt) => handleInputChange("city", txt)}
           />
 
-          {/*Description Input */}
+          {/* Description Input */}
           <TextInput
             placeholder="Description"
             style={[container.input, styles.multilineInput]}
@@ -395,6 +384,20 @@ export default function PropertyCreation() {
             <Text style={button.imageUploadText}>Select Images</Text>
           </TouchableOpacity>
 
+          {/* Preview Selected Images */}
+          {images.length > 0 && (
+            <FlatList
+              data={images}
+              horizontal
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }: { item: ImageFile }) => (
+                <View style={styles.imagePreview}>
+                  <Image source={{ uri: item.uri }} style={styles.image} />
+                </View>
+              )}
+            />
+          )}
+
           {/* Submit */}
           <Button title="Submit" onPress={handleSubmit} color="#4CAF50" />
 
@@ -435,6 +438,8 @@ export default function PropertyCreation() {
   );
 }
 
+
+
 const styles = StyleSheet.create({
   multilineInput: {
     height: 100,
@@ -458,5 +463,16 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
     flexShrink: 1,
+  },
+  imagePreview: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  image: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 10,
   },
 });
