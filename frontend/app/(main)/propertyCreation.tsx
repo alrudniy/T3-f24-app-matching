@@ -44,11 +44,12 @@ export default function PropertyCreation() {
   // Current User
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-  // Form Data (including "description")
+  // Form Data (including "description" and new "zipcode" field)
   const [form, setForm] = useState({
     name: "",
     street: "",
     city: "",
+    zipcode: "", // New field for Zip Code
     description: "",
     size: "",
     value: "",
@@ -157,6 +158,7 @@ export default function PropertyCreation() {
       formData.append("name", form.name);
       formData.append("street_address", form.street);
       formData.append("city", form.city);
+      formData.append("zipcode", form.zipcode); // Append zipcode field
       formData.append("description", form.description);
       formData.append("size_sqft", form.size);
       formData.append("price", form.value);
@@ -304,12 +306,20 @@ export default function PropertyCreation() {
             value={form.street}
             onChangeText={(txt) => handleInputChange("street", txt)}
           />
-          <TextInput
-            placeholder="City"
-            style={container.input}
-            value={form.city}
-            onChangeText={(txt) => handleInputChange("city", txt)}
-          />
+          <View style={container.row}>
+            <TextInput
+              placeholder="City"
+              style={[container.input, general.halfWidth]}
+              value={form.city}
+              onChangeText={(txt) => handleInputChange("city", txt)}
+            />
+            <TextInput
+              placeholder="Zip Code"
+              style={[container.input, general.halfWidth]}
+              value={form.zipcode}
+              onChangeText={(txt) => handleInputChange("zipcode", txt)}
+            />
+          </View>
 
           {/* Description Input */}
           <TextInput
@@ -365,11 +375,7 @@ export default function PropertyCreation() {
                 onPress={() => handleToggleAccessibility(acc.id)}
               >
                 <Ionicons
-                  name={
-                    selectedAccessibilities.includes(acc.id)
-                      ? "checkbox-outline"
-                      : "square-outline"
-                  }
+                  name={selectedAccessibilities.includes(acc.id) ? "checkbox-outline" : "square-outline"}
                   size={24}
                   color={selectedAccessibilities.includes(acc.id) ? "#4CAF50" : "#666"}
                 />
@@ -412,11 +418,7 @@ export default function PropertyCreation() {
             style={[container.navBarItem, segments[1] === "properties" && container.activeNavBarItem]}
             onPress={() => router.push("/(main)/properties")}
           >
-            <Ionicons
-              name="home"
-              size={24}
-              color={segments[1] === "properties" ? "#007BFF" : "#666"}
-            />
+            <Ionicons name="home" size={24} color={segments[1] === "properties" ? "#007BFF" : "#666"} />
             <Text style={text.navBar}>Properties</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -437,8 +439,6 @@ export default function PropertyCreation() {
     </SafeAreaProvider>
   );
 }
-
-
 
 const styles = StyleSheet.create({
   multilineInput: {

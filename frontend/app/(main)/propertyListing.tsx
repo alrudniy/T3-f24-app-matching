@@ -54,6 +54,7 @@ interface Property {
   price: number;
   street_address: string;
   city: string;
+  zipcode?: string; // New zipcode field added here
   image_url: string;
   // Existing images come as objects; new images are strings.
   images?: (PropertyImage | string)[];
@@ -243,18 +244,12 @@ export default function PropertyListing() {
     }
   };
 
-  // When deleting an image:
-  // - For new images (strings), remove them from newImages.
-  // - For existing images (objects), add their id to deletedImageIds and update the editable copy.
   const handleDeleteImage = (item: PropertyImage | string) => {
     console.log("Delete pressed for:", item);
     if (typeof item === "string") {
-      // New image: remove it.
       setNewImages(newImages.filter((img) => img !== item));
     } else {
-      // Existing image: add its id to deletion list.
       setDeletedImageIds([...deletedImageIds, item.id]);
-      // Also update the editable property so that the image disappears from UI.
       if (updatedProperty && updatedProperty.images && Array.isArray(updatedProperty.images)) {
         setUpdatedProperty({
           ...updatedProperty,
@@ -278,12 +273,11 @@ export default function PropertyListing() {
     formData.append("bathrooms", String(updatedProperty.bathrooms));
     formData.append("street_address", updatedProperty.street_address);
     formData.append("city", updatedProperty.city);
+    formData.append("zipcode", updatedProperty.zipcode || ""); // Append zipcode value
     formData.append("description", updatedProperty.description || "");
 
-    // Append deleted image IDs as strings.
     deletedImageIds.forEach((id) => formData.append("delete_image_ids", id.toString()));
 
-    // Append new images as blobs.
     for (let i = 0; i < newImages.length; i++) {
       const uri = newImages[i];
       try {
@@ -320,8 +314,6 @@ export default function PropertyListing() {
     }
   };
 
-  // Build displayed images for edit mode:
-  // For existing images, filter out those flagged for deletion.
   const displayedImages: (PropertyImage | string)[] = [
     ...((updatedProperty?.images || []).filter((img) =>
       typeof img === "string" ? true : !deletedImageIds.includes((img as PropertyImage).id)
@@ -331,7 +323,6 @@ export default function PropertyListing() {
 
   return (
     <SafeAreaProvider>
-      {/* ---------- Header Section (without gear button) ---------- */}
       <View style={container.loggedInHeader}>
         <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
           <Ionicons name="person-circle-outline" size={40} color="#333" />
@@ -342,9 +333,7 @@ export default function PropertyListing() {
         </TouchableOpacity>
       </View>
 
-      {/* ---------- Main Container ---------- */}
       <View style={styles.container}>
-        {/* Edit/Save Button at top right */}
         <View style={styles.editButtonContainer}>
           {currentUserId === property?.user_id && (
             <TouchableOpacity
@@ -366,7 +355,6 @@ export default function PropertyListing() {
         ) : property ? (
           editMode ? (
             <ScrollView contentContainerStyle={styles.scrollContent}>
-              {/* Edit Form */}
               <View style={styles.editContainer}>
                 <TextInput
                   style={styles.input}
@@ -409,13 +397,18 @@ export default function PropertyListing() {
                 />
                 <TextInput
                   style={styles.input}
+                  value={updatedProperty?.zipcode}
+                  onChangeText={(text) => setUpdatedProperty({ ...updatedProperty!, zipcode: text })}
+                  placeholder="Zip Code"
+                />
+                <TextInput
+                  style={styles.input}
                   value={updatedProperty?.description}
                   onChangeText={(text) => setUpdatedProperty({ ...updatedProperty!, description: text })}
                   placeholder="Description"
                   multiline
                 />
 
-                {/* Image Management */}
                 <FlatList
                   data={displayedImages}
                   horizontal
@@ -438,7 +431,6 @@ export default function PropertyListing() {
                   <Text>Add Image</Text>
                 </TouchableOpacity>
 
-                {/* Listed By Section (unchanged) */}
                 <Text style={styles.descriptionTitle}>Listed By</Text>
                 {userProfile ? (
                   <View style={styles.listedByCard}>
@@ -468,14 +460,10 @@ export default function PropertyListing() {
           ) : (
             <ScrollView contentContainerStyle={styles.scrollContent}>
               {renderImages()}
-
-              {/* Title & Address */}
               <Text style={styles.propertyTitle}>{property.name}</Text>
               <Text style={styles.propertyAddress}>
-                {property.street_address}, {property.city}
+                {property.street_address}, {property.city} {property.zipcode ? `, ${property.zipcode}` : ""}
               </Text>
-
-              {/* Description Section */}
               {property.description ? (
                 <>
                   <Text style={styles.descriptionTitle}>Description</Text>
@@ -484,8 +472,6 @@ export default function PropertyListing() {
                   </View>
                 </>
               ) : null}
-
-              {/* Details Section */}
               <Text style={styles.descriptionTitle}>Details</Text>
               <View style={styles.infoContainer}>
                 <View style={styles.infoRow}>
@@ -501,8 +487,6 @@ export default function PropertyListing() {
                   <Text style={styles.infoRowText}>{property.bathrooms} Bathrooms</Text>
                 </View>
               </View>
-
-              {/* Accessibilities Section */}
               <Text style={styles.descriptionTitle}>Accessibilities</Text>
               {property.accessibilities && property.accessibilities.length > 0 ? (
                 <View style={styles.accessibilityContainer}>
@@ -523,8 +507,6 @@ export default function PropertyListing() {
                   </View>
                 </View>
               ) : null}
-
-              {/* Listed By Section */}
               <Text style={styles.descriptionTitle}>Listed By</Text>
               {userProfile ? (
                 <View style={styles.listedByCard}>
@@ -543,7 +525,6 @@ export default function PropertyListing() {
                   </View>
                 </View>
               ) : null}
-
               <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                 <Text style={styles.backButtonText}>
                   <Ionicons name="arrow-back" size={16} color="#fff" /> Go Back
@@ -556,7 +537,6 @@ export default function PropertyListing() {
         )}
       </View>
 
-      {/* ---------- Bottom Navigation (unchanged) ---------- */}
       <View style={container.navBar}>
         <TouchableOpacity style={[container.navBarItem]} onPress={() => router.push("/(main)/properties")}>
           <Ionicons name="home" size={24} color="#666" />
@@ -571,7 +551,6 @@ export default function PropertyListing() {
   );
 }
 
-
 const { width } = Dimensions.get("window");
 const imageWidth = width - 40;
 
@@ -582,7 +561,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   scrollContent: {
-    paddingBottom: 80, // Increased padding to avoid nav bar overlap
+    paddingBottom: 80,
   },
   carouselContainer: {
     width: "100%",
@@ -774,7 +753,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#555",
   },
-  // New styles for edit mode:
   editContainer: {
     padding: 20,
     backgroundColor: "#fff",
@@ -813,7 +791,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  // Edit/Save button container in the main section.
   editButtonContainer: {
     flexDirection: "row",
     justifyContent: "flex-end",
