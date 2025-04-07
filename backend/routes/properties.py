@@ -83,7 +83,6 @@ def edit_property(property_id):
     finally:
         session.close()
 
-
 # ------------------------------
 # Create a property
 # ------------------------------
