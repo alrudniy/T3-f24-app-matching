@@ -20,6 +20,8 @@ def create_preferences():
         if not all([size_sqft, price, bedrooms, bathrooms]):
             return jsonify({"success": False, "message": "All preference fields are required"}), 400
 
+        session.query(Preferences).filter_by(user_id=current_user.id).delete()
+
         new_preferences = Preferences(
             size_sqft=float(size_sqft),
             price=float(price),

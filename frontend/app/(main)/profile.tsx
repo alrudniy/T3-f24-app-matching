@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, Image, TouchableOpacity, Modal, Button, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  TouchableOpacity,
+  Modal,
+  Button,
+  Alert,
+} from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useSegments } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -101,7 +110,9 @@ const Profile = () => {
     }
 
     if (!phoneRegex.test(user.phone)) {
-      showModal("Invalid Phone. Please enter a valid phone number (10 digits).");
+      showModal(
+        "Invalid Phone. Please enter a valid phone number (10 digits)."
+      );
       return;
     }
 
@@ -122,14 +133,17 @@ const Profile = () => {
         formData.append("profile_picture", blob, "profile_picture.jpg");
       }
 
-      const response = await fetch("http://localhost:5000/api/user/update-profile", {
-        method: "PUT",
-        headers: {
-          "Accept": "application/json",
-        },
-        body: formData,
-        credentials: "include",
-      });
+      const response = await fetch(
+        "http://localhost:5000/api/user/update-profile",
+        {
+          method: "PUT",
+          headers: {
+            Accept: "application/json",
+          },
+          body: formData,
+          credentials: "include",
+        }
+      );
 
       const result = await response.json();
 
@@ -172,7 +186,10 @@ const Profile = () => {
     <SafeAreaProvider>
       {/* Header */}
       <View style={container.loggedInHeader}>
-        <TouchableOpacity onPress={() => router.push("/profile")} style={image.loggedInHeaderIcon}>
+        <TouchableOpacity
+          onPress={() => router.push("/profile")}
+          style={image.loggedInHeaderIcon}
+        >
           <Ionicons name="person-circle-outline" size={40} color="#333" />
         </TouchableOpacity>
 
@@ -182,7 +199,10 @@ const Profile = () => {
           resizeMode="contain"
         />
 
-        <TouchableOpacity onPress={() => router.push("/voucher")} style={image.loggedInHeaderIcon}>
+        <TouchableOpacity
+          onPress={() => router.push("/voucher")}
+          style={image.loggedInHeaderIcon}
+        >
           <Ionicons name="newspaper-outline" size={30} color="#333" />
         </TouchableOpacity>
       </View>
@@ -191,9 +211,17 @@ const Profile = () => {
       <SafeAreaView style={container.profile}>
         <View style={{ marginTop: 20 }} />
         <View style={container.image}>
-          <TouchableOpacity onPress={editing ? pickImage : undefined} activeOpacity={editing ? 0.7 : 1}>
+          <TouchableOpacity
+            onPress={editing ? pickImage : undefined}
+            activeOpacity={editing ? 0.7 : 1}
+          >
             <Image
-              source={{ uri: selectedImage || user.profilePicture || "https://via.placeholder.com/150" }}
+              source={{
+                uri:
+                  selectedImage ||
+                  user.profilePicture ||
+                  "https://via.placeholder.com/150",
+              }}
               style={image.profile}
             />
             {editing && (
@@ -237,10 +265,13 @@ const Profile = () => {
                 <TextInput
                   style={container.input}
                   value={user.businessName}
-                  onChangeText={(text) => setUser({ ...user, businessName: text })}
+                  onChangeText={(text) =>
+                    setUser({ ...user, businessName: text })
+                  }
                 />
               </>
             )}
+
             <View style={container.profileActions}>
               <TouchableOpacity style={button.save} onPress={handleSave}>
                 <Text style={button.saveText}>Save</Text>
@@ -260,16 +291,31 @@ const Profile = () => {
             <Text style={text.profileLabel}>Email</Text>
             <Text style={text.profileValue}>{user.email}</Text>
             <Text style={text.profileLabel}>Phone</Text>
-            <Text style={text.profileValue}>{formatPhoneNumber(user.phone)}</Text>
+            <Text style={text.profileValue}>
+              {formatPhoneNumber(user.phone)}
+            </Text>
             {user.role === "landlord" && (
               <>
                 <Text style={text.profileLabel}>Business Name</Text>
                 <Text style={text.profileValue}>{user.businessName}</Text>
               </>
             )}
-            <TouchableOpacity style={button.base} onPress={() => setEditing(true)}>
-              <Text style={button.baseText}>Edit Profile</Text>
+            <TouchableOpacity
+              style={button.base}
+              onPress={() => setEditing(true)}
+            >
+              <Text style={button.baseText}>Edit </Text>
             </TouchableOpacity>
+            {user.role === "tenant" && (
+              <>
+                <TouchableOpacity
+                  style={button.base}
+                  onPress={() => router.push("/preferencesAccessibility")}
+                >
+                  <Text style={button.baseText}>Edit Preferences</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
         {/* Modal for displaying messages */}
@@ -282,7 +328,11 @@ const Profile = () => {
           <View style={container.modal}>
             <View style={container.modalContent}>
               <Text style={text.modal}>{modalMessage}</Text>
-              <Button title="Close" onPress={() => setModalVisible(false)} color="#6200ee" />
+              <Button
+                title="Close"
+                onPress={() => setModalVisible(false)}
+                color="#6200ee"
+              />
             </View>
           </View>
         </Modal>
@@ -296,7 +346,10 @@ const Profile = () => {
       {/* Bottom Navigation */}
       <View style={container.navBar}>
         <TouchableOpacity
-          style={[container.navBarItem, segments[0] === "matching" && container.activeNavBarItem]}
+          style={[
+            container.navBarItem,
+            segments[0] === "matching" && container.activeNavBarItem,
+          ]}
           onPress={() => router.push("/matching")}
         >
           <Ionicons
@@ -304,12 +357,20 @@ const Profile = () => {
             size={24}
             color={segments[0] === "matching" ? "#007BFF" : "#666"}
           />
-          <Text style={[text.navBar, segments[0] === "matching" && text.activeNavBar]}>
+          <Text
+            style={[
+              text.navBar,
+              segments[0] === "matching" && text.activeNavBar,
+            ]}
+          >
             Explore
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[container.navBarItem, segments[0] === "matchingHistory" && container.activeNavBarItem]}
+          style={[
+            container.navBarItem,
+            segments[0] === "matchingHistory" && container.activeNavBarItem,
+          ]}
           onPress={() => router.push("/matchingHistory")}
         >
           <Ionicons
@@ -318,7 +379,10 @@ const Profile = () => {
             color={segments[0] === "matchingHistory" ? "#007BFF" : "#666"}
           />
           <Text
-            style={[text.navBar, segments[0] === "matchingHistory" && text.activeNavBar]}
+            style={[
+              text.navBar,
+              segments[0] === "matchingHistory" && text.activeNavBar,
+            ]}
           >
             Matches
           </Text>
