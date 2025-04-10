@@ -23,6 +23,7 @@ export default function Voucher() {
   const segments = useSegments();
 
   const [form, setForm] = useState({
+    id: null,
     expireDate: "",
     priceLimit: "",
     housingType: "",
@@ -89,8 +90,18 @@ export default function Voucher() {
     fetchVouchers();
   }, []);
 
+  const resetForm = () => {
+    setForm({
+      id: null,
+      expireDate: "",
+      priceLimit: "",
+      housingType: "",
+      familyMembers: 0,
+    });
+  };
+
   const handleSubmit = async () => {
-    const { expireDate, priceLimit, housingType, familyMembers } = form;
+    const { id, expireDate, priceLimit, housingType, familyMembers } = form;
 
     if (!expireDate || !priceLimit || !housingType || familyMembers <= 0) {
       const missingFields = [];
@@ -118,8 +129,13 @@ export default function Voucher() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/voucher/create", {
-        method: "POST",
+      const endpoint = id
+        ? `http://localhost:5000/api/voucher/update/${id}`
+        : "http://localhost:5000/api/voucher/create";
+      const method = id ? "PUT" : "POST";
+
+      const response = await fetch(endpoint, {
+        method: method,
         headers: {
           "Content-Type": "application/json",
         },
@@ -136,13 +152,13 @@ export default function Voucher() {
 
       if (data.success) {
         fetchVouchers(); 
-        setForm({ expireDate: "", priceLimit: "", housingType: "", familyMembers: 0 });
+        resetForm();
       } else {
-        setErrorMessage(data.message || "Voucher creation failed.");
+        setErrorMessage(data.message || "Voucher submission failed.");
         setErrorModalVisible(true);
       }
     } catch (error) {
-      console.error("Error during voucher creation:", error);
+      console.error("Error during voucher submission:", error);
       setErrorMessage("An error occurred. Please try again.");
       setErrorModalVisible(true);
     } finally {
@@ -150,15 +166,22 @@ export default function Voucher() {
     }
   };
 
-  // Populate the form with voucher details for editing
   const handleEdit = (voucher: any) => {
+    const rawDate = new Date(voucher.expiration_date);
+    const year = rawDate.getFullYear();
+    const month = String(rawDate.getMonth() + 1).padStart(2, '0');
+    const day = String(rawDate.getDate()).padStart(2, '0');
+    const formattedDate = `${year}${month}${day}`;
+  
     setForm({
-      expireDate: voucher.expiration_date,
+      id: voucher.id,
+      expireDate: formattedDate,
       priceLimit: voucher.price_limit,
       housingType: voucher.housing_type,
       familyMembers: voucher.family_members,
     });
   };
+  
 
   return (
     <SafeAreaProvider>
@@ -177,7 +200,9 @@ export default function Voucher() {
       <ThemedView style={container.base}>
         <SafeAreaView style={[container.inner, { flex: 1, maxWidth: "100%" }]}>
           <ScrollView contentContainerStyle={{ paddingVertical: 20, alignItems: "center" }} showsVerticalScrollIndicator={false}>
-            <Text style={{ fontSize: 24, marginBottom: 20 }}>Input Voucher</Text>
+            <Text style={{ fontSize: 24, marginBottom: 20 }}>
+              {form.id ? "Edit Voucher" : "Input Voucher"}
+            </Text>
 
             <View style={container.form}>
               <TextInput placeholder="Expiration Date (YYYYMMDD)" style={container.input} value={form.expireDate} onChangeText={(text) => handleChange("expireDate", text)} keyboardType="number-pad" />
@@ -208,7 +233,13 @@ export default function Voucher() {
                 </View>
               </View>
 
-              <Button title="Submit Voucher" onPress={handleSubmit} color="#4CAF50" />
+              <Button title={form.id ? "Update Voucher" : "Submit Voucher"} onPress={handleSubmit} color="#4CAF50" />
+
+              {form.id && (
+                <View style={{ marginTop: 10 }}>
+                  <Button title="Cancel Edit" onPress={resetForm} color="#888" />
+                </View>
+              )}
             </View>
 
             {loading && <ActivityIndicator size="large" color="#4CAF50" style={{ marginTop: 20 }} />}
@@ -219,7 +250,7 @@ export default function Voucher() {
                 <Text>No vouchers found.</Text>
               ) : (
                 vouchers.map((voucher) => (
-                  <View key={voucher.id} style={[container.form, {marginVertical: "5px"}]}>
+                  <View key={voucher.id} style={[container.form, { marginVertical: 5 }]}>
                     <Text>Expiration: {voucher.expiration_date}</Text>
                     <Text>Price Limit: {voucher.price_limit}</Text>
                     <Text>Housing Type: {voucher.housing_type}</Text>
