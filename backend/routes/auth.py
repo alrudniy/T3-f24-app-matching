@@ -4,9 +4,44 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import session, User
 import traceback
 from sqlalchemy.exc import SQLAlchemyError
+from pydantic import BaseModel, Field, validator
+from typing import Optional
 
 # Create Blueprint for authentication
 auth_bp = Blueprint("auth", __name__)
+
+# Pydantic models for validation
+class UserRegisterModel(BaseModel):
+    username: str = Field(..., description="Username")
+    email: str = Field(..., description="Email address")
+    password: str = Field(..., description="Password")
+    firstName: str = Field(..., description="First name")
+    lastName: str = Field(..., description="Last name")
+    role: str = Field(..., description="User role (tenant or landlord)")
+    phone: Optional[str] = Field(None, description="Phone number")
+    businessName: Optional[str] = Field(None, description="Business name (required for landlords)")
+
+    @validator('role')
+    def validate_role(cls, v):
+        if v not in ["tenant", "landlord"]:
+            raise ValueError("Role must be either 'tenant' or 'landlord'")
+        return v
+
+    @validator('businessName')
+    def validate_business_name(cls, v, values):
+        if 'role' in values and values['role'] == 'landlord' and not v:
+            raise ValueError("Business name is required for landlords")
+        return v
+
+    class Config:
+        orm_mode = True
+
+class UserLoginModel(BaseModel):
+    username: str = Field(..., description="Username")
+    password: str = Field(..., description="Password")
+
+    class Config:
+        orm_mode = True
 
 # Register route
 @auth_bp.route('/register', methods=['POST'])
@@ -17,22 +52,21 @@ def register():
         # Debugging: Log received data
         print("Received Registration Data:", data)
 
-        # Extract fields from request
-        username = data.get('username')
-        email = data.get('email')
-        phone = data.get('phone')
-        password = data.get('password')
-        firstname = data.get('firstName')
-        lastname = data.get('lastName')
-        role = data.get('role')
-        business_name = data.get('businessName') if role == "landlord" else None
+        try:
+            # Validate data using Pydantic model
+            user_data = UserRegisterModel(**data)
+        except ValueError as e:
+            return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
 
-        # Validate required fields
-        if not all([username, email, password, firstname, lastname, role]):
-            return jsonify({"success": False, "message": "All fields are required"}), 400
-
-        if role == "landlord" and not business_name:
-            return jsonify({"success": False, "message": "Business name is required for landlords"}), 400
+        # Extract validated fields
+        username = user_data.username
+        email = user_data.email
+        phone = user_data.phone
+        password = user_data.password
+        firstname = user_data.firstName
+        lastname = user_data.lastName
+        role = user_data.role
+        business_name = user_data.businessName
 
         # Check if email or username already exists
         existing_user = session.query(User).filter(
@@ -79,11 +113,15 @@ def register():
 def login():
     try:
         data = request.json
-        username = data.get("username")
-        password = data.get("password")
 
-        if not username or not password:
-            return jsonify({"success": False, "message": "Username and password are required"}), 400
+        try:
+            # Validate data using Pydantic model
+            login_data = UserLoginModel(**data)
+        except ValueError as e:
+            return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
+
+        username = login_data.username
+        password = login_data.password
 
         # Retrieve the user from the database
         user = session.query(User).filter_by(username=username).first()

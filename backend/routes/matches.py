@@ -2,9 +2,18 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from models import session, Match, Property, User
 import traceback
+from pydantic import BaseModel, Field
+from typing import Optional
 
 # Create Blueprint for matches
 matches_bp = Blueprint("matches", __name__)
+
+# Pydantic model for validation
+class PropertyMatchModel(BaseModel):
+    property_id: int = Field(..., description="ID of the property to match")
+
+    class Config:
+        orm_mode = True
 
 # Match a property (Tenant only)
 @matches_bp.route("/api/match", methods=["POST"])
@@ -15,11 +24,14 @@ def match_property():
 
     try:
         data = request.json
-        property_id = data.get("property_id")
 
-        if not property_id:
-            return jsonify({"success": False, "message": "Property ID is required"}), 400
+        try:
+            # Validate data using Pydantic model
+            match_data = PropertyMatchModel(**data)
+        except ValueError as e:
+            return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
 
+        property_id = match_data.property_id
         property = session.query(Property).filter_by(id=property_id).first()
         if not property:
             return jsonify({"success": False, "message": "Property not found"}), 404

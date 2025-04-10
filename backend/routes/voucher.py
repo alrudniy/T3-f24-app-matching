@@ -4,9 +4,30 @@ from models import session, Voucher
 from sqlalchemy.exc import SQLAlchemyError
 import traceback
 import os
+from pydantic import BaseModel, Field
+from typing import Optional
 
 # Blueprint for vouchers
 voucher_bp = Blueprint("voucher", __name__)
+
+# Pydantic models for validation
+class VoucherCreateModel(BaseModel):
+    expiration_date: Optional[str] = Field(None, description="Expiration date of the voucher")
+    price_limit: Optional[int] = Field(None, description="Price limit for the voucher")
+    housing_type: Optional[str] = Field(None, description="Type of housing")
+    family_members: Optional[int] = Field(None, description="Number of family members")
+
+    class Config:
+        orm_mode = True
+
+class VoucherUpdateModel(BaseModel):
+    expiration_date: Optional[str] = Field(None, description="Expiration date of the voucher")
+    price_limit: Optional[int] = Field(None, description="Price limit for the voucher")
+    housing_type: Optional[str] = Field(None, description="Type of housing")
+    family_members: Optional[int] = Field(None, description="Number of family members")
+
+    class Config:
+        orm_mode = True
 
 # Create a new voucher (only logged-in users can create vouchers)
 @voucher_bp.route('/api/voucher/create', methods=['POST'])
@@ -15,12 +36,19 @@ def create_voucher():
     try:
         data = request.get_json()
 
+        try:
+            # Validate data using Pydantic model
+            voucher_data = VoucherCreateModel(**data)
+        except ValueError as e:
+            return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
+
+        # Create new voucher using validated data
         new_voucher = Voucher(
             user_id=current_user.id,  # Assign the logged-in user
-            expiration_date=data.get('expiration_date'),
-            price_limit=data.get('price_limit'),
-            housing_type=data.get('housing_type'),
-            family_members=data.get('family_members')
+            expiration_date=voucher_data.expiration_date,
+            price_limit=voucher_data.price_limit,
+            housing_type=voucher_data.housing_type,
+            family_members=voucher_data.family_members
         )
 
         session.add(new_voucher)
@@ -98,15 +126,21 @@ def update_voucher(voucher_id):
         if not voucher:
             return jsonify({"success": False, "message": "Voucher not found"}), 404
 
-        # Update fields if provided
-        if "expiration_date" in data:
-            voucher.expiration_date = data["expiration_date"]
-        if "price_limit" in data:
-            voucher.price_limit = data["price_limit"]
-        if "housing_type" in data:
-            voucher.housing_type = data["housing_type"]
-        if "family_members" in data:
-            voucher.family_members = data["family_members"]
+        try:
+            # Validate data using Pydantic model
+            voucher_data = VoucherUpdateModel(**data)
+        except ValueError as e:
+            return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
+
+        # Update voucher with validated data
+        if voucher_data.expiration_date is not None:
+            voucher.expiration_date = voucher_data.expiration_date
+        if voucher_data.price_limit is not None:
+            voucher.price_limit = voucher_data.price_limit
+        if voucher_data.housing_type is not None:
+            voucher.housing_type = voucher_data.housing_type
+        if voucher_data.family_members is not None:
+            voucher.family_members = voucher_data.family_members
 
         session.commit()
         return jsonify({"success": True, "message": "Voucher updated successfully"}), 200
@@ -118,9 +152,3 @@ def update_voucher(voucher_id):
     except Exception as e:
         traceback.print_exc()
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
-
-
-
-
-
-

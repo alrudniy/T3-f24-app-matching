@@ -6,9 +6,44 @@ import os
 import traceback
 from sqlalchemy.exc import SQLAlchemyError
 import config
+from pydantic import BaseModel, Field, validator
+from typing import Optional, List
 
 # Blueprint for properties
 properties_bp = Blueprint("properties", __name__)
+
+# Pydantic models for validation
+class PropertyCreateModel(BaseModel):
+    size_sqft: float = Field(..., description="Size in square feet")
+    price: float = Field(..., description="Price")
+    bedrooms: int = Field(..., description="Number of bedrooms")
+    bathrooms: int = Field(..., description="Number of bathrooms")
+    street_address: str = Field(..., description="Street address")
+    city: str = Field(..., description="City")
+    name: str = Field(..., description="Property name")
+    description: Optional[str] = Field("", description="Property description")
+
+    class Config:
+        orm_mode = True
+
+class PropertyUpdateModel(BaseModel):
+    size_sqft: Optional[float] = Field(None, description="Size in square feet")
+    price: Optional[float] = Field(None, description="Price")
+    bedrooms: Optional[int] = Field(None, description="Number of bedrooms")
+    bathrooms: Optional[int] = Field(None, description="Number of bathrooms")
+    street_address: Optional[str] = Field(None, description="Street address")
+    city: Optional[str] = Field(None, description="City")
+    name: Optional[str] = Field(None, description="Property name")
+    description: Optional[str] = Field(None, description="Property description")
+
+    class Config:
+        orm_mode = True
+
+class AccessibilityAddModel(BaseModel):
+    accessibility_ids: List[int] = Field(..., description="List of accessibility IDs")
+
+    class Config:
+        orm_mode = True
 
 # ------------------------------
 # Helper function to check file extension
@@ -38,15 +73,49 @@ def edit_property(property_id):
 
         data = request.form
 
-        # Update property details if provided
-        prop.size_sqft = float(data.get("size_sqft", prop.size_sqft))
-        prop.price = float(data.get("price", prop.price))
-        prop.bedrooms = int(data.get("bedrooms", prop.bedrooms))
-        prop.bathrooms = int(data.get("bathrooms", prop.bathrooms))
-        prop.street_address = data.get("street_address", prop.street_address)
-        prop.city = data.get("city", prop.city)
-        prop.name = data.get("name", prop.name)
-        prop.description = data.get("description", prop.description)
+        try:
+            # Prepare data for validation
+            update_data = {}
+            if 'size_sqft' in data:
+                update_data['size_sqft'] = float(data.get('size_sqft'))
+            if 'price' in data:
+                update_data['price'] = float(data.get('price'))
+            if 'bedrooms' in data:
+                update_data['bedrooms'] = int(data.get('bedrooms'))
+            if 'bathrooms' in data:
+                update_data['bathrooms'] = int(data.get('bathrooms'))
+            if 'street_address' in data:
+                update_data['street_address'] = data.get('street_address')
+            if 'city' in data:
+                update_data['city'] = data.get('city')
+            if 'name' in data:
+                update_data['name'] = data.get('name')
+            if 'description' in data:
+                update_data['description'] = data.get('description')
+
+            # Validate data using Pydantic model
+            property_data = PropertyUpdateModel(**update_data)
+
+            # Update property with validated data
+            if property_data.size_sqft is not None:
+                prop.size_sqft = property_data.size_sqft
+            if property_data.price is not None:
+                prop.price = property_data.price
+            if property_data.bedrooms is not None:
+                prop.bedrooms = property_data.bedrooms
+            if property_data.bathrooms is not None:
+                prop.bathrooms = property_data.bathrooms
+            if property_data.street_address is not None:
+                prop.street_address = property_data.street_address
+            if property_data.city is not None:
+                prop.city = property_data.city
+            if property_data.name is not None:
+                prop.name = property_data.name
+            if property_data.description is not None:
+                prop.description = property_data.description
+
+        except ValueError as e:
+            return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
 
         # Handle deleting images if requested
         delete_image_ids = request.form.getlist("delete_image_ids")
@@ -94,29 +163,33 @@ def create_property():
             return jsonify({"success": False, "message": "Only landlords can create properties"}), 403
 
         data = request.form
-        size_sqft = data.get('size_sqft')
-        price = data.get('price')
-        bedrooms = data.get('bedrooms')
-        bathrooms = data.get('bathrooms')
-        street_address = data.get('street_address')
-        city = data.get('city')
-        name = data.get('name')
-        description = data.get('description', "")
 
-        # Validate required fields
-        if not all([size_sqft, price, bedrooms, bathrooms, street_address, city, name]):
-            return jsonify({"success": False, "message": "All property fields are required"}), 400
+        try:
+            # Validate data using Pydantic model
+            property_data = PropertyCreateModel(
+                size_sqft=float(data.get('size_sqft', 0)),
+                price=float(data.get('price', 0)),
+                bedrooms=int(data.get('bedrooms', 0)),
+                bathrooms=int(data.get('bathrooms', 0)),
+                street_address=data.get('street_address', ''),
+                city=data.get('city', ''),
+                name=data.get('name', ''),
+                description=data.get('description', '')
+            )
+        except ValueError as e:
+            return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
 
+        # Create new property using validated data
         new_property = Property(
-            size_sqft=float(size_sqft),
-            price=float(price),
-            bedrooms=int(bedrooms),
-            bathrooms=int(bathrooms),
-            street_address=street_address,
-            city=city,
-            name=name,
+            size_sqft=property_data.size_sqft,
+            price=property_data.price,
+            bedrooms=property_data.bedrooms,
+            bathrooms=property_data.bathrooms,
+            street_address=property_data.street_address,
+            city=property_data.city,
+            name=property_data.name,
             user_id=current_user.id,
-            description=description
+            description=property_data.description
         )
 
         session.add(new_property)
@@ -144,16 +217,21 @@ def add_accessibility_to_property(property_id):
             return jsonify({"success": False, "message": "Only landlords can modify property accessibility"}), 403
 
         data = request.json
-        accessibility_ids = data.get("accessibility_ids")  # List of accessibility IDs
 
-        if not accessibility_ids:
+        try:
+            # Validate data using Pydantic model
+            accessibility_data = AccessibilityAddModel(**data)
+        except ValueError as e:
+            return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
+
+        if not accessibility_data.accessibility_ids:
             return jsonify({"success": False, "message": "No accessibility IDs provided"}), 400
 
         prop = session.query(Property).filter_by(id=property_id, user_id=current_user.id).first()
         if not prop:
             return jsonify({"success": False, "message": "Property not found"}), 404
 
-        for accessibility_id in accessibility_ids:
+        for accessibility_id in accessibility_data.accessibility_ids:
             accessibility = session.query(Accessibility).filter_by(accessibilityID=accessibility_id).first()
             if accessibility and accessibility not in prop.accessibilities:
                 prop.accessibilities.append(accessibility)
