@@ -18,7 +18,8 @@ geocode_func = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 def update_property_geocode(property_id):
     """
     Updates the latitude and longitude for a property based on its address.
-    The property record should include 'street_address' and 'city' fields.
+    The property record should include 'street_address', 'city', and optionally 'zipcode'.
+    If the geocoding for the full address fails, it falls back to using the zipcode alone.
     It is assumed that the Property model has 'latitude' and 'longitude' fields.
     """
     try:
@@ -33,10 +34,17 @@ def update_property_geocode(property_id):
             address_parts.append(prop.street_address)
         if prop.city:
             address_parts.append(prop.city)
+        if prop.zipcode:
+            address_parts.append(prop.zipcode)
         full_address = ", ".join(address_parts)
 
         # Use geopy to get the location for the constructed address.
         location = geocode_func(full_address)
+
+        # If geocoding with the full address fails and a zipcode is available, try geocoding the zipcode alone.
+        if not location and prop.zipcode:
+            location = geocode_func(prop.zipcode)
+
         if location:
             # Update the property record with the new geocode information.
             prop.latitude = location.latitude
@@ -61,6 +69,7 @@ def update_property_geocode(property_id):
         }), 500
     finally:
         session.close()
+
 
 @geocode_bp.route("/property/<int:property_id>/distance", methods=["GET"])
 def calculate_distance(property_id):
