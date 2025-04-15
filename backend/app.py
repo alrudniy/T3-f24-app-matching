@@ -3,6 +3,7 @@ from flask_login import LoginManager, current_user
 from flask_cors import CORS
 from datetime import timedelta
 from models import init_db, User, SessionLocal, session
+from routes.geocode import geocode_bp
 from routes.properties import properties_bp
 from routes.uploads import uploads_bp
 from routes.auth import auth_bp
@@ -33,6 +34,7 @@ engine = create_engine(
 init_db()
 
 # Register all routes from the routes package
+app.register_blueprint(geocode_bp)
 app.register_blueprint(properties_bp)
 app.register_blueprint(uploads_bp)
 app.register_blueprint(auth_bp)

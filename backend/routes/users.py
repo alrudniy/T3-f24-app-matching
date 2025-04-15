@@ -35,7 +35,11 @@ def get_user_profile():
             "lastname": current_user.lastname,
             "role": current_user.role,
             "businessName": current_user.businessName,
-            "profile_picture": f"http://localhost:5000/uploads/{current_user.profile_picture}" if current_user.profile_picture else "https://via.placeholder.com/150",
+            "profile_picture": (
+                f"http://localhost:5000/uploads/{current_user.profile_picture}"
+                if current_user.profile_picture
+                else "https://via.placeholder.com/150"
+            ),
         }
         return jsonify({"success": True, "profile": user}), 200
     except Exception as e:
@@ -64,7 +68,11 @@ def update_user_profile():
         if lastname:
             user.lastname = lastname
         if email:
-            existing_user = session.query(User).filter(User.email == email, User.id != current_user.id).first()
+            existing_user = (
+                session.query(User)
+                .filter(User.email == email, User.id != current_user.id)
+                .first()
+            )
             if existing_user:
                 return jsonify({"success": False, "message": "Email is already in use"}), 400
             user.email = email
@@ -103,17 +111,15 @@ def delete_user(user_id):
         session.rollback()
         traceback.print_exc()
         return jsonify({"success": False, "message": "An error occurred", "error": str(e)}), 500
-    
+
+# Get current user
 @users_bp.route("/api/current-user", methods=["GET"])
 @login_required
 def get_current_user():
     """
-    Returns the currently logged-in user's information, 
-    similar to /api/user/profile but under the key "user"
-    for easier front-end consumption.
+    Returns the currently logged-in user's information under the key "user".
     """
     try:
-        # Build the user data from current_user
         user_data = {
             "id": current_user.id,
             "username": current_user.username,
@@ -129,19 +135,12 @@ def get_current_user():
                 else "https://via.placeholder.com/150"
             ),
         }
-
-        return jsonify({
-            "success": True,
-            "user": user_data  # <-- key is "user" so front-end can do data.user
-        }), 200
-
+        return jsonify({"success": True, "user": user_data}), 200
     except Exception as e:
         traceback.print_exc()
-        return jsonify({
-            "success": False,
-            "message": "Failed to fetch user",
-            "error": str(e)
-        }), 500
+        return jsonify({"success": False, "message": "Failed to fetch user", "error": str(e)}), 500
+
+# Get user by ID
 @users_bp.route("/api/user/<int:user_id>", methods=["GET"])
 @login_required
 def get_user_by_id(user_id):
@@ -165,8 +164,50 @@ def get_user_by_id(user_id):
                 else "https://via.placeholder.com/150"
             ),
         }
-
         return jsonify({"success": True, "profile": profile}), 200
     except Exception as e:
         traceback.print_exc()
         return jsonify({"success": False, "message": "Failed to fetch user", "error": str(e)}), 500
+
+# Update user zipcode
+@users_bp.route("/api/user/zipcode", methods=["POST"])
+@login_required
+def update_user_zipcode():
+    """
+    Update the logged-in user's zipcode.
+    Expects JSON body: { "zipcode": "12345" }
+    """
+    try:
+        data = request.get_json()
+        zipcode = data.get("zipcode")
+        if not zipcode:
+            return jsonify({"success": False, "message": "No zipcode provided"}), 400
+
+        user = session.query(User).get(current_user.id)
+        if not user:
+            return jsonify({"success": False, "message": "User not found"}), 404
+
+        user.zipcode = zipcode
+        session.commit()
+        return jsonify({"success": True, "zipcode": user.zipcode}), 200
+    except Exception as e:
+        session.rollback()
+        traceback.print_exc()
+        return jsonify({"success": False, "message": "An error occurred while updating zipcode", "error": str(e)}), 500
+# Get user zipcode (GET endpoint)
+@users_bp.route("/api/user/zipcode", methods=["GET"])
+@login_required
+def get_user_zipcode():
+    try:
+        user = session.query(User).get(current_user.id)
+        if not user:
+            return jsonify({"success": False, "message": "User not found"}), 404
+
+        return jsonify({"success": True, "zipcode": user.zipcode}), 200
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({
+            "success": False,
+            "message": "An error occurred while fetching zipcode",
+            "error": str(e)
+        }), 500

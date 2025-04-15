@@ -61,6 +61,7 @@ class User(UserMixin, Base):
     role = Column(String(50), default="tenant")  # Role: 'tenant' or 'landlord'
     businessName = Column(String(200), nullable=True)  # Only for landlords
     profile_picture = Column(String(255), nullable=True)
+    zipcode = Column(String(20), nullable=True)
     properties = relationship("Property", back_populates="user", cascade="all, delete-orphan")
 
     #Relationship back to Match
@@ -77,6 +78,9 @@ class Property(Base):
     street_address = Column(String, nullable=True)
     city = Column(String, nullable=True)
     description = Column(String, nullable=True)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)
+    zipcode = Column(String(20), nullable=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship("User", back_populates="properties")
     images = relationship("PropertyImage", back_populates="property", cascade="all, delete-orphan")
