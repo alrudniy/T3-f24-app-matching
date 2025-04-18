@@ -160,7 +160,7 @@ export default function UserAccessibility() {
         </TouchableOpacity>
       </View>
       <SafeAreaView style={container.base}>
-        <ScrollView contentContainerStyle={{ padding: 20 }}>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 100 }}>
           <Text style={text.title}>Preferences and Accessibility</Text>
           {/* Property Details */}
           <Text style={text.sectionHeader}>Details</Text>
@@ -198,13 +198,6 @@ export default function UserAccessibility() {
 
           {/* Accessibility Section */}
           <Text style={text.sectionHeader}>Accessibilities</Text>
-          {/* <View style={styles.checkboxRow}>
-            <Ionicons name={getIconName("prefered")} size={24} color="#FFA500"/>
-            <Text style={styles.checkboxLabelKey}>Prefered</Text>
-            <Ionicons name={getIconName("mandatory")} size={24} color="#4CAF50"/>
-            <Text style={styles.checkboxLabelKey}>Mandatory</Text>
-            
-          </View> */}
 
           <View style={styles.accessibilityContainer}>
             <View style={styles.checkboxRow}>
@@ -244,16 +237,17 @@ export default function UserAccessibility() {
               </TouchableOpacity>
             ))}
           </View>
+          <View style={{ paddingBottom: 60 }}>
+            <Button title="Submit" onPress={handleSubmit} color="#4CAF50" />
 
-          <Button title="Submit" onPress={handleSubmit} color="#4CAF50" />
-
-          {loading && (
-            <ActivityIndicator
-              size="large"
-              color="#4CAF50"
-              style={{ marginTop: 20 }}
-            />
-          )}
+            {loading && (
+              <ActivityIndicator
+                size="large"
+                color="#4CAF50"
+                style={{ marginTop: 20 }}
+              />
+            )}
+          </View>
         </ScrollView>
         {/* Bottom Navigation */}
         <View style={container.navBar}>
