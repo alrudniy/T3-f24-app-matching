@@ -1,13 +1,12 @@
+from flask_login import UserMixin
+from sqlalchemy import create_engine, Column, String, Boolean, Integer, Float, ForeignKey, Table, func
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship
-from sqlalchemy import create_engine, Column, String, Boolean, Integer, Float, ForeignKey, Table, func
-from flask_login import UserMixin
-import os
+
 from config import DATABASE_CONFIG
 
 # Database Configuration
 db_config = DATABASE_CONFIG
-
 
 # Initialize database engine
 engine = create_engine(
@@ -24,17 +23,21 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Scoped session (thread-safe)
 session = scoped_session(SessionLocal)
 
+
 # Ensure tables exist
 def init_db():
     Base.metadata.create_all(bind=engine)
+
 
 # Define Many-to-Many Relationship Table for Property and Accessibility
 property_accessibility_table = Table(
     'property_accessibility',
     Base.metadata,
     Column('propertyID', Integer, ForeignKey('property.id', ondelete="CASCADE"), primary_key=True),
-    Column('accessibilityID', Integer, ForeignKey('accessibility.accessibilityID', ondelete="CASCADE"), primary_key=True)
+    Column('accessibilityID', Integer, ForeignKey('accessibility.accessibilityID', ondelete="CASCADE"),
+           primary_key=True)
 )
+
 
 # Models
 
@@ -47,6 +50,7 @@ class Accessibility(Base):
         secondary=property_accessibility_table,
         back_populates='accessibilities'
     )
+
 
 class User(UserMixin, Base):
     __tablename__ = 'user'
@@ -63,8 +67,9 @@ class User(UserMixin, Base):
     profile_picture = Column(String(255), nullable=True)
     properties = relationship("Property", back_populates="user", cascade="all, delete-orphan")
 
-    #Relationship back to Match
+    # Relationship back to Match
     matches = relationship("Match", back_populates="user", cascade="all, delete-orphan")
+
 
 class Property(Base):
     __tablename__ = 'property'
@@ -89,12 +94,14 @@ class Property(Base):
     # Relationship back to Match
     matches = relationship("Match", back_populates="property", cascade="all, delete-orphan")
 
+
 class PropertyImage(Base):
     __tablename__ = 'property_images'
     id = Column(Integer, primary_key=True, autoincrement=True)
     property_id = Column(Integer, ForeignKey('property.id', ondelete='CASCADE'))
     image_url = Column(String, nullable=False)
     property = relationship("Property", back_populates="images")
+
 
 class Match(Base):
     __tablename__ = 'match'
@@ -103,17 +110,17 @@ class Match(Base):
     property_id = Column(Integer, ForeignKey('property.id'))
     timestamp = Column(String, default=func.now())
 
-
-    #Relationship fields
+    # Relationship fields
     user = relationship("User", back_populates="matches")
     property = relationship("Property", back_populates="matches")
+
 
 class Voucher(Base):
     __tablename__ = 'voucher'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('user.id'), nullable=True)
-    expiration_date = Column(String, nullable=True) 
+    expiration_date = Column(String, nullable=True)
     price_limit = Column(Integer, nullable=True)
     housing_type = Column(String(50), nullable=True)
     family_members = Column(Integer, nullable=True)
@@ -130,7 +137,6 @@ class Preferences(Base):
     bedrooms = Column(Integer, nullable=True)
     bathrooms = Column(Float(3, 1), nullable=True)
     user = relationship("User", backref="preferences")
-
 
 
 # Function to create database tables

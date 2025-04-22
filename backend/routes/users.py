@@ -1,12 +1,17 @@
-from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
-from models import session, User
 import traceback
-from pydantic import BaseModel, Field, validator
-from typing import Optional
+from typing import Optional, List, Dict, Any
 
-# Create Blueprint for user routes
-users_bp = Blueprint("users", __name__)
+from flask import jsonify, request
+from flask_login import login_required, current_user
+from flask_openapi3 import APIBlueprint, Tag
+from pydantic import BaseModel, Field
+
+from models import session, User
+
+# Create APIBlueprint for user routes
+users_tag = Tag(name="users", description="User management operations")
+users_api = APIBlueprint("users", __name__, abp_tags=[users_tag])
+
 
 # Pydantic model for validation
 class UserProfileUpdateModel(BaseModel):
@@ -16,11 +21,54 @@ class UserProfileUpdateModel(BaseModel):
     phone: Optional[str] = Field(None, description="Phone number")
     businessName: Optional[str] = Field(None, description="Business name (for landlords)")
 
-    class Config:
-        orm_mode = True
+
+# Form data model for profile update
+class UserProfileUpdateFormData(BaseModel):
+    firstname: Optional[str] = Field(None, description="First name")
+    lastname: Optional[str] = Field(None, description="Last name")
+    email: Optional[str] = Field(None, description="Email address")
+    phone: Optional[str] = Field(None, description="Phone number")
+    businessName: Optional[str] = Field(None, description="Business name (for landlords)")
+
+
+# Response models
+class SuccessResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    message: str = Field(..., description="Success message")
+
+
+class ErrorResponse(BaseModel):
+    success: bool = Field(False, description="Error status")
+    message: str = Field(..., description="Error message")
+    error: Optional[str] = Field(None, description="Detailed error information")
+
+
+class UserData(BaseModel):
+    id: int = Field(..., description="User ID")
+    firstname: str = Field(..., description="First name")
+    lastname: str = Field(..., description="Last name")
+
+
+class UserListResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    users: List[UserData] = Field(..., description="List of users")
+
+
+class UserProfileResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    profile: Dict[str, Any] = Field(..., description="User profile data")
+
 
 # Get all users
-@users_bp.route("/api/users", methods=["GET"])
+@users_api.get(
+    "/api/users",
+    summary="Get all users",
+    description="Retrieve a list of all users",
+    responses={
+        200: UserListResponse,
+        500: ErrorResponse
+    }
+)
 @login_required
 def get_users():
     try:
@@ -34,8 +82,17 @@ def get_users():
         traceback.print_exc()
         return jsonify({"success": False, "message": "An error occurred", "error": str(e)}), 500
 
+
 # Get user profile (already handled in auth.py, but adding another route here if needed)
-@users_bp.route("/api/user/profile", methods=["GET"])
+@users_api.get(
+    "/api/user/profile",
+    summary="Get user profile",
+    description="Get the profile of the currently logged in user",
+    responses={
+        200: UserProfileResponse,
+        500: ErrorResponse
+    }
+)
 @login_required
 def get_user_profile():
     try:
@@ -55,27 +112,37 @@ def get_user_profile():
         traceback.print_exc()
         return jsonify({"success": False, "message": "Failed to fetch profile", "error": str(e)}), 500
 
+
 # Update user profile
-@users_bp.route("/api/user/update-profile", methods=["PUT"])
+@users_api.put(
+    "/api/user/update-profile",
+    summary="Update user profile",
+    description="Update the profile of the currently logged in user",
+    responses={
+        200: SuccessResponse,
+        400: ErrorResponse,
+        404: ErrorResponse,
+        500: ErrorResponse
+    },
+)
 @login_required
-def update_user_profile():
+def update_user_profile(form: UserProfileUpdateFormData):
     try:
-        data = request.form
         profile_picture = request.files.get("profile_picture")
 
         try:
             # Prepare data for validation
             update_data = {}
-            if 'firstname' in data:
-                update_data['firstname'] = data.get('firstname')
-            if 'lastname' in data:
-                update_data['lastname'] = data.get('lastname')
-            if 'email' in data:
-                update_data['email'] = data.get('email')
-            if 'phone' in data:
-                update_data['phone'] = data.get('phone')
-            if 'businessName' in data and current_user.role == "landlord":
-                update_data['businessName'] = data.get('businessName')
+            if form.firstname is not None:
+                update_data['firstname'] = form.firstname
+            if form.lastname is not None:
+                update_data['lastname'] = form.lastname
+            if form.email is not None:
+                update_data['email'] = form.email
+            if form.phone is not None:
+                update_data['phone'] = form.phone
+            if form.businessName is not None and current_user.role == "landlord":
+                update_data['businessName'] = form.businessName
 
             # Validate data using Pydantic model
             profile_data = UserProfileUpdateModel(**update_data)
@@ -92,7 +159,8 @@ def update_user_profile():
         if profile_data.lastname is not None:
             user.lastname = profile_data.lastname
         if profile_data.email is not None:
-            existing_user = session.query(User).filter(User.email == profile_data.email, User.id != current_user.id).first()
+            existing_user = session.query(User).filter(User.email == profile_data.email,
+                                                       User.id != current_user.id).first()
             if existing_user:
                 return jsonify({"success": False, "message": "Email is already in use"}), 400
             user.email = profile_data.email
@@ -115,11 +183,26 @@ def update_user_profile():
         traceback.print_exc()
         return jsonify({"success": False, "message": "An error occurred", "error": str(e)}), 500
 
+
+class DeleteUserPath(BaseModel):
+    user_id: int = Field(..., description="User ID")
+
+
 # Delete user
-@users_bp.route("/user/delete/<int:user_id>", methods=["DELETE"])
+@users_api.delete(
+    "/user/delete/<int:user_id>",
+    summary="Delete a user",
+    description="Delete a user",
+    responses={
+        200: SuccessResponse,
+        404: ErrorResponse,
+        500: ErrorResponse
+    }
+)
 @login_required
-def delete_user(user_id):
+def delete_user(path: DeleteUserPath):
     try:
+        user_id = path.user_id
         user = session.query(User).filter_by(id=user_id).first()
         if not user:
             return jsonify({"success": False, "message": "User not found"}), 404
@@ -132,7 +215,16 @@ def delete_user(user_id):
         traceback.print_exc()
         return jsonify({"success": False, "message": "An error occurred", "error": str(e)}), 500
 
-@users_bp.route("/api/current-user", methods=["GET"])
+
+@users_api.get(
+    "/api/current-user",
+    summary="Get current user",
+    description="Returns the currently logged-in user's information, similar to /api/user/profile but under the key 'user' for easier front-end consumption",
+    responses={
+        200: UserProfileResponse,
+        500: ErrorResponse
+    }
+)
 @login_required
 def get_current_user():
     """
@@ -170,10 +262,26 @@ def get_current_user():
             "message": "Failed to fetch user",
             "error": str(e)
         }), 500
-@users_bp.route("/api/user/<int:user_id>", methods=["GET"])
+
+
+class GetUserPath(BaseModel):
+    user_id: int = Field(..., description="User ID")
+
+
+@users_api.get(
+    "/api/user/<int:user_id>",
+    summary="Get user by ID",
+    description="Get a user by their ID",
+    responses={
+        200: UserProfileResponse,
+        404: ErrorResponse,
+        500: ErrorResponse
+    }
+)
 @login_required
-def get_user_by_id(user_id):
+def get_user_by_id(path: GetUserPath):
     try:
+        user_id = path.user_id
         user = session.query(User).filter_by(id=user_id).first()
         if not user:
             return jsonify({"success": False, "message": "User not found"}), 404

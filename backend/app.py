@@ -1,21 +1,21 @@
-from flask import Flask
-from flask_login import LoginManager, current_user
 from flask_cors import CORS
-from datetime import timedelta
-from models import init_db, User, SessionLocal, session
-from routes.properties import properties_bp
-from routes.uploads import uploads_bp
-from routes.auth import auth_bp
-from routes.users import users_bp
-from routes.matches import matches_bp
-from routes.voucher import voucher_bp
-from routes.accessibility import accessibility_bp
-from flask import Flask
-from config import UPLOAD_FOLDER, DATABASE_CONFIG, SECRET_KEY, SESSION_COOKIE_NAME
+from flask_login import LoginManager, current_user
+from flask_openapi3 import OpenAPI, Info
 from sqlalchemy import create_engine
 
-# Initialize Flask app
-app = Flask(__name__)
+from config import UPLOAD_FOLDER, DATABASE_CONFIG, SECRET_KEY, SESSION_COOKIE_NAME
+from models import init_db, User, SessionLocal, session
+from routes.accessibility import accessibility_api
+from routes.auth import auth_api
+from routes.matches import matches_api
+from routes.properties import properties_api
+from routes.uploads import uploads_api
+from routes.users import users_api
+from routes.voucher import voucher_api
+
+# Initialize OpenAPI app
+info = Info(title="Property Matching API", version="1.0.0")
+app = OpenAPI(__name__, info=info)
 
 # Load configurations
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -33,13 +33,13 @@ engine = create_engine(
 init_db()
 
 # Register all routes from the routes package
-app.register_blueprint(properties_bp)
-app.register_blueprint(uploads_bp)
-app.register_blueprint(auth_bp)
-app.register_blueprint(users_bp)
-app.register_blueprint(matches_bp)
-app.register_blueprint(voucher_bp)
-app.register_blueprint(accessibility_bp)
+app.register_api(properties_api)
+app.register_api(uploads_api)
+app.register_api(auth_api)
+app.register_api(users_api)
+app.register_api(matches_api)
+app.register_api(voucher_api)
+app.register_api(accessibility_api)
 
 # Initialize CORS to allow credentials (cookies)
 CORS(app, supports_credentials=True)
@@ -49,15 +49,18 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "auth.login"
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return session.query(User).get(int(user_id))
+
 
 @app.before_request
 def check_user():
     """ Logs if a user is not authenticated before processing a request """
     if not current_user.is_authenticated:
         print("User not authenticated")
+
 
 @app.teardown_appcontext
 def cleanup_session(exception=None):
@@ -72,6 +75,7 @@ def cleanup_session(exception=None):
         db.rollback()
     finally:
         db.close()
+
 
 # Main entry point
 if __name__ == '__main__':

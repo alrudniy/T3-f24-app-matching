@@ -1,16 +1,21 @@
-from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
-from models import session, Property, PropertyImage, Accessibility
-from werkzeug.utils import secure_filename
 import os
 import traceback
-from sqlalchemy.exc import SQLAlchemyError
-import config
-from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 
-# Blueprint for properties
-properties_bp = Blueprint("properties", __name__)
+from flask import jsonify, request
+from flask_login import login_required, current_user
+from flask_openapi3 import APIBlueprint, Tag
+from pydantic import BaseModel, Field
+from sqlalchemy.exc import SQLAlchemyError
+from werkzeug.utils import secure_filename
+
+import config
+from models import session, Property, PropertyImage, Accessibility
+
+# APIBlueprint for properties
+properties_tag = Tag(name="properties", description="Property management operations")
+properties_api = APIBlueprint("properties", __name__, abp_tags=[properties_tag])
+
 
 # Pydantic models for validation
 class PropertyCreateModel(BaseModel):
@@ -26,6 +31,7 @@ class PropertyCreateModel(BaseModel):
     class Config:
         orm_mode = True
 
+
 class PropertyUpdateModel(BaseModel):
     size_sqft: Optional[float] = Field(None, description="Size in square feet")
     price: Optional[float] = Field(None, description="Price")
@@ -39,11 +45,73 @@ class PropertyUpdateModel(BaseModel):
     class Config:
         orm_mode = True
 
+
 class AccessibilityAddModel(BaseModel):
     accessibility_ids: List[int] = Field(..., description="List of accessibility IDs")
 
     class Config:
         orm_mode = True
+
+
+# Response models
+class SuccessResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    message: str = Field(..., description="Success message")
+
+
+class ErrorResponse(BaseModel):
+    success: bool = Field(False, description="Error status")
+    message: str = Field(..., description="Error message")
+    error: Optional[str] = Field(None, description="Detailed error information")
+
+
+class PropertyCreateSuccessResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    message: str = Field(..., description="Success message")
+    property_id: int = Field(..., description="ID of the created property")
+
+
+class PropertyImageData(BaseModel):
+    id: int = Field(..., description="Image ID")
+    image_url: str = Field(..., description="Image URL")
+
+
+class PropertyDetailData(BaseModel):
+    id: int = Field(..., description="Property ID")
+    name: str = Field(..., description="Property name")
+    size_sqft: float = Field(..., description="Size in square feet")
+    price: float = Field(..., description="Price")
+    bedrooms: int = Field(..., description="Number of bedrooms")
+    bathrooms: int = Field(..., description="Number of bathrooms")
+    street_address: str = Field(..., description="Street address")
+    city: str = Field(..., description="City")
+    user_id: int = Field(..., description="User ID of the owner")
+    image_url: str = Field(..., description="Primary image URL")
+    images: List[str] = Field(..., description="List of all image URLs")
+    accessibilities: List[str] = Field(..., description="List of accessibility types")
+    businessName: Optional[str] = Field(None, description="Business name")
+    description: Optional[str] = Field(None, description="Property description")
+
+
+class PropertyListResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    properties: List[PropertyDetailData] = Field(..., description="List of properties")
+
+
+class PropertyDetailResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    property: PropertyDetailData = Field(..., description="Property details")
+
+
+class AccessibilityData(BaseModel):
+    id: int = Field(..., description="Accessibility ID")
+    type: str = Field(..., description="Accessibility type")
+
+
+class AccessibilityListResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    accessibilities: List[AccessibilityData] = Field(..., description="List of accessibilities")
+
 
 # ------------------------------
 # Helper function to check file extension
@@ -51,13 +119,42 @@ class AccessibilityAddModel(BaseModel):
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in config.ALLOWED_EXTENSIONS
 
+
 # ------------------------------
 # Edit a Property (Update/Delete Images)
 # ------------------------------
-@properties_bp.route("/property/edit/<int:property_id>", methods=["PUT"])
+class PropertyEditFormData(BaseModel):
+    size_sqft: Optional[str] = Field(None, description="Size in square feet")
+    price: Optional[str] = Field(None, description="Price")
+    bedrooms: Optional[str] = Field(None, description="Number of bedrooms")
+    bathrooms: Optional[str] = Field(None, description="Number of bathrooms")
+    street_address: Optional[str] = Field(None, description="Street address")
+    city: Optional[str] = Field(None, description="City")
+    name: Optional[str] = Field(None, description="Property name")
+    description: Optional[str] = Field(None, description="Property description")
+    delete_image_ids: Optional[List[str]] = Field(None, description="IDs of images to delete")
+
+
+class EditPropertyPath(BaseModel):
+    property_id: int = Field(..., description="Property ID")
+
+
+@properties_api.put(
+    "/property/edit/<int:property_id>",
+    summary="Edit a property",
+    description="Update property details and manage images",
+    responses={
+        200: SuccessResponse,
+        400: ErrorResponse,
+        403: ErrorResponse,
+        404: ErrorResponse,
+        500: ErrorResponse
+    },
+)
 @login_required
-def edit_property(property_id):
+def edit_property(path: EditPropertyPath, form: PropertyEditFormData):
     try:
+        property_id = path.property_id
         print(f"🔹 Current User ID: {current_user.id}")
         print(f"🔹 Checking Property Ownership for ID: {property_id}")
 
@@ -71,27 +168,25 @@ def edit_property(property_id):
         if int(prop.user_id) != int(current_user.id):  # Ensure matching types
             return jsonify({"success": False, "message": "Unauthorized access"}), 403
 
-        data = request.form
-
         try:
             # Prepare data for validation
             update_data = {}
-            if 'size_sqft' in data:
-                update_data['size_sqft'] = float(data.get('size_sqft'))
-            if 'price' in data:
-                update_data['price'] = float(data.get('price'))
-            if 'bedrooms' in data:
-                update_data['bedrooms'] = int(data.get('bedrooms'))
-            if 'bathrooms' in data:
-                update_data['bathrooms'] = int(data.get('bathrooms'))
-            if 'street_address' in data:
-                update_data['street_address'] = data.get('street_address')
-            if 'city' in data:
-                update_data['city'] = data.get('city')
-            if 'name' in data:
-                update_data['name'] = data.get('name')
-            if 'description' in data:
-                update_data['description'] = data.get('description')
+            if form.size_sqft:
+                update_data['size_sqft'] = float(form.size_sqft)
+            if form.price:
+                update_data['price'] = float(form.price)
+            if form.bedrooms:
+                update_data['bedrooms'] = int(form.bedrooms)
+            if form.bathrooms:
+                update_data['bathrooms'] = int(form.bathrooms)
+            if form.street_address:
+                update_data['street_address'] = form.street_address
+            if form.city:
+                update_data['city'] = form.city
+            if form.name:
+                update_data['name'] = form.name
+            if form.description:
+                update_data['description'] = form.description
 
             # Validate data using Pydantic model
             property_data = PropertyUpdateModel(**update_data)
@@ -118,9 +213,8 @@ def edit_property(property_id):
             return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
 
         # Handle deleting images if requested
-        delete_image_ids = request.form.getlist("delete_image_ids")
-        if delete_image_ids:
-            for image_id in delete_image_ids:
+        if form.delete_image_ids:
+            for image_id in form.delete_image_ids:
                 image = session.query(PropertyImage).filter_by(id=image_id, property_id=property_id).first()
                 if image:
                     image_path = os.path.join(config.UPLOAD_FOLDER, image.image_url)
@@ -155,26 +249,45 @@ def edit_property(property_id):
 # ------------------------------
 # Create a property
 # ------------------------------
-@properties_bp.route('/property/create', methods=['POST'])
+class PropertyCreateFormData(BaseModel):
+    size_sqft: str = Field(..., description="Size in square feet")
+    price: str = Field(..., description="Price")
+    bedrooms: str = Field(..., description="Number of bedrooms")
+    bathrooms: str = Field(..., description="Number of bathrooms")
+    street_address: str = Field(..., description="Street address")
+    city: str = Field(..., description="City")
+    name: str = Field(..., description="Property name")
+    description: Optional[str] = Field("", description="Property description")
+
+
+@properties_api.post(
+    '/property/create',
+    summary="Create a property",
+    description="Create a new property listing",
+    responses={
+        201: PropertyCreateSuccessResponse,
+        400: ErrorResponse,
+        403: ErrorResponse,
+        500: ErrorResponse
+    },
+)
 @login_required
-def create_property():
+def create_property(form: PropertyCreateFormData):
     try:
         if current_user.role != "landlord":
             return jsonify({"success": False, "message": "Only landlords can create properties"}), 403
 
-        data = request.form
-
         try:
             # Validate data using Pydantic model
             property_data = PropertyCreateModel(
-                size_sqft=float(data.get('size_sqft', 0)),
-                price=float(data.get('price', 0)),
-                bedrooms=int(data.get('bedrooms', 0)),
-                bathrooms=int(data.get('bathrooms', 0)),
-                street_address=data.get('street_address', ''),
-                city=data.get('city', ''),
-                name=data.get('name', ''),
-                description=data.get('description', '')
+                size_sqft=float(form.size_sqft),
+                price=float(form.price),
+                bedrooms=int(form.bedrooms),
+                bathrooms=int(form.bathrooms),
+                street_address=form.street_address,
+                city=form.city,
+                name=form.name,
+                description=form.description or ''
             )
         except ValueError as e:
             return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
@@ -207,31 +320,41 @@ def create_property():
     finally:
         session.close()
 
+
+class AddAccessibilityToPropertyPath(BaseModel):
+    property_id: int = Field(..., description="Property ID")
+
+
 # ------------------------------
 # Add Accessibilities to Properties (Landlord only)
 # ------------------------------
-@properties_bp.route("/property/<int:property_id>/add-accessibility", methods=["POST"])
-def add_accessibility_to_property(property_id):
+@properties_api.post(
+    "/property/<int:property_id>/add-accessibility",
+    summary="Add accessibilities to a property",
+    description="Add accessibility features to a property (landlord only)",
+    responses={
+        200: SuccessResponse,
+        400: ErrorResponse,
+        403: ErrorResponse,
+        404: ErrorResponse,
+        500: ErrorResponse
+    },
+)
+@login_required
+def add_accessibility_to_property(path: AddAccessibilityToPropertyPath, body: AccessibilityAddModel):
     try:
+        property_id = path.property_id
         if current_user.role != "landlord":
             return jsonify({"success": False, "message": "Only landlords can modify property accessibility"}), 403
 
-        data = request.json
-
-        try:
-            # Validate data using Pydantic model
-            accessibility_data = AccessibilityAddModel(**data)
-        except ValueError as e:
-            return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
-
-        if not accessibility_data.accessibility_ids:
+        if not body.accessibility_ids:
             return jsonify({"success": False, "message": "No accessibility IDs provided"}), 400
 
         prop = session.query(Property).filter_by(id=property_id, user_id=current_user.id).first()
         if not prop:
             return jsonify({"success": False, "message": "Property not found"}), 404
 
-        for accessibility_id in accessibility_data.accessibility_ids:
+        for accessibility_id in body.accessibility_ids:
             accessibility = session.query(Accessibility).filter_by(accessibilityID=accessibility_id).first()
             if accessibility and accessibility not in prop.accessibilities:
                 prop.accessibilities.append(accessibility)
@@ -246,10 +369,19 @@ def add_accessibility_to_property(property_id):
     finally:
         session.close()
 
+
 # ------------------------------
 # Get all properties
 # ------------------------------
-@properties_bp.route('/api/properties', methods=['GET'])
+@properties_api.get(
+    '/api/properties',
+    summary="Get all properties",
+    description="Retrieve a list of all properties",
+    responses={
+        200: PropertyListResponse,
+        500: ErrorResponse
+    }
+)
 def get_properties():
     try:
         properties = session.query(Property).all()
@@ -287,7 +419,7 @@ def get_properties():
                 "images": images,
                 "accessibilities": accessibilities,
                 "businessName": prop.user.businessName if prop.user else None,
-                "description": prop.description 
+                "description": prop.description
             }
             property_list.append(property_data)
 
@@ -296,12 +428,27 @@ def get_properties():
     except Exception as e:
         return jsonify({"success": False, "message": "An unexpected error occurred", "error": str(e)}), 500
 
+
+class GetPropertyPath(BaseModel):
+    property_id: int = Field(..., description="Property ID")
+
+
 # ------------------------------
 # Get a single property
 # ------------------------------
-@properties_bp.route('/api/properties/<int:property_id>', methods=['GET'])
-def get_property(property_id):
+@properties_api.get(
+    '/api/properties/<int:property_id>',
+    summary="Get a property",
+    description="Retrieve details of a specific property",
+    responses={
+        200: PropertyDetailResponse,
+        404: ErrorResponse,
+        500: ErrorResponse
+    }
+)
+def get_property(path: GetPropertyPath):
     try:
+        property_id = path.property_id
         prop = session.query(Property).filter_by(id=property_id).first()
         if not prop:
             return jsonify({"success": False, "message": "Property not found"}), 404
@@ -333,7 +480,7 @@ def get_property(property_id):
             "images": images,
             "accessibilities": accessibilities,
             "businessName": prop.user.businessName if prop.user else None,
-            "description": prop.description  
+            "description": prop.description
         }
 
         return jsonify({"success": True, "property": property_data}), 200
@@ -343,14 +490,28 @@ def get_property(property_id):
     finally:
         session.close()
 
+
+class DeletePropertyPath(BaseModel):
+    property_id: int = Field(..., description="Property ID")
+
+
 # ------------------------------
 # Delete a property
 # ------------------------------
-@properties_bp.route('/property/delete/<int:property_id>', methods=['DELETE'])
+@properties_api.delete(
+    '/property/delete/<int:property_id>',
+    summary="Delete a property",
+    description="Delete a specific property (owner only)",
+    responses={
+        200: SuccessResponse,
+        404: ErrorResponse,
+        500: ErrorResponse
+    }
+)
 @login_required
-def delete_property(property_id):
+def delete_property(path: DeletePropertyPath):
     try:
-        prop = session.query(Property).filter_by(id=property_id, user_id=current_user.id).first()
+        prop = session.query(Property).filter_by(id=path.property_id, user_id=current_user.id).first()
         if not prop:
             return jsonify({"success": False, "message": "Property not found"}), 404
 
@@ -364,10 +525,19 @@ def delete_property(property_id):
     finally:
         session.close()
 
+
 # ------------------------------
 # Get all accessibilities
 # ------------------------------
-@properties_bp.route("/api/accessibilities", methods=["GET"])
+@properties_api.get(
+    "/api/accessibilities",
+    summary="Get all accessibilities",
+    description="Retrieve a list of all accessibility types",
+    responses={
+        200: AccessibilityListResponse,
+        500: ErrorResponse
+    }
+)
 def get_accessibilities():
     try:
         accessibilities = session.query(Accessibility).all()

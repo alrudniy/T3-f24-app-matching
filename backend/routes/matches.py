@@ -1,37 +1,91 @@
-from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
-from models import session, Match, Property, User
 import traceback
+from typing import Optional, List
+
+from flask import jsonify
+from flask_login import login_required, current_user
+from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
-from typing import Optional
 
-# Create Blueprint for matches
-matches_bp = Blueprint("matches", __name__)
+from models import session, Match, Property, User
 
-# Pydantic model for validation
+# Create APIBlueprint for matches
+matches_tag = Tag(name="matches", description="Match operations between tenants and properties")
+matches_api = APIBlueprint("matches", __name__, abp_tags=[matches_tag])
+
+
+# Pydantic models for validation
 class PropertyMatchModel(BaseModel):
     property_id: int = Field(..., description="ID of the property to match")
 
     class Config:
         orm_mode = True
 
+
+# Response models
+class SuccessResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    message: str = Field(..., description="Success message")
+
+
+class ErrorResponse(BaseModel):
+    success: bool = Field(False, description="Error status")
+    message: str = Field(..., description="Error message")
+    error: Optional[str] = Field(None, description="Detailed error information")
+
+
+class PropertyData(BaseModel):
+    id: int = Field(..., description="Property ID")
+    name: str = Field(..., description="Property name")
+    size_sqft: float = Field(..., description="Size in square feet")
+    price: float = Field(..., description="Price")
+    bedrooms: int = Field(..., description="Number of bedrooms")
+    bathrooms: int = Field(..., description="Number of bathrooms")
+    street: str = Field(..., description="Street address")
+    city: str = Field(..., description="City")
+    image_url: str = Field(..., description="Image URL")
+    businessName: Optional[str] = Field(None, description="Business name")
+    accessibilities: List[str] = Field([], description="List of accessibility types")
+
+
+class MatchedPropertiesResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    matched_properties: List[PropertyData] = Field(..., description="List of matched properties")
+
+
+class TenantData(BaseModel):
+    id: int = Field(..., description="Tenant ID")
+    tenantFirstName: str = Field(..., description="Tenant first name")
+    tenantLastName: str = Field(..., description="Tenant last name")
+    tenantProfileImageUrl: str = Field(..., description="Tenant profile image URL")
+    propertyName: str = Field(..., description="Property name")
+    propertyId: int = Field(..., description="Property ID")
+
+
+class MatchedTenantsResponse(BaseModel):
+    success: bool = Field(True, description="Success status")
+    matched_tenants: List[TenantData] = Field(..., description="List of matched tenants")
+
+
 # Match a property (Tenant only)
-@matches_bp.route("/api/match", methods=["POST"])
+@matches_api.post(
+    "/api/match",
+    summary="Match a property",
+    description="Tenant can match with a property they are interested in",
+    responses={
+        200: SuccessResponse,
+        400: ErrorResponse,
+        403: ErrorResponse,
+        404: ErrorResponse,
+        500: ErrorResponse
+    },
+)
 @login_required
-def match_property():
+def match_property(body: PropertyMatchModel):
     if current_user.role != "tenant":
         return jsonify({"success": False, "message": "Only tenants can match properties"}), 403
 
     try:
-        data = request.json
-
-        try:
-            # Validate data using Pydantic model
-            match_data = PropertyMatchModel(**data)
-        except ValueError as e:
-            return jsonify({"success": False, "message": f"Validation error: {str(e)}"}), 400
-
-        property_id = match_data.property_id
+        property_id = body.property_id
         property = session.query(Property).filter_by(id=property_id).first()
         if not property:
             return jsonify({"success": False, "message": "Property not found"}), 404
@@ -52,8 +106,18 @@ def match_property():
     finally:
         session.close()
 
+
 # Get all matched properties for the current tenant user
-@matches_bp.route("/api/user/matched-properties", methods=["GET"])
+@matches_api.get(
+    "/api/user/matched-properties",
+    summary="Get matched properties",
+    description="Get all properties that the current tenant user has matched with",
+    responses={
+        200: MatchedPropertiesResponse,
+        403: ErrorResponse,
+        500: ErrorResponse
+    }
+)
 @login_required
 def get_matched_properties():
     try:
@@ -90,7 +154,7 @@ def get_matched_properties():
                     "city": prop.city,
                     "image_url": image_url,
                     "businessName": prop.user.businessName if prop.user else None,
-                    "accessibilities": accessibilities,   # <--- include accessibilities
+                    "accessibilities": accessibilities,  # <--- include accessibilities
                 })
 
         return jsonify({"success": True, "matched_properties": matched_properties}), 200
@@ -101,13 +165,19 @@ def get_matched_properties():
         session.close()
 
 
-#Get all matched properties for the current landlord user
-@matches_bp.route("/api/landlord/matched-tenants", methods=["GET"])
+# Get all matched tenants for the current landlord user
+@matches_api.get(
+    "/api/landlord/matched-tenants",
+    summary="Get matched tenants",
+    description="Returns a list of tenants (users) who have matched with the properties owned by the current landlord",
+    responses={
+        200: MatchedTenantsResponse,
+        403: ErrorResponse,
+        500: ErrorResponse
+    }
+)
 @login_required
 def get_matched_tenants():
-    """
-    Returns a list of tenants (users) who have matched with the properties owned by the current landlord.
-    """
     try:
         # 1. Check if current_user is a landlord
         if current_user.role != "landlord":
@@ -127,7 +197,7 @@ def get_matched_tenants():
         # 3. Build a list of tenant details from these matches
         matched_tenants = []
         for match in landlord_matches:
-            tenant_user = match.user  
+            tenant_user = match.user
             if tenant_user:
                 matched_tenants.append({
                     "id": tenant_user.id,
