@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@hey-api/client-fetch": "^0.10.0",
     "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-native-picker/picker": "^2.9.0",
     "@react-navigation/drawer": "^6.7.2",
@@ -47,6 +48,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@hey-api/openapi-ts": "^0.66.5",
     "@types/jest": "^29.5.12",
     "@types/react": "~18.2.45",
     "@types/react-test-renderer": "^18.0.7",
